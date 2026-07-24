@@ -3,970 +3,964 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C++ 可視化學習工具 - 高中生專用</title>
+    <title>C++ 魔法動畫師 🪄 - 高中生程式視覺化工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
         body {
-            font-family: 'Microsoft YaHei', '微軟正黑體', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        
+        .code-font {
+            font-family: 'Fira Code', monospace;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .line-highlight {
+            background-color: rgba(59, 130, 246, 0.25);
+            border-left: 4px solid #3b82f6;
         }
 
-        h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .var-card {
+            transition: all 0.3s ease;
         }
 
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+        .var-updated {
+            animation: pulse-glow 0.6s ease-in-out;
         }
 
-        @media (max-width: 900px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
+        @keyframes pulse-glow {
+            0% { transform: scale(1); box-shadow: 0 0 0px rgba(59, 130, 246, 0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 0px rgba(59, 130, 246, 0); }
         }
 
-        .panel {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .panel-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        textarea {
-            width: 100%;
-            height: 300px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            resize: vertical;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-
-        .btn-run {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-run:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-reset {
-            background: #f093fb;
-            color: white;
-        }
-
-        .btn-reset:hover {
-            background: #f5576c;
-        }
-
-        .btn-example {
-            background: #4facfe;
-            color: white;
-        }
-
-        .btn-example:hover {
-            background: #00f2fe;
-        }
-
-        .visualization-area {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            min-height: 400px;
-        }
-
-        .code-line {
-            padding: 8px 12px;
-            margin: 5px 0;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .code-line.active {
-            background: #fff3cd;
-            border-left-color: #ffc107;
-            transform: translateX(10px);
-        }
-
-        .code-line.executed {
-            background: #d4edda;
-            border-left-color: #28a745;
-        }
-
-        .variable-box {
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
-            display: inline-block;
-            min-width: 120px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .variable-box.updated {
-            animation: pulse 0.5s ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .var-name {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 16px;
-        }
-
-        .var-value {
-            font-size: 24px;
-            color: #333;
-            margin-top: 5px;
-        }
-
-        .output-console {
-            background: #1e1e1e;
-            color: #00ff00;
-            font-family: 'Courier New', monospace;
-            padding: 15px;
-            border-radius: 10px;
-            min-height: 150px;
-            margin-top: 20px;
-            white-space: pre-wrap;
-        }
-
-        .explanation-box {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 5px;
-        }
-
-        .explanation-title {
-            font-weight: bold;
-            color: #1976D2;
-            margin-bottom: 10px;
-        }
-
-        .loop-indicator {
-            display: inline-block;
-            padding: 5px 15px;
-            background: #ff9800;
-            color: white;
-            border-radius: 20px;
-            margin: 5px;
-            font-weight: bold;
-        }
-
-        .condition-box {
-            background: #fff3e0;
-            border: 2px solid #ff9800;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .condition-true {
-            background: #d4edda;
-            border-color: #28a745;
-        }
-
-        .condition-false {
-            background: #f8d7da;
-            border-color: #dc3545;
-        }
-
-        .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .speed-control label {
-            font-weight: bold;
-            color: #333;
-        }
-
-        input[type="range"] {
-            flex: 1;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
             height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
             border-radius: 4px;
-            background: #ddd;
-            outline: none;
         }
-
-        .example-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .step-indicator {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 15px 0;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🎓 C++ 可視化學習工具</h1>
-        
-        <div class="main-grid">
-            <div class="panel">
-                <div class="panel-title">💻 輸入你的 C++ 程式碼</div>
-                <textarea id="codeInput" placeholder="在這裡輸入簡單的 C++ 程式碼...
+<body class="h-screen flex flex-col overflow-hidden">
 
-支援的功能：
-- for 迴圈
-- if-else 條件判斷
-- do-while 迴圈
-- cout 打印訊息
-- 變數宣告和運算
-
-範例：
-int i = 0;
-for(i = 0; i < 5; i++) {
-    cout << "第 " << i << " 次迴圈";
-}"></textarea>
-                
-                <div class="example-buttons">
-                    <button class="btn-example" onclick="loadExample('for')">For 迴圈範例</button>
-                    <button class="btn-example" onclick="loadExample('if')">If-Else 範例</button>
-                    <button class="btn-example" onclick="loadExample('dowhile')">Do-While 範例</button>
-                    <button class="btn-example" onclick="loadExample('mixed')">綜合範例</button>
-                </div>
-
-                <div class="controls">
-                    <button class="btn-run" onclick="runCode()">▶️ 開始執行</button>
-                    <button class="btn-reset" onclick="resetVisualization()">🔄 重新開始</button>
-                </div>
-
-                <div class="speed-control">
-                    <label>執行速度：</label>
-                    <input type="range" id="speedSlider" min="100" max="2000" value="800">
-                    <span id="speedValue">800ms</span>
-                </div>
+    <header class="bg-slate-900 border-b border-slate-800 text-white px-6 py-3 flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-2 rounded-lg text-white">
+                <i class="fa-solid font-bold fa-code text-xl"></i>
             </div>
-
-            <div class="panel">
-                <div class="panel-title">🎬 可視化執行過程</div>
-                <div class="visualization-area">
-                    <div class="step-indicator" id="stepIndicator">準備就緒</div>
-                    
-                    <div id="codeVisualization">
-                        <!-- 程式碼行會顯示在這裡 -->
-                    </div>
-
-                    <div id="variablesArea" style="margin-top: 20px;">
-                        <!-- 變數會顯示在這裡 -->
-                    </div>
-
-                    <div id="conditionArea"></div>
-
-                    <div class="output-console" id="outputConsole">
-// 輸出結果將顯示在這裡
-                    </div>
-
-                    <div class="explanation-box" id="explanationBox">
-                        <div class="explanation-title">💡 說明：</div>
-                        <div id="explanationText">點擊「開始執行」按鈕來查看程式碼的執行過程！</div>
-                    </div>
-                </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">C++ 魔法動畫師 🪄</h1>
+                <p class="text-xs text-slate-400">專為高中生設計的 C++ 程式視覺化執行工具</p>
             </div>
         </div>
-    </div>
+
+        <div class="flex items-center gap-4">
+            <label for="example-select" class="text-sm font-medium text-slate-300">選擇範例：</label>
+            <select id="example-select" class="bg-slate-800 text-blue-300 border border-slate-700 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <optgroup label="Level 1: 入門 (變數與基礎運算)">
+                    <option value="ex1_vars">1. 變數與基礎運算</option>
+                    <option value="ex2_swap">2. 數值交換 (Temp 變數)</option>
+                    <option value="ex3_ops">3. 四則運算與取餘數 (%)</option>
+                    <option value="ex4_area">4. 矩形面積與周長計算</option>
+                    <option value="ex5_accum">5. 變數連續更新與累計</option>
+                </optgroup>
+                <optgroup label="Level 2: 初階 (If-Else 條件判斷)">
+                    <option value="ex6_if_pass">6. If-Else 檢查及格</option>
+                    <option value="ex7_if_even">7. If-Else 判斷奇偶數</option>
+                    <option value="ex8_if_max">8. 找出兩數中的最大值</option>
+                    <option value="ex9_elseif_grade">9. If-Else-If 成績分級</option>
+                    <option value="ex10_if_nest">10. 購物折扣判斷</option>
+                </optgroup>
+                <optgroup label="Level 3: 中階 (迴圈基礎)">
+                    <option value="ex11_while_cnt">11. While 迴圈正數計時</option>
+                    <option value="ex12_dowhile_cd">12. Do-While 倒數計時</option>
+                    <option value="ex13_for_cnt">13. Single For 印出序列</option>
+                    <option value="ex14_for_sum">14. Single For 數字累加</option>
+                    <option value="ex15_for_fact">15. Single For 階乘計算 (N!)</option>
+                    <option value="ex16_for_step">16. Single For 自訂步長 (+2)</option>
+                </optgroup>
+                <optgroup label="Level 4: 進階 (For + If 組合)">
+                    <option value="ex17_for_even">17. For + If 篩選累加偶數</option>
+                    <option value="ex18_for_count3">18. For + If 統計倍數個數</option>
+                    <option value="ex19_for_flag">19. For + If 搜尋標記 (Flag)</option>
+                    <option value="ex20_for_max">20. For + If 尋找最大值</option>
+                    <option value="ex21_for_alternate">21. For 迴圈正負交錯加減</option>
+                </optgroup>
+                <optgroup label="Level 5: 挑戰 (2層巢狀迴圈)">
+                    <option value="ex22_grid">22. 2層 For - 2D 網格座標</option>
+                    <option value="ex23_square">23. 2層 For - 實心正方形</option>
+                    <option value="ex24_mult">24. 2層 For - 九九乘法表</option>
+                    <option value="ex25_triangle">25. 2層 For - 直角三角形</option>
+                    <option value="ex26_inv_tri">26. 2層 For - 倒直角三角形</option>
+                    <option value="ex27_pyramid">27. 2層 For - 數字金字塔</option>
+                </optgroup>
+                <optgroup label="Level 6: 大師 (3層巢狀迴圈)">
+                    <option value="ex28_3d_cube">28. 3層 For - 3D 空間網格</option>
+                    <option value="ex29_3d_sum">29. 3層 For - 3D 體積累計</option>
+                    <option value="ex30_3d_combo">30. 3層 For + If 條件過濾</option>
+                </optgroup>
+            </select>
+        </div>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 overflow-hidden">
+
+        <!-- Left Side: Code Display & Controls (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+            <!-- Title Bar -->
+            <div class="bg-slate-800 px-4 py-2 flex justify-between items-center border-b border-slate-700">
+                <span class="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-file-code text-blue-400"></i> main.cpp
+                </span>
+                <span id="step-counter" class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded">
+                    步驟 0 / 0
+                </span>
+            </div>
+
+            <!-- Code Viewing Area -->
+            <div class="flex-1 overflow-auto p-2 code-font text-sm leading-relaxed bg-slate-950" id="code-container">
+                <!-- Lines populated dynamically -->
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="p-4 bg-slate-900 border-t border-slate-800 flex flex-col gap-3">
+                <div class="flex justify-between items-center gap-2">
+                    <button id="btn-prev" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-backward-step"></i> 上一步
+                    </button>
+                    <button id="btn-play" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30">
+                        <i class="fa-solid fa-play"></i> 播放
+                    </button>
+                    <button id="btn-next" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        下一步 <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                    <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-3 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3 pt-1">
+                    <i class="fa-solid fa-gauge-high text-xs text-slate-400"></i>
+                    <span class="text-xs text-slate-400">播放速度:</span>
+                    <input type="range" id="speed-slider" min="100" max="1500" value="600" step="50" class="flex-1 accent-blue-500 cursor-pointer">
+                    <span id="speed-text" class="text-xs font-mono text-blue-400 min-w-[50px]">600ms</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Side: Visualization Dashboard (7 Cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-4 overflow-hidden">
+            
+            <!-- Step Explanation Banner -->
+            <div class="bg-gradient-to-r from-blue-900/40 to-slate-900 border border-blue-500/30 rounded-xl p-4 flex items-center gap-3">
+                <div class="bg-blue-500/20 p-3 rounded-lg text-blue-400">
+                    <i class="fa-solid fa-lightbulb text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">當前執行狀態</h3>
+                    <p id="step-description" class="text-base text-slate-100 font-medium mt-0.5">點擊「播放」或「下一步」開始體驗 C++ 執行動畫！</p>
+                </div>
+            </div>
+
+            <!-- Memory / Variables Visual Grid -->
+            <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col overflow-hidden shadow-lg">
+                <h3 class="text-sm font-bold text-slate-300 flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-memory text-emerald-400"></i> 記憶體變數監視器 (Memory Variables)
+                </h3>
+                <div id="variables-container" class="flex-1 overflow-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-1 content-start">
+                    <div class="col-span-full text-center py-8 text-slate-500 text-sm">
+                        尚未初始化任何變數
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output Console Panel -->
+            <div class="h-44 bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col shadow-lg">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-xs font-bold text-slate-400 flex items-center gap-2 uppercase tracking-wider">
+                        <i class="fa-solid fa-terminal text-amber-400"></i> 螢幕輸出 Console (cout)
+                    </h3>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Standard Output</span>
+                </div>
+                <div id="console-output" class="flex-1 bg-black/60 rounded-lg p-3 code-font text-emerald-400 text-sm overflow-auto whitespace-pre-wrap font-mono border border-slate-800/80">
+                    <!-- Console lines printed here -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
 
     <script>
-        let variables = {};
-        let output = [];
-        let isRunning = false;
-        let currentStep = 0;
-        let executionSpeed = 800;
-        let stopExecution = false;
-
-        // 更新速度顯示
-        document.getElementById('speedSlider').addEventListener('input', function(e) {
-            executionSpeed = parseInt(e.target.value);
-            document.getElementById('speedValue').textContent = executionSpeed + 'ms';
-        });
-
-        // 載入範例程式碼
-        function loadExample(type) {
-            const examples = {
-                'for': `// For 迴圈範例
-int i = 0;
-for(i = 0; i < 5; i++) {
-    cout << "第";
-    cout << i;
-    cout << "次迴圈";
+        const EXAMPLES = {
+            ex1_vars: `// 1. [入門] 變數與基礎運算
+int main() {
+    int a = 10;
+    int b = 20;
+    int sum = a + b;
+    cout << "a 的值是: " << a << endl;
+    cout << "b 的值是: " << b << endl;
+    cout << "兩數總和: " << sum << endl;
+    return 0;
 }`,
-                'if': `// If-Else 範例
-int score = 85;
-if(score >= 60) {
-    cout << "及格！";
-} else {
-    cout << "不及格";
-}
-cout << "完成";`,
-                'dowhile': `// Do-While 範例
-int count = 1;
-do {
-    cout << "次數：";
-    cout << count;
-    count = count + 1;
-} while(count <= 3);
-cout << "結束";`,
-                'mixed': `// 綜合範例
-int x = 1;
-for(x = 1; x <= 3; x++) {
-    if(x == 2) {
-        cout << "找到 2 了！";
+            ex2_swap: `// 2. [入門] 數值交換 (Temp 變數)
+int main() {
+    int x = 5;
+    int y = 9;
+    int temp = x;
+    x = y;
+    y = temp;
+    cout << "交換後: x=" << x << ", y=" << y << endl;
+    return 0;
+}`,
+            ex3_ops: `// 3. [入門] 四則運算與取餘數 (%)
+int main() {
+    int num1 = 17;
+    int num2 = 5;
+    int quotient = num1 / num2;
+    int remainder = num1 % num2;
+    cout << "商數 = " << quotient << endl;
+    cout << "餘數 = " << remainder << endl;
+    return 0;
+}`,
+            ex4_area: `// 4. [入門] 矩形面積與周長計算
+int main() {
+    int width = 8;
+    int height = 5;
+    int area = width * height;
+    int perimeter = (width + height) * 2;
+    cout << "矩形面積 = " << area << endl;
+    cout << "矩形周長 = " << perimeter << endl;
+    return 0;
+}`,
+            ex5_accum: `// 5. [入門] 變數連續更新與累計
+int main() {
+    int score = 10;
+    score = score + 5;
+    score = score * 2;
+    cout << "最終分數: " << score << endl;
+    return 0;
+}`,
+            ex6_if_pass: `// 6. [初階] If-Else 檢查及格
+int main() {
+    int score = 65;
+    if (score >= 60) {
+        cout << "恭喜！考及格了！" << endl;
     } else {
-        cout << "x = ";
-        cout << x;
+        cout << "可惜！需要補考！" << endl;
     }
-}
-cout << "完成";`
-            };
-            
-            document.getElementById('codeInput').value = examples[type];
-            resetVisualization();
+    return 0;
+}`,
+            ex7_if_even: `// 7. [初階] If-Else 判斷奇偶數
+int main() {
+    int number = 14;
+    if (number % 2 == 0) {
+        cout << number << " 是偶數" << endl;
+    } else {
+        cout << number << " 是奇數" << endl;
+    }
+    return 0;
+}`,
+            ex8_if_max: `// 8. [初階] 找出兩數中的最大值
+int main() {
+    int a = 42;
+    int b = 27;
+    int maxVal = 0;
+    if (a > b) {
+        maxVal = a;
+    } else {
+        maxVal = b;
+    }
+    cout << "較大的數是: " << maxVal << endl;
+    return 0;
+}`,
+            ex9_elseif_grade: `// 9. [初階] If-Else-If 成績分級
+int main() {
+    int score = 85;
+    if (score >= 90) {
+        cout << "等級: A" << endl;
+    } else if (score >= 80) {
+        cout << "等級: B" << endl;
+    } else {
+        cout << "等級: C" << endl;
+    }
+    return 0;
+}`,
+            ex10_if_nest: `// 10. [初階] 購物折扣判斷
+int main() {
+    int totalAmount = 1200;
+    int isVIP = 1;
+    int finalPrice = totalAmount;
+    if (totalAmount >= 1000) {
+        if (isVIP == 1) {
+            finalPrice = totalAmount - 200;
+            cout << "VIP 滿千折 200！" << endl;
+        } else {
+            finalPrice = totalAmount - 100;
         }
- // 重置可視化
-        function resetVisualization() {
-            variables = {};
-            output = [];
-            isRunning = false;
-            currentStep = 0;
-            stopExecution = true;
-            
-            document.getElementById('codeVisualization').innerHTML = '';
-            document.getElementById('variablesArea').innerHTML = '';
-            document.getElementById('conditionArea').innerHTML = '';
-            document.getElementById('outputConsole').textContent = '// 輸出結果將顯示在這裡';
-            document.getElementById('explanationText').textContent = '點擊「開始執行」按鈕來查看程式碼的執行過程！';
-            document.getElementById('stepIndicator').textContent = '準備就緒';
+    }
+    cout << "結帳金額: " << finalPrice << endl;
+    return 0;
+}`,
+            ex11_while_cnt: `// 11. [中階] While 迴圈正數計時
+int main() {
+    int count = 1;
+    while (count <= 3) {
+        cout << "While 第 " << count << " 次" << endl;
+        count = count + 1;
+    }
+    return 0;
+}`,
+            ex12_dowhile_cd: `// 12. [中階] Do-While 倒數計時
+int main() {
+    int count = 3;
+    do {
+        cout << "倒數: " << count << endl;
+        count = count - 1;
+    } while (count > 0);
+    cout << "火箭發射！" << endl;
+    return 0;
+}`,
+            ex13_for_cnt: `// 13. [中階] Single For 印出序列
+int main() {
+    for (int i = 1; i <= 4; i = i + 1) {
+        cout << "i 的數值為: " << i << endl;
+    }
+    return 0;
+}`,
+            ex14_for_sum: `// 14. [中階] Single For 數字累加
+int main() {
+    int sum = 0;
+    for (int i = 1; i <= 5; i = i + 1) {
+        sum = sum + i;
+        cout << "加到 " << i << "，當前總和 = " << sum << endl;
+    }
+    return 0;
+}`,
+            ex15_for_fact: `// 15. [中階] Single For 階乘計算 (5!)
+int main() {
+    int factorial = 1;
+    for (int i = 1; i <= 5; i = i + 1) {
+        factorial = factorial * i;
+        cout << i << "! 當前乘積 = " << factorial << endl;
+    }
+    return 0;
+}`,
+            ex16_for_step: `// 16. [中階] Single For 自訂步長 (+2)
+int main() {
+    for (int i = 2; i <= 8; i = i + 2) {
+        cout << "偶數: " << i << endl;
+    }
+    return 0;
+}`,
+            ex17_for_even: `// 17. [進階] For + If 篩選累加偶數
+int main() {
+    int total = 0;
+    for (int n = 1; n <= 6; n = n + 1) {
+        if (n % 2 == 0) {
+            total = total + n;
+            cout << n << " 是偶數，累加總和 = " << total << endl;
+        }
+    }
+    return 0;
+}`,
+            ex18_for_count3: `// 18. [進階] For + If 統計 3 的倍數個數
+int main() {
+    int count = 0;
+    for (int i = 1; i <= 12; i = i + 1) {
+        if (i % 3 == 0) {
+            count = count + 1;
+            cout << i << " 是 3 的倍數，目前累計 " << count << " 個" << endl;
+        }
+    }
+    return 0;
+}`,
+            ex19_for_flag: `// 19. [進階] For + If 搜尋標記 (Flag)
+int main() {
+    int target = 7;
+    int found = 0;
+    for (int i = 1; i <= 10; i = i + 1) {
+        if (i == target) {
+            found = 1;
+            cout << "找到目標 " << target << " 了！" << endl;
+        }
+    }
+    return 0;
+}`,
+            ex20_for_max: `// 20. [進階] For + If 尋找最大值
+int main() {
+    int maxVal = 0;
+    for (int i = 1; i <= 5; i = i + 1) {
+        int current = i * 3 - 2;
+        if (current > maxVal) {
+            maxVal = current;
+        }
+    }
+    cout << "最大值為: " << maxVal << endl;
+    return 0;
+}`,
+            ex21_for_alternate: `// 21. [進階] For 迴圈正負交錯加減
+int main() {
+    int sum = 0;
+    for (int i = 1; i <= 5; i = i + 1) {
+        if (i % 2 == 1) {
+            sum = sum + i;
+        } else {
+            sum = sum - i;
+        }
+        cout << "第 " << i << " 項後總和 = " << sum << endl;
+    }
+    return 0;
+}`,
+            ex22_grid: `// 22. [挑戰] 2層 For - 2D 網格座標
+int main() {
+    for (int r = 1; r <= 2; r = r + 1) {
+        for (int c = 1; c <= 3; c = c + 1) {
+            cout << "座標 (" << r << ", " << c << ")" << endl;
+        }
+    }
+    return 0;
+}`,
+            ex23_square: `// 23. [挑戰] 2層 For - 實心正方形
+int main() {
+    for (int i = 1; i <= 3; i = i + 1) {
+        for (int j = 1; j <= 3; j = j + 1) {
+            cout << "# ";
+        }
+        cout << endl;
+    }
+    return 0;
+}`,
+            ex24_mult: `// 24. [挑戰] 2層 For - 九九乘法表
+int main() {
+    for (int i = 2; i <= 3; i = i + 1) {
+        for (int j = 1; j <= 3; j = j + 1) {
+            int prod = i * j;
+            cout << i << " x " << j << " = " << prod << endl;
+        }
+    }
+    return 0;
+}`,
+            ex25_triangle: `// 25. [挑戰] 2層 For - 直角三角形
+int main() {
+    for (int i = 1; i <= 3; i = i + 1) {
+        for (int j = 1; j <= i; j = j + 1) {
+            cout << "* ";
+        }
+        cout << endl;
+    }
+    return 0;
+}`,
+            ex26_inv_tri: `// 26. [挑戰] 2層 For - 倒直角三角形
+int main() {
+    for (int i = 1; i <= 3; i = i + 1) {
+        for (int j = i; j <= 3; j = j + 1) {
+            cout << "* ";
+        }
+        cout << endl;
+    }
+    return 0;
+}`,
+            ex27_pyramid: `// 27. [挑戰] 2層 For - 數字金字塔
+int main() {
+    for (int i = 1; i <= 3; i = i + 1) {
+        for (int j = 1; j <= i; j = j + 1) {
+            cout << i << " ";
+        }
+        cout << endl;
+    }
+    return 0;
+}`,
+            ex28_3d_cube: `// 28. [大師] 3層 For - 3D 空間網格 (2x2x2)
+int main() {
+    int total = 0;
+    for (int x = 1; x <= 2; x = x + 1) {
+        for (int y = 1; y <= 2; y = y + 1) {
+            for (int z = 1; z <= 2; z = z + 1) {
+                total = total + 1;
+                cout << "3D (" << x << "," << y << "," << z << ") 點 " << total << endl;
+            }
+        }
+    }
+    return 0;
+}`,
+            ex29_3d_sum: `// 29. [大師] 3層 For - 3D 體積累計
+int main() {
+    int grandTotal = 0;
+    for (int x = 1; x <= 2; x = x + 1) {
+        for (int y = 1; y <= 2; y = y + 1) {
+            for (int z = 1; z <= 2; z = z + 1) {
+                int vol = x * y * z;
+                grandTotal = grandTotal + vol;
+                cout << "x=" << x << " y=" << y << " z=" << z << " 體積=" << vol << endl;
+            }
+        }
+    }
+    cout << "總體積 = " << grandTotal << endl;
+    return 0;
+}`,
+            ex30_3d_combo: `// 30. [大師] 3層 For + If 條件過濾
+int main() {
+    int matchCount = 0;
+    for (int x = 1; x <= 2; x = x + 1) {
+        for (int y = 1; y <= 2; y = y + 1) {
+            for (int z = 1; z <= 2; z = z + 1) {
+                if (x == y) {
+                    matchCount = matchCount + 1;
+                    cout << "點 (" << x << "," << y << "," << z << ") 滿足 x==y" << endl;
+                }
+            }
+        }
+    }
+    return 0;
+}`
+        };
+
+        let currentSteps = [];
+        let currentStepIdx = -1;
+        let playInterval = null;
+        let animationSpeed = 600;
+
+        function evalExpr(expr, vars) {
+            let sanitized = expr.trim();
+            const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+            for (let name of varNames) {
+                const regex = new RegExp('\\b' + name + '\\b', 'g');
+                sanitized = sanitized.replace(regex, vars[name]);
+            }
+            try {
+                if (/^[0-9\s+\-*/%()]+$/.test(sanitized)) {
+                    return Function(`'use strict'; return (${sanitized})`)();
+                }
+            } catch (e) {}
+            return 0;
         }
 
-        // 解析程式碼
-        function parseCode(code) {
+        function evalCond(condStr, vars) {
+            let sanitized = condStr.trim();
+            const varNames = Object.keys(vars).sort((a, b) => b.length - a.length);
+            for (let name of varNames) {
+                const regex = new RegExp('\\b' + name + '\\b', 'g');
+                sanitized = sanitized.replace(regex, vars[name]);
+            }
+            try {
+                return Boolean(Function(`'use strict'; return (${sanitized})`)());
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function runSimulation(codeStr) {
+            const lines = codeStr.split('\n');
+            const steps = [];
+            let vars = {};
+            let output = [];
+            let loopCounter = 0;
+
+            function recordStep(lineIdx, desc) {
+                steps.push({
+                    line: lineIdx,
+                    vars: { ...vars },
+                    output: [...output],
+                    desc: desc
+                });
+            }
+
+            function findMatchingBrace(startIdx) {
+                let depth = 0;
+                for (let i = startIdx; i < lines.length; i++) {
+                    if (lines[i].includes('{')) depth += (lines[i].match(/\{/g) || []).length;
+                    if (lines[i].includes('}')) {
+                        depth -= (lines[i].match(/\}/g) || []).length;
+                        if (depth <= 0) return i;
+                    }
+                }
+                return lines.length - 1;
+            }
+
+            // Core Execution Range function
+            function execRange(start, end) {
+                let i = start;
+                while (i <= end) {
+                    if (steps.length > 2000) {
+                        throw new Error("執行步驟超過 2000 步，已終止以防程式掛起。");
+                    }
+
+                    const rawLine = lines[i];
+                    const line = rawLine ? rawLine.trim() : '';
+
+                    if (!line || line.startsWith('//') || line.startsWith('#') || line.startsWith('using') || line === '}' || line.startsWith('return') || line.includes('int main()')) {
+                        i++;
+                        continue;
+                    }
+
+                    // 1. cout Statement
+                    if (line.startsWith('cout')) {
+                        let parts = line.replace(/^cout\s*<<\s*/, '').replace(/;\s*$/, '').split('<<');
+                        let lineOutput = '';
+                        for (let part of parts) {
+                            part = part.trim();
+                            if (part === 'endl') {
+                                lineOutput += '\n';
+                            } else if (part.startsWith('"') && part.endsWith('"')) {
+                                lineOutput += part.slice(1, -1);
+                            } else if (part.startsWith('"') && part.includes('"')) {
+                                let strMatch = part.match(/^"([^"]*)"/);
+                                if (strMatch) lineOutput += strMatch[1];
+                            } else {
+                                lineOutput += evalExpr(part, vars);
+                            }
+                        }
+
+                        if (output.length === 0) output.push('');
+                        if (lineOutput.includes('\n')) {
+                            const subLines = lineOutput.split('\n');
+                            output[output.length - 1] += subLines[0];
+                            for (let s = 1; s < subLines.length; s++) {
+                                output.push(subLines[s]);
+                            }
+                        } else {
+                            output[output.length - 1] += lineOutput;
+                        }
+
+                        recordStep(i, `螢幕印出文字: "${lineOutput.replace(/\n/g, '\\n')}"`);
+                        i++;
+                        continue;
+                    }
+
+                    // 2. Variable Declaration with Assignment
+                    const declMatch = line.match(/^int\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+);$/);
+                    if (declMatch) {
+                        const varName = declMatch[1];
+                        const val = evalExpr(declMatch[2], vars);
+                        vars[varName] = val;
+                        recordStep(i, `宣告 int 變數 ${varName} 並設初始值 = ${val}`);
+                        i++;
+                        continue;
+                    }
+
+                    // 3. Variable Assignment
+                    const assignMatch = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+);$/);
+                    if (assignMatch) {
+                        const varName = assignMatch[1];
+                        const val = evalExpr(assignMatch[2], vars);
+                        vars[varName] = val;
+                        recordStep(i, `計算並更新變數 ${varName} = ${val}`);
+                        i++;
+                        continue;
+                    }
+
+                    // 4. FOR LOOP
+                    if (line.startsWith('for')) {
+                        const forMatch = line.match(/for\s*\(\s*(?:int\s+)?([a-zA-Z0-9_]+)\s*=\s*([^;]+);\s*([^;]+);\s*(.+)\)\s*\{?/);
+                        if (forMatch) {
+                            const varName = forMatch[1];
+                            const initVal = evalExpr(forMatch[2], vars);
+                            const condStr = forMatch[3];
+                            const stepExpr = forMatch[4];
+                            const blockEnd = findMatchingBrace(i);
+
+                            vars[varName] = initVal;
+                            recordStep(i, `初始化 for 迴圈變數 ${varName} = ${initVal}`);
+
+                            while (true) {
+                                if (++loopCounter > 5000) throw new Error("迴圈次數過多！可能為無限迴圈");
+                                const condVal = evalCond(condStr, vars);
+                                recordStep(i, `檢查 for 條件 (${condStr}) -> ${condVal ? '成立，進入區塊' : '不成立，結束迴圈'}`);
+                                if (!condVal) break;
+
+                                execRange(i + 1, blockEnd - 1);
+
+                                if (stepExpr.includes('++')) {
+                                    vars[varName]++;
+                                } else if (stepExpr.includes('--')) {
+                                    vars[varName]--;
+                                } else {
+                                    const stepAssign = stepExpr.match(/([a-zA-Z0-9_]+)\s*=\s*(.+)/);
+                                    if (stepAssign) {
+                                        vars[stepAssign[1]] = evalExpr(stepAssign[2], vars);
+                                    }
+                                }
+                                recordStep(i, `執行 for 遞增 (${stepExpr}) -> ${varName} 新值為 ${vars[varName]}`);
+                            }
+                            i = blockEnd + 1;
+                            continue;
+                        }
+                    }
+
+                    // 5. WHILE LOOP
+                    if (line.startsWith('while') && !line.endsWith(';')) {
+                        const whileMatch = line.match(/while\s*\(([^)]+)\)/);
+                        if (whileMatch) {
+                            const condStr = whileMatch[1];
+                            const blockEnd = findMatchingBrace(i);
+
+                            while (true) {
+                                if (++loopCounter > 5000) throw new Error("迴圈次數過多！");
+                                const condVal = evalCond(condStr, vars);
+                                recordStep(i, `檢查 while 條件 (${condStr}) -> ${condVal ? '成立，執行迴圈體' : '不成立，跳出迴圈'}`);
+                                if (!condVal) break;
+
+                                execRange(i + 1, blockEnd - 1);
+                            }
+                            i = blockEnd + 1;
+                            continue;
+                        }
+                    }
+
+                    // 6. DO-WHILE LOOP
+                    if (line.startsWith('do') && line.includes('{')) {
+                        const blockEnd = findMatchingBrace(i);
+                        const whileLine = lines[blockEnd] || '';
+                        const condMatch = whileLine.match(/while\s*\(([^)]+)\);/);
+                        const condStr = condMatch ? condMatch[1] : 'false';
+
+                        do {
+                            if (++loopCounter > 5000) throw new Error("迴圈次數過多！");
+                            recordStep(i, `進入 do-while 區塊 (無條件執行至少一次)`);
+                            execRange(i + 1, blockEnd - 1);
+
+                            const condVal = evalCond(condStr, vars);
+                            recordStep(blockEnd, `檢查 do-while 條件 (${condStr}) -> ${condVal ? '成立，繼續迴圈' : '不成立，結束迴圈'}`);
+                            if (!condVal) break;
+                        } while (true);
+
+                        i = blockEnd + 1;
+                        continue;
+                    }
+
+                    // 7. IF-ELSE Branch
+                    if (line.startsWith('if')) {
+                        let handled = false;
+                        let currLineIdx = i;
+
+                        while (currLineIdx <= end) {
+                            const cLine = lines[currLineIdx] ? lines[currLineIdx].trim() : '';
+                            if (cLine.startsWith('if') || cLine.startsWith('else if')) {
+                                const condMatch = cLine.match(/(?:if|else\s+if)\s*\(([^)]+)\)/);
+                                const blockEnd = findMatchingBrace(currLineIdx);
+
+                                if (!handled) {
+                                    const condStr = condMatch ? condMatch[1] : 'true';
+                                    const condVal = evalCond(condStr, vars);
+                                    recordStep(currLineIdx, `檢查條件 (${condStr}) -> ${condVal ? '成立，進入此分支' : '不成立'}`);
+
+                                    if (condVal) {
+                                        handled = true;
+                                        execRange(currLineIdx + 1, blockEnd - 1);
+                                    }
+                                } else {
+                                    recordStep(currLineIdx, `跳過條件分支 (先前條件已滿足)`);
+                                }
+
+                                currLineIdx = blockEnd + 1;
+                                if (currLineIdx <= end) {
+                                    const nextL = lines[currLineIdx] ? lines[currLineIdx].trim() : '';
+                                    if (nextL.startsWith('else')) continue;
+                                }
+                                break;
+                            } else if (cLine.startsWith('else')) {
+                                const blockEnd = findMatchingBrace(currLineIdx);
+                                if (!handled) {
+                                    handled = true;
+                                    recordStep(currLineIdx, `進入 else 分支`);
+                                    execRange(currLineIdx + 1, blockEnd - 1);
+                                } else {
+                                    recordStep(currLineIdx, `跳過 else 分支 (先前條件已滿足)`);
+                                }
+                                currLineIdx = blockEnd + 1;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+
+                        i = currLineIdx;
+                        continue;
+                    }
+
+                    i++;
+                }
+            }
+
+            execRange(0, lines.length - 1);
+            return steps;
+        }
+
+        function loadExample(key) {
+            stopPlay();
+            const code = EXAMPLES[key];
+            const container = document.getElementById('code-container');
+            container.innerHTML = '';
+
             const lines = code.split('\n');
-            const parsedLines = [];
-            
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line && !line.startsWith('//')) {
-                    parsedLines.push({
-                        original: line,
-                        lineNumber: i + 1,
-                        type: detectLineType(line)
-                    });
-                }
-            }
-            
-            return parsedLines;
-        }
+            lines.forEach((lineText, idx) => {
+                const lineDiv = document.createElement('div');
+                lineDiv.id = `line-${idx}`;
+                lineDiv.className = 'flex items-center px-3 py-0.5 rounded transition-colors';
+                
+                const numSpan = document.createElement('span');
+                numSpan.className = 'w-8 text-right pr-4 text-slate-600 select-none text-xs font-mono';
+                numSpan.innerText = idx + 1;
 
-        // 檢測程式碼行類型
-        function detectLineType(line) {
-            if (line.includes('for(')) return 'for_start';
-            if (line.includes('if(')) return 'if_start';
-            if (line.includes('else')) return 'else';
-            if (line.includes('do')) return 'do_start';
-            if (line.includes('while(')) return 'while_check';
-            if (line.includes('cout')) return 'cout';
-            if (line.includes('int ') || line.includes('double ') || line.includes('char ')) return 'declaration';
-            if (line.includes('=')) return 'assignment';
-            return 'other';
-        }
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-slate-200 whitespace-pre';
+                textSpan.innerText = lineText;
 
-        // 執行程式碼
-        async function runCode() {
-            if (isRunning) return;
-            
-            resetVisualization();
-            stopExecution = false;
-            isRunning = true;
-            
-            const code = document.getElementById('codeInput').value;
-            const lines = parseCode(code);
-            
-            document.getElementById('codeVisualization').innerHTML = lines.map((line, idx) => 
-                `<div class="code-line" id="line-${idx}">${escapeHtml(line.original)}</div>`
-            ).join('');
-            
+                lineDiv.appendChild(numSpan);
+                lineDiv.appendChild(textSpan);
+                container.appendChild(lineDiv);
+            });
+
             try {
-                await executeLines(lines);
-            } catch (error) {
-                appendOutput(`錯誤：${error.message}`);
-                updateExplanation(`❌ 發生錯誤：${error.message}`);
+                currentSteps = runSimulation(code);
+            } catch (err) {
+                console.error("Simulation error:", err);
+                currentSteps = [{
+                    line: 0,
+                    vars: {},
+                    output: [`錯誤: ${err.message}`],
+                    desc: `程式解析出錯`
+                }];
             }
-            
-            isRunning = false;
-            document.getElementById('stepIndicator').textContent = '✅ 執行完畢';
+
+            currentStepIdx = 0;
+            renderStep();
         }
 
-        // 執行程式碼行
-        async function executeLines(lines) {
-            let i = 0;
-            let loopStack = [];
-            
-            while (i < lines.length && !stopExecution) {
-                const line = lines[i];
-                
-                // 高亮當前行
-                highlightLine(i);
-                updateStepIndicator(i + 1, lines.length);
-                
-                try {
-                    switch (line.type) {
-                        case 'declaration':
-                        case 'assignment':
-                            await executeAssignment(line.original);
-                            break;
-                        case 'cout':
-                            await executeCout(line.original);
-                            break;
-                        case 'for_start':
-                            const forResult = await executeFor(lines, i);
-                            if (forResult.jumpTo !== null) {
-                                i = forResult.jumpTo;
-                                continue;
-                            }
-                            break;
-                        case 'if_start':
-                            const ifResult = await executeIf(lines, i);
-                            if (ifResult.jumpTo !== null) {
-                                i = ifResult.jumpTo;
-                                continue;
-                            }
-                            break;
-                        case 'do_start':
-                            const doResult = await executeDoWhile(lines, i);
-                            if (doResult.jumpTo !== null) {
-                                i = doResult.jumpTo;
-                                continue;
-                            }
-                            break;
-                    }
-                } catch (error) {
-                    throw new Error(`第 ${line.lineNumber} 行：${error.message}`);
-                }
-                
-                markLineExecuted(i);
-                await sleep(executionSpeed);
-                i++;
-            }
-        }
+        function renderStep() {
+            if (currentSteps.length === 0) return;
+            const step = currentSteps[currentStepIdx];
 
-        // 執行變數宣告或賦值
-        async function executeAssignment(line) {
-            // 處理宣告並初始化
-            const declMatch = line.match(/(int|double|char)\s+(\w+)\s*=\s*(.+?);?$/);
-            if (declMatch) {
-                const type = declMatch[1];
-                const name = declMatch[2];
-                const valueExpr = declMatch[3].replace(/;/g, '');
-                const value = evaluateExpression(valueExpr);
-                variables[name] = value;
-                updateVariablesDisplay();
-                updateExplanation(`📦 宣告變數 <b>${name}</b> 並設定為 <b>${value}</b>`);
-                return;
+            // 1. Highlight line
+            document.querySelectorAll('#code-container > div').forEach(el => el.classList.remove('line-highlight'));
+            const activeLine = document.getElementById(`line-${step.line}`);
+            if (activeLine) {
+                activeLine.classList.add('line-highlight');
+                activeLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
-            
-            // 處理單純賦值
-            const assignMatch = line.match(/(\w+)\s*=\s*(.+?);?$/);
-            if (assignMatch && !line.includes('int ') && !line.includes('double ')) {
-                const name = assignMatch[1];
-                const valueExpr = assignMatch[2].replace(/;/g, '');
-                const value = evaluateExpression(valueExpr);
-                variables[name] = value;
-                updateVariablesDisplay();
-                updateExplanation(`✏️ 更新變數 <b>${name}</b> = <b>${value}</b>`);
-            }
-        }
 
-        // 執行 cout
-        async function executeCout(line) {
-            const match = line.match(/cout\s*<<\s*(.+?);?$/);
-            if (match) {
-                let content = match[1].trim();
-                
-                // 移除最後的分號
-                content = content.replace(/;$/, '');
-                
-                // 處理字串
-                if (content.startsWith('"') && content.endsWith('"')) {
-                    const text = content.slice(1, -1);
-                    appendOutput(text, false);
-                    updateExplanation(`📢 打印訊息："<b>${text}</b>"`);
-                }
-                // 處理變數
-                else if (variables.hasOwnProperty(content)) {
-                    appendOutput(variables[content].toString(), false);
-                    updateExplanation(`📢 打印變數 <b>${content}</b> 的值：<b>${variables[content]}</b>`);
-                }
-                // 處理數字
-                else if (/^-?\d+$/.test(content)) {
-                    appendOutput(content, false);
-                    updateExplanation(`📢 打印數字：<b>${content}</b>`);
-                }
-            }
-        }
+            // 2. Step Counter & Description
+            document.getElementById('step-counter').innerText = `步驟 ${currentStepIdx + 1} / ${currentSteps.length}`;
+            document.getElementById('step-description').innerText = step.desc;
 
-        // 執行 for 迴圈
-        async function executeFor(lines, startIndex) {
-            const line = lines[startIndex].original;
-            
-            // 解析 for 迴圈：for(init; condition; increment)
-            const forMatch = line.match(/for\s*\(\s*(.+?)\s*;\s*(.+?)\s*;\s*(.+?)\s*\)/);
-            if (!forMatch) {
-                throw new Error('for 迴圈格式錯誤');
-            }
-            
-            const init = forMatch[1];
-            const condition = forMatch[2];
-            const increment = forMatch[3];
-            
-            // 執行初始化
-            await executeAssignment(init + ';');
-            
-            // 找到迴圈內容的起始和結束
-            let loopStart = startIndex + 1;
-            let braceCount = 0;
-            let loopEnd = loopStart;
-            
-            for (let j = loopStart; j < lines.length; j++) {
-                if (lines[j].original.includes('{')) braceCount++;
-                if (lines[j].original.includes('}')) braceCount--;
-                if (braceCount === 0 && lines[j].original.includes('}')) {
-                    loopEnd = j;
-                    break;
-                }
-            }
-            
-            let iteration = 0;
-            const maxIterations = 100; // 防止無限迴圈
-            
-            while (!stopExecution && iteration < maxIterations) {
-                updateStepIndicator(`For 迴圈 - 第 ${iteration + 1} 次`);
-                
-                // 檢查條件
-                const condValue = evaluateCondition(condition);
-                showCondition(condition, condValue);
-                
-                if (!condValue) {
-                    updateExplanation(`🔍 For 迴圈條件 <b>${condition}</b> 為假，離開迴圈`);
-                    showCondition(condition, false);
-                    await sleep(executionSpeed);
-                    return { jumpTo: loopEnd + 1 };
-                }
-                
-                updateExplanation(`✅ For 迴圈條件 <b>${condition}</b> 為真，執行迴圈內容`);
-                showCondition(condition, true);
-                await sleep(executionSpeed);
-                
-                // 執行迴圈內容
-                for (let j = loopStart; j <= loopEnd && !stopExecution; j++) {
-                    highlightLine(j);
-                    const loopLine = lines[j];
-                    
-                    try {
-                        if (loopLine.type === 'cout') {
-                            await executeCout(loopLine.original);
-                        } else if (loopLine.type === 'assignment') {
-                            await executeAssignment(loopLine.original);
-                        }
-                        markLineExecuted(j);
-                        await sleep(executionSpeed);
-                    } catch (error) {
-                        throw new Error(`迴圈中第 ${loopLine.lineNumber} 行：${error.message}`);
-                    }
-                }
-                
-                // 執行增量
-                await executeAssignment(increment + ';');
-                iteration++;
-            }
-            
-            if (iteration >= maxIterations) {
-                throw new Error('可能發生無限迴圈');
-            }
-            
-            return { jumpTo: loopEnd + 1 };
-        }
-        // 執行 if-else
-        async function executeIf(lines, startIndex) {
-            const line = lines[startIndex].original;
-            
-            const ifMatch = line.match(/if\s*\(\s*(.+?)\s*\)/);
-            if (!ifMatch) {
-                throw new Error('if 語句格式錯誤');
-            }
-            
-            const condition = ifMatch[1];
-            
-            // 檢查條件
-            const condValue = evaluateCondition(condition);
-            showCondition(condition, condValue);
-            
-            if (condValue) {
-                updateExplanation(`✅ If 條件 <b>${condition}</b> 為真，執行 if 區塊`);
+            // 3. Render Variables Memory Grid
+            const varsContainer = document.getElementById('variables-container');
+            varsContainer.innerHTML = '';
+            const keys = Object.keys(step.vars);
+
+            if (keys.length === 0) {
+                varsContainer.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-slate-500 text-sm">
+                        尚未初始化任何變數
+                    </div>`;
             } else {
-                updateExplanation(`❌ If 條件 <b>${condition}</b> 為假`);
+                keys.forEach(key => {
+                    const val = step.vars[key];
+                    const card = document.createElement('div');
+                    card.className = 'var-card bg-slate-800 border border-slate-700/80 rounded-xl p-3 flex flex-col justify-between shadow-md relative overflow-hidden';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-blue-400 font-mono">${key}</span>
+                            <span class="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">int</span>
+                        </div>
+                        <div class="text-xl font-bold font-mono text-emerald-400 text-right">${val}</div>
+                    `;
+                    varsContainer.appendChild(card);
+                });
             }
-            
-            await sleep(executionSpeed);
-            
-            // 找到 if 區塊和 else 區塊
-            let braceCount = 0;
-            let ifEnd = startIndex + 1;
-            let elsePos = null;
-            
-            for (let j = startIndex + 1; j < lines.length; j++) {
-                if (lines[j].original.includes('{')) braceCount++;
-                if (lines[j].original.includes('}')) braceCount--;
-                
-                if (braceCount === 0 && lines[j].original.includes('}')) {
-                    ifEnd = j;
-                    // 檢查下一個非空行是否為 else
-                    for (let k = j + 1; k < lines.length; k++) {
-                        if (lines[k].original.trim()) {
-                            if (lines[k].original.includes('else')) {
-                                elsePos = k;
-                            }
-                            break;
-                        }
-                    }
-                    break;
-                }
-            }
-            
-            if (condValue) {
-                // 執行 if 區塊
-                for (let j = startIndex + 1; j <= ifEnd && !stopExecution; j++) {
-                    highlightLine(j);
-                    const ifLine = lines[j];
-                    
-                    if (ifLine.type === 'cout') {
-                        await executeCout(ifLine.original);
-                    } else if (ifLine.type === 'assignment') {
-                        await executeAssignment(ifLine.original);
-                    }
-                    
-                    markLineExecuted(j);
-                    await sleep(executionSpeed);
-                }
-                
-                if (elsePos !== null) {
-                    return { jumpTo: findBlockEnd(lines, elsePos) + 1 };
-                }
-            } else if (elsePos !== null) {
-                // 執行 else 區塊
-                const elseEnd = findBlockEnd(lines, elsePos);
-                return { jumpTo: elsePos + 1 };
-            }
-            
-            return { jumpTo: ifEnd + 1 };
+
+            // 4. Console Output Render
+            const consoleEl = document.getElementById('console-output');
+            consoleEl.innerText = step.output.join('\n');
+            consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        // 執行 do-while 迴圈
-        async function executeDoWhile(lines, startIndex) {
-            let loopStart = startIndex + 1;
-            let braceCount = 0;
-            let loopEnd = loopStart;
-            
-            // 找到 do 區塊的結束
-            for (let j = loopStart; j < lines.length; j++) {
-                if (lines[j].original.includes('{')) braceCount++;
-                if (lines[j].original.includes('}')) braceCount--;
-                if (braceCount === 0 && lines[j].original.includes('}')) {
-                    loopEnd = j;
-                    break;
-                }
-            }
-            
-            // 找到 while 條件
-            let whileLine = null;
-            let whilePos = loopEnd + 1;
-            
-            for (let j = loopEnd + 1; j < lines.length; j++) {
-                if (lines[j].original.includes('while(')) {
-                    whileLine = lines[j].original;
-                    whilePos = j;
-                    break;
-                }
-            }
-            
-            if (!whileLine) {
-                throw new Error('do-while 缺少 while 條件');
-            }
-            
-            const whileMatch = whileLine.match(/while\s*\(\s*(.+?)\s*\)/);
-            const condition = whileMatch[1];
-            
-            let iteration = 0;
-            const maxIterations = 100;
-            
-            do {
-                updateStepIndicator(`Do-While 迴圈 - 第 ${iteration + 1} 次`);
-                updateExplanation(`🔄 Do-While 迴圈：先執行一次，再檢查條件`);
-                
-                // 執行迴圈內容
-                for (let j = loopStart; j <= loopEnd && !stopExecution; j++) {
-                    highlightLine(j);
-                    const loopLine = lines[j];
-                    
-                    if (loopLine.type === 'cout') {
-                        await executeCout(loopLine.original);
-                    } else if (loopLine.type === 'assignment') {
-                        await executeAssignment(loopLine.original);
-                    }
-                    
-                    markLineExecuted(j);
-                    await sleep(executionSpeed);
-                }
-                
-                // 檢查條件
-                const condValue = evaluateCondition(condition);
-                showCondition(condition, condValue);
-                
-                if (condValue) {
-                    updateExplanation(`✅ While 條件 <b>${condition}</b> 為真，繼續迴圈`);
-                } else {
-                    updateExplanation(`❌ While 條件 <b>${condition}</b> 為假，離開迴圈`);
-                    showCondition(condition, false);
-                }
-                
-                await sleep(executionSpeed);
-                iteration++;
-                
-            } while (evaluateCondition(condition) && iteration < maxIterations && !stopExecution);
-            
-            if (iteration >= maxIterations) {
-                throw new Error('可能發生無限迴圈');
-            }
-            
-            return { jumpTo: whilePos + 1 };
-        }
-
-        // 尋找區塊結束位置
-        function findBlockEnd(lines, startPos) {
-            let braceCount = 0;
-            for (let j = startPos; j < lines.length; j++) {
-                if (lines[j].original.includes('{')) braceCount++;
-                if (lines[j].original.includes('}')) braceCount--;
-                if (braceCount === 0 && lines[j].original.includes('}')) {
-                    return j;
-                }
-            }
-            return startPos;
-        }
-
-        // 評估表達式
-        function evaluateExpression(expr) {
-            expr = expr.trim();
-            
-            // 如果是數字
-            if (/^-?\d+$/.test(expr)) {
-                return parseInt(expr);
-            }
-            
-            // 如果是變數
-            if (variables.hasOwnProperty(expr)) {
-                return variables[expr];
-            }
-            
-            // 如果是運算式
-            try {
-                // 替換變數名稱為實際值
-                let evalExpr = expr;
-                for (const varName in variables) {
-                    const regex = new RegExp('\\b' + varName + '\\b', 'g');
-                    evalExpr = evalExpr.replace(regex, variables[varName]);
-                }
-                
-                // 安全評估
-                return Function('"use strict";return (' + evalExpr + ')')();
-            } catch (e) {
-                throw new Error(`無法計算表達式：${expr}`);
+        function stopPlay() {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                const playBtn = document.getElementById('btn-play');
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i> 播放';
+                playBtn.classList.replace('bg-amber-600', 'bg-blue-600');
             }
         }
 
-        // 評估條件
-        function evaluateCondition(condition) {
-            try {
-                let evalCond = condition;
-                
-                // 替換變數
-                for (const varName in variables) {
-                    const regex = new RegExp('\\b' + varName + '\\b', 'g');
-                    evalCond = evalCond.replace(regex, variables[varName]);
-                }
-                
-                // 替換運算子
-                evalCond = evalCond.replace(/==/g, '===');
-                
-                return Function('"use strict";return (' + evalCond + ')')();
-            } catch (e) {
-                throw new Error(`無法評估條件：${condition}`);
-            }
-        }
+        window.onload = function() {
+            const selectEl = document.getElementById('example-select');
+            selectEl.addEventListener('change', (e) => loadExample(e.target.value));
 
-        // 高亮程式碼行
-        function highlightLine(index) {
-            document.querySelectorAll('.code-line').forEach((el, i) => {
-                el.classList.remove('active');
-                if (i === index) {
-                    el.classList.add('active');
+            document.getElementById('btn-next').addEventListener('click', () => {
+                stopPlay();
+                if (currentStepIdx < currentSteps.length - 1) {
+                    currentStepIdx++;
+                    renderStep();
                 }
             });
-        }
 
-        // 標記已執行
-        function markLineExecuted(index) {
-            const lineEl = document.getElementById(`line-${index}`);
-            if (lineEl) {
-                lineEl.classList.add('executed');
-            }
-        }
+            document.getElementById('btn-prev').addEventListener('click', () => {
+                stopPlay();
+                if (currentStepIdx > 0) {
+                    currentStepIdx--;
+                    renderStep();
+                }
+            });
 
-        // 更新變數顯示
-        function updateVariablesDisplay() {
-            const container = document.getElementById('variablesArea');
-            container.innerHTML = '<div style="font-weight:bold;margin-bottom:10px;color:#667eea;">📊 變數狀態：</div>';
-            
-            for (const name in variables) {
-                container.innerHTML += `
-                    <div class="variable-box updated">
-                        <div class="var-name">${name}</div>
-                        <div class="var-value">${variables[name]}</div>
-                    </div>
-                `;
-            }
-            
-            if (Object.keys(variables).length === 0) {
-                container.innerHTML += '<div style="color:#999;">暫無變數</div>';
-            }
-        }
+            document.getElementById('btn-reset').addEventListener('click', () => {
+                stopPlay();
+                currentStepIdx = 0;
+                renderStep();
+            });
 
-        // 顯示條件
-        function showCondition(condition, result) {
-            const container = document.getElementById('conditionArea');
-            container.innerHTML = `
-                <div class="condition-box ${result ? 'condition-true' : 'condition-false'}">
-                    <strong>條件判斷：</strong> ${condition}<br>
-                    <strong>結果：</strong> ${result ? '✅ 真 (True)' : '❌ 假 (False)'}
-                </div>
-            `;
-        }
+            const playBtn = document.getElementById('btn-play');
+            playBtn.addEventListener('click', () => {
+                if (playInterval) {
+                    stopPlay();
+                } else {
+                    if (currentStepIdx >= currentSteps.length - 1) {
+                        currentStepIdx = 0;
+                    }
+                    playBtn.innerHTML = '<i class="fa-solid fa-pause"></i> 暫停';
+                    playBtn.classList.replace('bg-blue-600', 'bg-amber-600');
 
-        // 添加輸出
-        function appendOutput(text, newLine = true) {
-            const consoleEl = document.getElementById('outputConsole');
-            if (consoleEl.textContent === '// 輸出結果將顯示在這裡') {
-                consoleEl.textContent = '';
-            }
-            consoleEl.textContent += text;
-            if (newLine) {
-                consoleEl.textContent += '\n';
-            }
-        }
+                    playInterval = setInterval(() => {
+                        if (currentStepIdx < currentSteps.length - 1) {
+                            currentStepIdx++;
+                            renderStep();
+                        } else {
+                            stopPlay();
+                        }
+                    }, animationSpeed);
+                }
+            });
 
-        // 更新說明
-        function updateExplanation(text) {
-            document.getElementById('explanationText').innerHTML = text;
-        }
+            const speedSlider = document.getElementById('speed-slider');
+            const speedText = document.getElementById('speed-text');
+            speedSlider.addEventListener('input', (e) => {
+                animationSpeed = parseInt(e.target.value);
+                speedText.innerText = `${animationSpeed}ms`;
+                if (playInterval) {
+                    stopPlay();
+                    playBtn.click();
+                }
+            });
 
-        // 更新步驟指示器
-        function updateStepIndicator(current, total) {
-            if (typeof current === 'string') {
-                document.getElementById('stepIndicator').textContent = current;
-            } else {
-                document.getElementById('stepIndicator').textContent = `步驟 ${current} / ${total}`;
-            }
-        }
-
-        // 延遲函數
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // HTML 轉義
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // 初始化載入一個範例
-        window.onload = function() {
-            loadExample('for');
+            // Initial load
+            loadExample('ex1_vars');
         };
     </script>
 </body>

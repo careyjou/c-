@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ 可視化學習工具 - 高中生專用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-run {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-run:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #f093fb;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #f5576c;
+        }
+
+        .btn-example {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-example:hover {
+            background: #00f2fe;
+        }
+
+        .visualization-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .code-line {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .code-line.active {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            transform: translateX(10px);
+        }
+
+        .code-line.executed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .variable-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: inline-block;
+            min-width: 120px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .variable-box.updated {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .var-name {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .var-value {
+            font-size: 24px;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .output-console {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 150px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+
+        .explanation-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+
+        .explanation-title {
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+
+        .loop-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #ff9800;
+            color: white;
+            border-radius: 20px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .condition-box {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .condition-true {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .condition-false {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .speed-control label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .example-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .step-indicator {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 C++ 可視化學習工具</h1>
+        
+        <div class="main-grid">
+            <div class="panel">
+                <div class="panel-title">💻 輸入你的 C++ 程式碼</div>
+                <textarea id="codeInput" placeholder="在這裡輸入簡單的 C++ 程式碼...
+
+支援的功能：
+- for 迴圈
+- if-else 條件判斷
+- do-while 迴圈
+- cout 打印訊息
+- 變數宣告和運算
+
+範例：
+int i = 0;
+for(i = 0; i < 5; i++) {
+    cout << "第 " << i << " 次迴圈";
+}"></textarea>
+                
+                <div class="example-buttons">
+                    <button class="btn-example" onclick="loadExample('for')">For 迴圈範例</button>
+                    <button class="btn-example" onclick="loadExample('if')">If-Else 範例</button>
+                    <button class="btn-example" onclick="loadExample('dowhile')">Do-While 範例</button>
+                    <button class="btn-example" onclick="loadExample('mixed')">綜合範例</button>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-run" onclick="runCode()">▶️ 開始執行</button>
+                    <button class="btn-reset" onclick="resetVisualization()">🔄 重新開始</button>
+                </div>
+
+                <div class="speed-control">
+                    <label>執行速度：</label>
+                    <input type="range" id="speedSlider" min="100" max="2000" value="800">
+                    <span id="speedValue">800ms</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">🎬 可視化執行過程</div>
+                <div class="visualization-area">
+                    <div class="step-indicator" id="stepIndicator">準備就緒</div>
+                    
+                    <div id="codeVisualization">
+                        <!-- 程式碼行會顯示在這裡 -->
+                    </div>
+
+                    <div id="variablesArea" style="margin-top: 20px;">
+                        <!-- 變數會顯示在這裡 -->
+                    </div>
+
+                    <div id="conditionArea"></div>
+
+                    <div class="output-console" id="outputConsole">
+// 輸出結果將顯示在這裡
+                    </div>
+
+                    <div class="explanation-box" id="explanationBox">
+                        <div class="explanation-title">💡 說明：</div>
+                        <div id="explanationText">點擊「開始執行」按鈕來查看程式碼的執行過程！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let variables = {};
+        let output = [];
+        let isRunning = false;
+        let currentStep = 0;
+        let executionSpeed = 800;
+        let stopExecution = false;
+
+        // 更新速度顯示
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            executionSpeed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = executionSpeed + 'ms';
+        });
+
+        // 載入範例程式碼
+        function loadExample(type) {
+            const examples = {
+                'for': `// For 迴圈範例
+int i = 0;
+for(i = 0; i < 5; i++) {
+    cout << "第";
+    cout << i;
+    cout << "次迴圈";
+}`,
+                'if': `// If-Else 範例
+int score = 85;
+if(score >= 60) {
+    cout << "及格！";
+} else {
+    cout << "不及格";
+}
+cout << "完成";`,
+                'dowhile': `// Do-While 範例
+int count = 1;
+do {
+    cout << "次數：";
+    cout << count;
+    count = count + 1;
+} while(count <= 3);
+cout << "結束";`,
+                'mixed': `// 綜合範例
+int x = 1;
+for(x = 1; x <= 3; x++) {
+    if(x == 2) {
+        cout << "找到 2 了！";
+    } else {
+        cout << "x = ";
+        cout << x;
+    }
+}
+cout << "完成";`
+            };
+            
+            document.getElementById('codeInput').value = examples[type];
+            resetVisualization();
+        }
+ // 重置可視化
+        function resetVisualization() {
+            variables = {};
+            output = [];
+            isRunning = false;
+            currentStep = 0;
+            stopExecution = true;
+            
+            document.getElementById('codeVisualization').innerHTML = '';
+            document.getElementById('variablesArea').innerHTML = '';
+            document.getElementById('conditionArea').innerHTML = '';
+            document.getElementById('outputConsole').textContent = '// 輸出結果將顯示在這裡';
+            document.getElementById('explanationText').textContent = '點擊「開始執行」按鈕來查看程式碼的執行過程！';
+            document.getElementById('stepIndicator').textContent = '準備就緒';
+        }
+
+        // 解析程式碼
+        function parseCode(code) {
+            const lines = code.split('\n');
+            const parsedLines = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line && !line.startsWith('//')) {
+                    parsedLines.push({
+                        original: line,
+                        lineNumber: i + 1,
+                        type: detectLineType(line)
+                    });
+                }
+            }
+            
+            return parsedLines;
+        }
+
+        // 檢測程式碼行類型
+        function detectLineType(line) {
+            if (line.includes('for(')) return 'for_start';
+            if (line.includes('if(')) return 'if_start';
+            if (line.includes('else')) return 'else';
+            if (line.includes('do')) return 'do_start';
+            if (line.includes('while(')) return 'while_check';
+            if (line.includes('cout')) return 'cout';
+            if (line.includes('int ') || line.includes('double ') || line.includes('char ')) return 'declaration';
+            if (line.includes('=')) return 'assignment';
+            return 'other';
+        }
+
+        // 執行程式碼
+        async function runCode() {
+            if (isRunning) return;
+            
+            resetVisualization();
+            stopExecution = false;
+            isRunning = true;
+            
+            const code = document.getElementById('codeInput').value;
+            const lines = parseCode(code);
+            
+            document.getElementById('codeVisualization').innerHTML = lines.map((line, idx) => 
+                `<div class="code-line" id="line-${idx}">${escapeHtml(line.original)}</div>`
+            ).join('');
+            
+            try {
+                await executeLines(lines);
+            } catch (error) {
+                appendOutput(`錯誤：${error.message}`);
+                updateExplanation(`❌ 發生錯誤：${error.message}`);
+            }
+            
+            isRunning = false;
+            document.getElementById('stepIndicator').textContent = '✅ 執行完畢';
+        }
+
+        // 執行程式碼行
+        async function executeLines(lines) {
+            let i = 0;
+            let loopStack = [];
+            
+            while (i < lines.length && !stopExecution) {
+                const line = lines[i];
+                
+                // 高亮當前行
+                highlightLine(i);
+                updateStepIndicator(i + 1, lines.length);
+                
+                try {
+                    switch (line.type) {
+                        case 'declaration':
+                        case 'assignment':
+                            await executeAssignment(line.original);
+                            break;
+                        case 'cout':
+                            await executeCout(line.original);
+                            break;
+                        case 'for_start':
+                            const forResult = await executeFor(lines, i);
+                            if (forResult.jumpTo !== null) {
+                                i = forResult.jumpTo;
+                                continue;
+                            }
+                            break;
+                        case 'if_start':
+                            const ifResult = await executeIf(lines, i);
+                            if (ifResult.jumpTo !== null) {
+                                i = ifResult.jumpTo;
+                                continue;
+                            }
+                            break;
+                        case 'do_start':
+                            const doResult = await executeDoWhile(lines, i);
+                            if (doResult.jumpTo !== null) {
+                                i = doResult.jumpTo;
+                                continue;
+                            }
+                            break;
+                    }
+                } catch (error) {
+                    throw new Error(`第 ${line.lineNumber} 行：${error.message}`);
+                }
+                
+                markLineExecuted(i);
+                await sleep(executionSpeed);
+                i++;
+            }
+        }
+
+        // 執行變數宣告或賦值
+        async function executeAssignment(line) {
+            // 處理宣告並初始化
+            const declMatch = line.match(/(int|double|char)\s+(\w+)\s*=\s*(.+?);?$/);
+            if (declMatch) {
+                const type = declMatch[1];
+                const name = declMatch[2];
+                const valueExpr = declMatch[3].replace(/;/g, '');
+                const value = evaluateExpression(valueExpr);
+                variables[name] = value;
+                updateVariablesDisplay();
+                updateExplanation(`📦 宣告變數 <b>${name}</b> 並設定為 <b>${value}</b>`);
+                return;
+            }
+            
+            // 處理單純賦值
+            const assignMatch = line.match(/(\w+)\s*=\s*(.+?);?$/);
+            if (assignMatch && !line.includes('int ') && !line.includes('double ')) {
+                const name = assignMatch[1];
+                const valueExpr = assignMatch[2].replace(/;/g, '');
+                const value = evaluateExpression(valueExpr);
+                variables[name] = value;
+                updateVariablesDisplay();
+                updateExplanation(`✏️ 更新變數 <b>${name}</b> = <b>${value}</b>`);
+            }
+        }
+
+        // 執行 cout
+        async function executeCout(line) {
+            const match = line.match(/cout\s*<<\s*(.+?);?$/);
+            if (match) {
+                let content = match[1].trim();
+                
+                // 移除最後的分號
+                content = content.replace(/;$/, '');
+                
+                // 處理字串
+                if (content.startsWith('"') && content.endsWith('"')) {
+                    const text = content.slice(1, -1);
+                    appendOutput(text, false);
+                    updateExplanation(`📢 打印訊息："<b>${text}</b>"`);
+                }
+                // 處理變數
+                else if (variables.hasOwnProperty(content)) {
+                    appendOutput(variables[content].toString(), false);
+                    updateExplanation(`📢 打印變數 <b>${content}</b> 的值：<b>${variables[content]}</b>`);
+                }
+                // 處理數字
+                else if (/^-?\d+$/.test(content)) {
+                    appendOutput(content, false);
+                    updateExplanation(`📢 打印數字：<b>${content}</b>`);
+                }
+            }
+        }
+
+        // 執行 for 迴圈
+        async function executeFor(lines, startIndex) {
+            const line = lines[startIndex].original;
+            
+            // 解析 for 迴圈：for(init; condition; increment)
+            const forMatch = line.match(/for\s*\(\s*(.+?)\s*;\s*(.+?)\s*;\s*(.+?)\s*\)/);
+            if (!forMatch) {
+                throw new Error('for 迴圈格式錯誤');
+            }
+            
+            const init = forMatch[1];
+            const condition = forMatch[2];
+            const increment = forMatch[3];
+            
+            // 執行初始化
+            await executeAssignment(init + ';');
+            
+            // 找到迴圈內容的起始和結束
+            let loopStart = startIndex + 1;
+            let braceCount = 0;
+            let loopEnd = loopStart;
+            
+            for (let j = loopStart; j < lines.length; j++) {
+                if (lines[j].original.includes('{')) braceCount++;
+                if (lines[j].original.includes('}')) braceCount--;
+                if (braceCount === 0 && lines[j].original.includes('}')) {
+                    loopEnd = j;
+                    break;
+                }
+            }
+            
+            let iteration = 0;
+            const maxIterations = 100; // 防止無限迴圈
+            
+            while (!stopExecution && iteration < maxIterations) {
+                updateStepIndicator(`For 迴圈 - 第 ${iteration + 1} 次`);
+                
+                // 檢查條件
+                const condValue = evaluateCondition(condition);
+                showCondition(condition, condValue);
+                
+                if (!condValue) {
+                    updateExplanation(`🔍 For 迴圈條件 <b>${condition}</b> 為假，離開迴圈`);
+                    showCondition(condition, false);
+                    await sleep(executionSpeed);
+                    return { jumpTo: loopEnd + 1 };
+                }
+                
+                updateExplanation(`✅ For 迴圈條件 <b>${condition}</b> 為真，執行迴圈內容`);
+                showCondition(condition, true);
+                await sleep(executionSpeed);
+                
+                // 執行迴圈內容
+                for (let j = loopStart; j <= loopEnd && !stopExecution; j++) {
+                    highlightLine(j);
+                    const loopLine = lines[j];
+                    
+                    try {
+                        if (loopLine.type === 'cout') {
+                            await executeCout(loopLine.original);
+                        } else if (loopLine.type === 'assignment') {
+                            await executeAssignment(loopLine.original);
+                        }
+                        markLineExecuted(j);
+                        await sleep(executionSpeed);
+                    } catch (error) {
+                        throw new Error(`迴圈中第 ${loopLine.lineNumber} 行：${error.message}`);
+                    }
+                }
+                
+                // 執行增量
+                await executeAssignment(increment + ';');
+                iteration++;
+            }
+            
+            if (iteration >= maxIterations) {
+                throw new Error('可能發生無限迴圈');
+            }
+            
+            return { jumpTo: loopEnd + 1 };
+        }
+        // 執行 if-else
+        async function executeIf(lines, startIndex) {
+            const line = lines[startIndex].original;
+            
+            const ifMatch = line.match(/if\s*\(\s*(.+?)\s*\)/);
+            if (!ifMatch) {
+                throw new Error('if 語句格式錯誤');
+            }
+            
+            const condition = ifMatch[1];
+            
+            // 檢查條件
+            const condValue = evaluateCondition(condition);
+            showCondition(condition, condValue);
+            
+            if (condValue) {
+                updateExplanation(`✅ If 條件 <b>${condition}</b> 為真，執行 if 區塊`);
+            } else {
+                updateExplanation(`❌ If 條件 <b>${condition}</b> 為假`);
+            }
+            
+            await sleep(executionSpeed);
+            
+            // 找到 if 區塊和 else 區塊
+            let braceCount = 0;
+            let ifEnd = startIndex + 1;
+            let elsePos = null;
+            
+            for (let j = startIndex + 1; j < lines.length; j++) {
+                if (lines[j].original.includes('{')) braceCount++;
+                if (lines[j].original.includes('}')) braceCount--;
+                
+                if (braceCount === 0 && lines[j].original.includes('}')) {
+                    ifEnd = j;
+                    // 檢查下一個非空行是否為 else
+                    for (let k = j + 1; k < lines.length; k++) {
+                        if (lines[k].original.trim()) {
+                            if (lines[k].original.includes('else')) {
+                                elsePos = k;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            if (condValue) {
+                // 執行 if 區塊
+                for (let j = startIndex + 1; j <= ifEnd && !stopExecution; j++) {
+                    highlightLine(j);
+                    const ifLine = lines[j];
+                    
+                    if (ifLine.type === 'cout') {
+                        await executeCout(ifLine.original);
+                    } else if (ifLine.type === 'assignment') {
+                        await executeAssignment(ifLine.original);
+                    }
+                    
+                    markLineExecuted(j);
+                    await sleep(executionSpeed);
+                }
+                
+                if (elsePos !== null) {
+                    return { jumpTo: findBlockEnd(lines, elsePos) + 1 };
+                }
+            } else if (elsePos !== null) {
+                // 執行 else 區塊
+                const elseEnd = findBlockEnd(lines, elsePos);
+                return { jumpTo: elsePos + 1 };
+            }
+            
+            return { jumpTo: ifEnd + 1 };
+        }
+
+        // 執行 do-while 迴圈
+        async function executeDoWhile(lines, startIndex) {
+            let loopStart = startIndex + 1;
+            let braceCount = 0;
+            let loopEnd = loopStart;
+            
+            // 找到 do 區塊的結束
+            for (let j = loopStart; j < lines.length; j++) {
+                if (lines[j].original.includes('{')) braceCount++;
+                if (lines[j].original.includes('}')) braceCount--;
+                if (braceCount === 0 && lines[j].original.includes('}')) {
+                    loopEnd = j;
+                    break;
+                }
+            }
+            
+            // 找到 while 條件
+            let whileLine = null;
+            let whilePos = loopEnd + 1;
+            
+            for (let j = loopEnd + 1; j < lines.length; j++) {
+                if (lines[j].original.includes('while(')) {
+                    whileLine = lines[j].original;
+                    whilePos = j;
+                    break;
+                }
+            }
+            
+            if (!whileLine) {
+                throw new Error('do-while 缺少 while 條件');
+            }
+            
+            const whileMatch = whileLine.match(/while\s*\(\s*(.+?)\s*\)/);
+            const condition = whileMatch[1];
+            
+            let iteration = 0;
+            const maxIterations = 100;
+            
+            do {
+                updateStepIndicator(`Do-While 迴圈 - 第 ${iteration + 1} 次`);
+                updateExplanation(`🔄 Do-While 迴圈：先執行一次，再檢查條件`);
+                
+                // 執行迴圈內容
+                for (let j = loopStart; j <= loopEnd && !stopExecution; j++) {
+                    highlightLine(j);
+                    const loopLine = lines[j];
+                    
+                    if (loopLine.type === 'cout') {
+                        await executeCout(loopLine.original);
+                    } else if (loopLine.type === 'assignment') {
+                        await executeAssignment(loopLine.original);
+                    }
+                    
+                    markLineExecuted(j);
+                    await sleep(executionSpeed);
+                }
+                
+                // 檢查條件
+                const condValue = evaluateCondition(condition);
+                showCondition(condition, condValue);
+                
+                if (condValue) {
+                    updateExplanation(`✅ While 條件 <b>${condition}</b> 為真，繼續迴圈`);
+                } else {
+                    updateExplanation(`❌ While 條件 <b>${condition}</b> 為假，離開迴圈`);
+                    showCondition(condition, false);
+                }
+                
+                await sleep(executionSpeed);
+                iteration++;
+                
+            } while (evaluateCondition(condition) && iteration < maxIterations && !stopExecution);
+            
+            if (iteration >= maxIterations) {
+                throw new Error('可能發生無限迴圈');
+            }
+            
+            return { jumpTo: whilePos + 1 };
+        }
+
+        // 尋找區塊結束位置
+        function findBlockEnd(lines, startPos) {
+            let braceCount = 0;
+            for (let j = startPos; j < lines.length; j++) {
+                if (lines[j].original.includes('{')) braceCount++;
+                if (lines[j].original.includes('}')) braceCount--;
+                if (braceCount === 0 && lines[j].original.includes('}')) {
+                    return j;
+                }
+            }
+            return startPos;
+        }
+
+        // 評估表達式
+        function evaluateExpression(expr) {
+            expr = expr.trim();
+            
+            // 如果是數字
+            if (/^-?\d+$/.test(expr)) {
+                return parseInt(expr);
+            }
+            
+            // 如果是變數
+            if (variables.hasOwnProperty(expr)) {
+                return variables[expr];
+            }
+            
+            // 如果是運算式
+            try {
+                // 替換變數名稱為實際值
+                let evalExpr = expr;
+                for (const varName in variables) {
+                    const regex = new RegExp('\\b' + varName + '\\b', 'g');
+                    evalExpr = evalExpr.replace(regex, variables[varName]);
+                }
+                
+                // 安全評估
+                return Function('"use strict";return (' + evalExpr + ')')();
+            } catch (e) {
+                throw new Error(`無法計算表達式：${expr}`);
+            }
+        }
+
+        // 評估條件
+        function evaluateCondition(condition) {
+            try {
+                let evalCond = condition;
+                
+                // 替換變數
+                for (const varName in variables) {
+                    const regex = new RegExp('\\b' + varName + '\\b', 'g');
+                    evalCond = evalCond.replace(regex, variables[varName]);
+                }
+                
+                // 替換運算子
+                evalCond = evalCond.replace(/==/g, '===');
+                
+                return Function('"use strict";return (' + evalCond + ')')();
+            } catch (e) {
+                throw new Error(`無法評估條件：${condition}`);
+            }
+        }
+
+        // 高亮程式碼行
+        function highlightLine(index) {
+            document.querySelectorAll('.code-line').forEach((el, i) => {
+                el.classList.remove('active');
+                if (i === index) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        // 標記已執行
+        function markLineExecuted(index) {
+            const lineEl = document.getElementById(`line-${index}`);
+            if (lineEl) {
+                lineEl.classList.add('executed');
+            }
+        }
+
+        // 更新變數顯示
+        function updateVariablesDisplay() {
+            const container = document.getElementById('variablesArea');
+            container.innerHTML = '<div style="font-weight:bold;margin-bottom:10px;color:#667eea;">📊 變數狀態：</div>';
+            
+            for (const name in variables) {
+                container.innerHTML += `
+                    <div class="variable-box updated">
+                        <div class="var-name">${name}</div>
+                        <div class="var-value">${variables[name]}</div>
+                    </div>
+                `;
+            }
+            
+            if (Object.keys(variables).length === 0) {
+                container.innerHTML += '<div style="color:#999;">暫無變數</div>';
+            }
+        }
+
+        // 顯示條件
+        function showCondition(condition, result) {
+            const container = document.getElementById('conditionArea');
+            container.innerHTML = `
+                <div class="condition-box ${result ? 'condition-true' : 'condition-false'}">
+                    <strong>條件判斷：</strong> ${condition}<br>
+                    <strong>結果：</strong> ${result ? '✅ 真 (True)' : '❌ 假 (False)'}
+                </div>
+            `;
+        }
+
+        // 添加輸出
+        function appendOutput(text, newLine = true) {
+            const consoleEl = document.getElementById('outputConsole');
+            if (consoleEl.textContent === '// 輸出結果將顯示在這裡') {
+                consoleEl.textContent = '';
+            }
+            consoleEl.textContent += text;
+            if (newLine) {
+                consoleEl.textContent += '\n';
+            }
+        }
+
+        // 更新說明
+        function updateExplanation(text) {
+            document.getElementById('explanationText').innerHTML = text;
+        }
+
+        // 更新步驟指示器
+        function updateStepIndicator(current, total) {
+            if (typeof current === 'string') {
+                document.getElementById('stepIndicator').textContent = current;
+            } else {
+                document.getElementById('stepIndicator').textContent = `步驟 ${current} / ${total}`;
+            }
+        }
+
+        // 延遲函數
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // HTML 轉義
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 初始化載入一個範例
+        window.onload = function() {
+            loadExample('for');
+        };
+    </script>
+</body>
+</html>

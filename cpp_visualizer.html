@@ -173,6 +173,10 @@
                 <div class="flex-1">
                     <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">當前執行狀態</h3>
                     <p id="step-description" class="text-base text-slate-100 font-medium mt-0.5">點擊「播放」或「下一步」開始體驗 C++ 執行動畫！</p>
+                    <div id="step-code-container" class="mt-2 hidden text-xs font-mono bg-slate-950/80 text-amber-300 px-3 py-1.5 rounded-lg border border-slate-800/80 items-center gap-2">
+                        <span class="text-slate-400 font-sans font-semibold">原始碼：</span>
+                        <code id="step-code-text" class="text-amber-300 font-bold"></code>
+                    </div>
                 </div>
             </div>
 
@@ -574,6 +578,7 @@ int main() {
             function recordStep(lineIdx, desc) {
                 steps.push({
                     line: lineIdx,
+                    code: lines[lineIdx] ? lines[lineIdx].trim() : '',
                     vars: { ...vars },
                     output: [...output],
                     desc: desc
@@ -854,9 +859,20 @@ int main() {
                 activeLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
 
-            // 2. Step Counter & Description
+            // 2. Step Counter & Description & Executed Code Line
             document.getElementById('step-counter').innerText = `步驟 ${currentStepIdx + 1} / ${currentSteps.length}`;
             document.getElementById('step-description').innerText = step.desc;
+
+            const codeContainer = document.getElementById('step-code-container');
+            const codeText = document.getElementById('step-code-text');
+            if (step.code) {
+                codeContainer.classList.remove('hidden');
+                codeContainer.classList.add('flex');
+                codeText.innerText = step.code;
+            } else {
+                codeContainer.classList.add('hidden');
+                codeContainer.classList.remove('flex');
+            }
 
             // 3. Render Variables Memory Grid
             const varsContainer = document.getElementById('variables-container');

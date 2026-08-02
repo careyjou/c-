@@ -202,11 +202,6 @@
             <i class="fa-solid fa-book-open"></i>
             <span>課本標準解題法</span>
           </button>
-
-          <button onclick="toggleAnimation()" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
-            <i class="fa-solid fa-circle-play"></i>
-            <span>動態教學演示</span>
-          </button>
         </div>
 
         <!-- Hint Card (Collapsible) -->
@@ -228,34 +223,6 @@
           </div>
           <div id="steps-content" class="space-y-3 text-sm sm:text-base">
             <!-- Populated via JS -->
-          </div>
-        </div>
-
-        <!-- Animated Demonstration Canvas Block -->
-        <div id="animation-card" class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col gap-3">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-            <div class="flex items-center space-x-2">
-              <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 text-lg"></i>
-              <h3 class="font-bold text-slate-800 text-base sm:text-lg">動態觀念視覺化示範</h3>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="replayAnimation()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-xs touch-btn">
-                <i class="fa-solid fa-rotate-right mr-1"></i>重播
-              </button>
-              <button id="anim-step-btn" onclick="nextAnimStep()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs touch-btn">
-                <i class="fa-solid fa-forward-step mr-1"></i>下一步
-              </button>
-            </div>
-          </div>
-
-          <!-- Canvas Responsive Viewport -->
-          <div class="relative w-full bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center min-h-[260px] sm:min-h-[320px] shadow-inner">
-            <canvas id="math-canvas" width="600" height="300" class="max-w-full h-auto block"></canvas>
-            
-            <!-- Canvas Overlay Text Box -->
-            <div id="canvas-overlay" class="absolute bottom-3 left-3 right-3 bg-slate-900/85 backdrop-blur text-white p-3 rounded-lg text-xs sm:text-sm font-medium border border-slate-700">
-              正在準備動態演示...
-            </div>
           </div>
         </div>
 
@@ -315,13 +282,6 @@
     let userAnswers = {}; // { qIndex: selectedOption }
     let testTimer = null;
     let secondsElapsed = 0;
-    
-    // Canvas Animation State
-    let canvas, ctx;
-    let animStep = 0;
-    let totalAnimSteps = 3;
-    let animProgress = 0;
-    let animFrameReq = null;
 
     // Unit Definitions
     const UNITS = {
@@ -352,8 +312,7 @@
           "步驟 2：列出 36 的因數：1, 2, 3, 4, 6, 9, 12, 18, 36。",
           "步驟 3：找出共同的因數（公因數）：1, 2, 3, 4, 6, 12。其中最大的是 12。",
           "結論：最多可以分給 12 位小朋友。"
-        ],
-        animType: "factors"
+        ]
       });
 
       list.push({
@@ -367,8 +326,7 @@
           "步驟 2：20 的倍數有：20, 40, 60, 80, 100...",
           "步驟 3：最小公倍數是 60 分鐘（即 1 小時）。",
           "結論：8:00 加上 1 小時，下次同時出發為早上 9:00。"
-        ],
-        animType: "multiples"
+        ]
       });
 
       list.push({
@@ -381,8 +339,7 @@
           "步驟 1：驗證 42 ÷ 5 = 8 ... 2 (非整除)",
           "步驟 2：驗證 42 ÷ 7 = 6 (整除！)",
           "結論：7 是 42 的因數。"
-        ],
-        animType: "factors"
+        ]
       });
 
       list.push({
@@ -395,8 +352,7 @@
           "步驟 1：計算 50 ÷ 7 = 7 ... 1",
           "步驟 2：7 的倍數為 7, 14, 21, 28, 35, 42, 49，共 7 個。",
           "結論：共有 7 個倍數。"
-        ],
-        animType: "multiples"
+        ]
       });
 
       list.push({
@@ -409,8 +365,7 @@
           "步驟 1：18 = 2 × 3²，24 = 2³ × 3",
           "步驟 2：取最高次方 2³ × 3² = 8 × 9 = 72。",
           "結論：最小公倍數為 72。"
-        ],
-        animType: "multiples"
+        ]
       });
 
       // 2. 異分母分數加減 (6-16)
@@ -430,8 +385,7 @@
           "步驟 2：將分數擴分：1/3 = 4/12，1/4 = 3/12。",
           "步驟 3：分子相加：4/12 + 3/12 = 7/12。",
           "結論：結果為 7/12。"
-        ],
-        animType: "fraction_add"
+        ]
       });
 
       list.push({
@@ -450,8 +404,7 @@
           "步驟 2：1/2 通分化為 5/10",
           "步驟 3：相減：8/10 - 5/10 = 3/10 公尺。",
           "結論：還剩下 3/10 公尺。"
-        ],
-        animType: "fraction_add"
+        ]
       });
 
       list.push({
@@ -469,8 +422,7 @@
           "步驟 1：通分分母為 6：2(3/6) - 1(4/6)",
           "步驟 2：分子 3 不夠減 4，向整數借 1 化為 6/6：1(9/6) - 1(4/6)",
           "步驟 3：整數 1-1=0，分子 9-4=5，得到 5/6。"
-        ],
-        animType: "fraction_add"
+        ]
       });
 
       // 3. 多邊形與內角和 (17-25)
@@ -484,8 +436,7 @@
           "步驟 1：計算五邊形內角和 = (5 - 2) × 180° = 3 × 180° = 540°。",
           "步驟 2：正五邊形有 5 個相等的角：540° ÷ 5 = 108°。",
           "結論：每個內角為 108°。"
-        ],
-        animType: "polygon_angles"
+        ]
       });
 
       list.push({
@@ -498,8 +449,7 @@
           "步驟 1：將三角形三個角標示為 ∠A、∠B、∠C。",
           "步驟 2：將三個角撕下頂點對齊拼在一起，會正好組成一條直線（平角）。",
           "結論：三角形內角和固定為 180°。"
-        ],
-        animType: "polygon_angles"
+        ]
       });
 
       list.push({
@@ -512,8 +462,7 @@
           "步驟 1：對角線數量 = 6 - 3 = 3 條。",
           "步驟 2：分割出的三角形數量 = 6 - 2 = 4 個。",
           "步驟 3：內角和 = 4 × 180° = 720°。"
-        ],
-        animType: "polygon_angles"
+        ]
       });
 
       // 4. 平面圖形面積 (26-35)
@@ -528,8 +477,7 @@
           "步驟 2：乘以高：16 × 5 = 80。",
           "步驟 3：除以 2（因為兩個全等梯形可以拼成一個平行四邊形）：80 ÷ 2 = 40 平方公分。",
           "結論：面積為 40 平方公分。"
-        ],
-        animType: "trapezoid_area"
+        ]
       });
 
       list.push({
@@ -542,8 +490,7 @@
           "步驟 1：底乘以高：12 × 8 = 96。",
           "步驟 2：除以 2（兩個全等三角形拼成平行四邊形）：96 ÷ 2 = 48 平方公分。",
           "結論：面積為 48 平方公分。"
-        ],
-        animType: "trapezoid_area"
+        ]
       });
 
       list.push({
@@ -556,8 +503,7 @@
           "步驟 1：使用反推公式：高 = 120 ÷ 15。",
           "步驟 2：計算：120 ÷ 15 = 8 公分。",
           "結論：高為 8 公分。"
-        ],
-        animType: "trapezoid_area"
+        ]
       });
 
       // 5. 小數乘法 (36-42)
@@ -572,8 +518,7 @@
           "步驟 2：數小數點位數：2.4 (1位) + 1.5 (1位) = 共有 2 位小數。",
           "步驟 3：將 360 向左移動 2 位小數點：3.60 = 3.6。",
           "結論：答案為 3.6。"
-        ],
-        animType: "decimal_mult"
+        ]
       });
 
       list.push({
@@ -586,8 +531,7 @@
           "步驟 1：458 × 35 = 16030。",
           "步驟 2：被乘數1位 + 乘數1位 = 2位小數。",
           "步驟 3：160.30 尾數 0 去除簡化為 160.3 元。"
-        ],
-        animType: "decimal_mult"
+        ]
       });
 
       // 6. 線對稱圖形 (43-50)
@@ -602,8 +546,7 @@
           "等腰三角形：有 1 條對稱軸。",
           "圓形：有無限多條對稱軸。",
           "一般平行四邊形：對角對折無法完全重合，故「不是」線對稱圖形。"
-        ],
-        animType: "symmetry"
+        ]
       });
 
       list.push({
@@ -616,8 +559,7 @@
           "步驟 1：正 n 邊形會有 n 條對稱軸。",
           "步驟 2：正五邊形連接每個頂點與對邊中點的直線皆為對稱軸。",
           "結論：共有 5 條對稱軸。"
-        ],
-        animType: "symmetry"
+        ]
       });
 
       // Expand to 50 template questions dynamically to ensure full dataset
@@ -634,8 +576,7 @@
             options: [`${g}`, `${g * 2}`, `${g + 1}`, `${Math.max(1, g - 1)}`],
             answer: 0,
             hint: `列出 ${numA} 和 ${numB} 的所有因數，找出共同的最大數。`,
-            steps: [`步驟 1：${numA} 與 ${numB} 的公因數最高為 ${g}。`],
-            animType: "factors"
+            steps: [`步驟 1：${numA} 與 ${numB} 的公因數最高為 ${g}。`]
           });
         } else if (u === 2) {
           list.push({
@@ -649,8 +590,7 @@
             ],
             answer: 0,
             hint: "將 1/2 通分為 3/6，再進行相加與約分。",
-            steps: ["步驟 1：1/2 = 3/6", "步驟 2：3/6 + 1/6 = 4/6 = 2/3。"],
-            animType: "fraction_add"
+            steps: ["步驟 1：1/2 = 3/6", "步驟 2：3/6 + 1/6 = 4/6 = 2/3。"]
           });
         } else if (u === 3) {
           const sides = 5 + (i % 4); // 5, 6, 7, 8
@@ -661,8 +601,7 @@
             options: [`${sum}°`, `${sum + 180}°`, `${sum - 180}°`, `${sum / 2}°`],
             answer: 0,
             hint: "公式：(n - 2) × 180°。",
-            steps: [`(${sides} - 2) × 180° = ${sum}°。`],
-            animType: "polygon_angles"
+            steps: [`(${sides} - 2) × 180° = ${sum}°。`]
           });
         } else if (u === 4) {
           const base = 8 + i;
@@ -674,8 +613,7 @@
             options: [`${area} 平方公分`, `${area * 2} 平方公分`, `${area + 10} 平方公分`, `${area - 5} 平方公分`],
             answer: 0,
             hint: "三角形面積 = 底 × 高 ÷ 2",
-            steps: [`${base} × ${h} ÷ 2 = ${area} 平方公分。`],
-            animType: "trapezoid_area"
+            steps: [`${base} × ${h} ÷ 2 = ${area} 平方公分。`]
           });
         } else if (u === 5) {
           const val1 = (1.2 + (i * 0.1)).toFixed(1);
@@ -687,8 +625,7 @@
             options: [`${res}`, `${(res * 10).toFixed(0)}`, `${(res / 10).toFixed(2)}`, `${(parseFloat(res) + 0.5).toFixed(1)}`],
             answer: 0,
             hint: "直接進行小數乘法計算。",
-            steps: [`${val1} × ${val2} = ${res}`],
-            animType: "decimal_mult"
+            steps: [`${val1} × ${val2} = ${res}`]
           });
         } else {
           list.push({
@@ -697,8 +634,7 @@
             options: ["4 條", "2 條", "8 條", "無數條"],
             answer: 0,
             hint: "包含 2 條對角線與 2 條對邊中點連線。",
-            steps: ["正方形具備 4 條對稱軸。"],
-            animType: "symmetry"
+            steps: ["正方形具備 4 條對稱軸。"]
           });
         }
       }
@@ -828,17 +764,8 @@
     }
 
     window.onload = function() {
-      // Initialize Canvas
-      canvas = document.getElementById('math-canvas');
-      ctx = canvas.getContext('2d');
-
       // Load initial mode
       switchMode('teach');
-
-      // Handle window resize for dynamic canvas scaling
-      window.addEventListener('resize', () => {
-        renderCurrentCanvasAnimation();
-      });
     };
 
     function switchMode(mode) {
@@ -1002,7 +929,7 @@
         if (selectedOpt === q.answer) {
           fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-emerald-100 text-emerald-900 border border-emerald-200";
           document.getElementById('feedback-icon').className = "fa-solid fa-circle-check text-emerald-600 text-2xl";
-          document.getElementById('feedback-msg').innerText = "答對了！非常優秀，請參考下方動態教學強化觀念。";
+          document.getElementById('feedback-msg').innerText = "答對了！非常優秀，可以對照下方解題步驟與觀念。";
         } else {
           fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-rose-100 text-rose-900 border border-rose-200";
           document.getElementById('feedback-icon').className = "fa-solid fa-circle-xmark text-rose-500 text-2xl";
@@ -1019,12 +946,6 @@
       if (q.steps) {
         const stepsContainer = document.getElementById('steps-content');
         stepsContainer.innerHTML = q.steps.map(s => `<div class="p-2.5 bg-white rounded-lg border border-sky-100 shadow-sm font-medium"><i class="fa-solid fa-arrow-right text-sky-500 mr-2"></i>${s}</div>`).join('');
-      }
-
-      // Render Canvas Animation for Teaching Mode
-      if (currentMode === 'teach') {
-        animStep = 0;
-        renderCurrentCanvasAnimation();
       }
     }
 
@@ -1051,276 +972,6 @@
     function toggleSteps() {
       const card = document.getElementById('steps-card');
       card.classList.toggle('hidden');
-    }
-
-    function toggleAnimation() {
-      const card = document.getElementById('animation-card');
-      card.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function renderCurrentCanvasAnimation() {
-      if (!canvas || !ctx) return;
-      const q = questionsList[currentQuestionIndex];
-      if (!q) return;
-
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Background Gradient
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      bgGrad.addColorStop(0, '#0f172a');
-      bgGrad.addColorStop(1, '#1e293b');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      const type = q.animType || "trapezoid_area";
-      const overlay = document.getElementById('canvas-overlay');
-
-      if (type === "trapezoid_area") {
-        drawTrapezoidAnimation(animStep);
-        if (animStep === 0) overlay.innerText = "【第一步】展示原始梯形：上底 a、下底 b、高 h。";
-        else if (animStep === 1) overlay.innerText = "【第二步】複製一個完全相同的倒立梯形拼在右側。";
-        else overlay.innerText = "【第三步】拼成大平行四邊形：底=(a+b)，面積=(a+b)×h ÷ 2。";
-      } else if (type === "fraction_add") {
-        drawFractionAnimation(animStep);
-        if (animStep === 0) overlay.innerText = "【第一步】展示不同分母的圓形或條狀等分數。";
-        else if (animStep === 1) overlay.innerText = "【第二步】將圖形細分進行「通分」，變成相同大小的切片。";
-        else overlay.innerText = "【第三步】將相同切片合併相加，求得最終結果。";
-      } else if (type === "polygon_angles") {
-        drawPolygonAnimation(animStep);
-        if (animStep === 0) overlay.innerText = "【第一步】畫出多邊形並選定一個頂點。";
-        else if (animStep === 1) overlay.innerText = "【第二步】連線畫出對角線，將多邊形分割為多個三角形。";
-        else overlay.innerText = "【第三步】每個三角形內角和 180°，總內角和 = (n-2) × 180°。";
-      } else if (type === "symmetry") {
-        drawSymmetryAnimation(animStep);
-        if (animStep === 0) overlay.innerText = "【第一步】標示紅線對稱軸與左側圖形頂點。";
-        else overlay.innerText = "【第二步】沿著對稱軸翻摺，左右兩側完全重合對稱。";
-      } else {
-        drawDefaultAnimation(animStep);
-        overlay.innerText = "動態觀念展示：依步驟學習數學原理。";
-      }
-    }
-
-    function nextAnimStep() {
-      animStep = (animStep + 1) % 3;
-      renderCurrentCanvasAnimation();
-    }
-
-    function replayAnimation() {
-      animStep = 0;
-      renderCurrentCanvasAnimation();
-    }
-
-    /* --- Canvas Drawing Primitives --- */
-    function drawTrapezoidAnimation(step) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.save();
-      ctx.lineWidth = 3;
-
-      // Original Trapezoid
-      ctx.beginPath();
-      ctx.moveTo(cx - 100, cy + 50); // Lower left
-      ctx.lineTo(cx + 60, cy + 50);  // Lower right
-      ctx.lineTo(cx + 20, cy - 50);  // Upper right
-      ctx.lineTo(cx - 60, cy - 50);  // Upper left
-      ctx.closePath();
-
-      ctx.fillStyle = "rgba(99, 102, 241, 0.4)";
-      ctx.strokeStyle = "#818cf8";
-      ctx.fill();
-      ctx.stroke();
-
-      // Labels
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 14px Noto Sans TC";
-      ctx.fillText("上底 (a)", cx - 30, cy - 60);
-      ctx.fillText("下底 (b)", cx - 30, cy + 70);
-
-      if (step >= 1) {
-        // Second Mirror Trapezoid
-        ctx.beginPath();
-        ctx.moveTo(cx + 60, cy + 50);
-        ctx.lineTo(cx + 180, cy + 50);
-        ctx.lineTo(cx + 140, cy - 50);
-        ctx.lineTo(cx + 20, cy - 50);
-        ctx.closePath();
-
-        ctx.fillStyle = "rgba(244, 63, 94, 0.4)";
-        ctx.strokeStyle = "#fb7185";
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      if (step >= 2) {
-        // Highlighting Parallelogram Outline
-        ctx.strokeStyle = "#f59e0b";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(cx - 120, cy - 65, 310, 140);
-        ctx.fillStyle = "#f59e0b";
-        ctx.fillText("拼成平行四邊形面積 = (上底 + 下底) × 高", cx - 110, cy - 80);
-      }
-
-      ctx.restore();
-    }
-
-    function drawFractionAnimation(step) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.save();
-      // Draw Circle 1
-      ctx.beginPath();
-      ctx.arc(cx - 120, cy, 60, 0, Math.PI * 2);
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      if (step === 0) {
-        // Cut into 3 slices
-        for (let i = 0; i < 3; i++) {
-          const angle = (i * 2 * Math.PI) / 3;
-          ctx.beginPath();
-          ctx.moveTo(cx - 120, cy);
-          ctx.lineTo(cx - 120 + 60 * Math.cos(angle), cy + 60 * Math.sin(angle));
-          ctx.stroke();
-        }
-      } else {
-        // Cut into 12 slices (Common Denominator)
-        for (let i = 0; i < 12; i++) {
-          const angle = (i * 2 * Math.PI) / 12;
-          ctx.beginPath();
-          ctx.moveTo(cx - 120, cy);
-          ctx.lineTo(cx - 120 + 60 * Math.cos(angle), cy + 60 * Math.sin(angle));
-          ctx.strokeStyle = step === 2 ? "#34d399" : "#a7f3d0";
-          ctx.stroke();
-        }
-      }
-
-      // Circle 2
-      ctx.beginPath();
-      ctx.arc(cx + 120, cy, 60, 0, Math.PI * 2);
-      ctx.strokeStyle = "#f43f5e";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px Noto Sans TC";
-      ctx.fillText(step === 0 ? "1/3 + 1/4 (無法直接加)" : "4/12 + 3/12 = 7/12 (通分成功)", cx - 100, cy + 95);
-
-      ctx.restore();
-    }
-
-    function drawPolygonAnimation(step) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const radius = 80;
-
-      ctx.save();
-      // Pentagon
-      const vertices = [];
-      for (let i = 0; i < 5; i++) {
-        const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-        vertices.push({
-          x: cx + radius * Math.cos(angle),
-          y: cy + radius * Math.sin(angle)
-        });
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(vertices[0].x, vertices[0].y);
-      for (let i = 1; i < 5; i++) ctx.lineTo(vertices[i].x, vertices[i].y);
-      ctx.closePath();
-
-      ctx.fillStyle = "rgba(99, 102, 241, 0.3)";
-      ctx.strokeStyle = "#6366f1";
-      ctx.lineWidth = 4;
-      ctx.fill();
-      ctx.stroke();
-
-      if (step >= 1) {
-        // Diagonals from Vertex 0
-        ctx.strokeStyle = "#f59e0b";
-        ctx.setLineDash([5, 5]);
-        ctx.lineWidth = 3;
-
-        ctx.beginPath();
-        ctx.moveTo(vertices[0].x, vertices[0].y);
-        ctx.lineTo(vertices[2].x, vertices[2].y);
-        ctx.moveTo(vertices[0].x, vertices[0].y);
-        ctx.lineTo(vertices[3].x, vertices[3].y);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px Noto Sans TC";
-      ctx.fillText(step === 2 ? "分成 3 個三角形：3 × 180° = 540°" : "五邊形頂點分割法", cx - 110, cy + 110);
-
-      ctx.restore();
-    }
-
-    function drawSymmetryAnimation(step) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.save();
-      // Symmetry Axis Line
-      ctx.strokeStyle = "#ef4444";
-      ctx.setLineDash([6, 6]);
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 100);
-      ctx.lineTo(cx, cy + 100);
-      ctx.stroke();
-
-      // Left Wing
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 80);
-      ctx.lineTo(cx - 70, cy - 20);
-      ctx.lineTo(cx - 30, cy + 60);
-      ctx.lineTo(cx, cy + 30);
-      ctx.closePath();
-
-      ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 3;
-      ctx.fill();
-      ctx.stroke();
-
-      if (step >= 1) {
-        // Right Mirror Wing
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - 80);
-        ctx.lineTo(cx + 70, cy - 20);
-        ctx.lineTo(cx + 30, cy + 60);
-        ctx.lineTo(cx, cy + 30);
-        ctx.closePath();
-
-        ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
-        ctx.strokeStyle = "#38bdf8";
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 16px Noto Sans TC";
-      ctx.fillText("紅虛線為對稱軸", cx - 55, cy + 120);
-
-      ctx.restore();
-    }
-
-    function drawDefaultAnimation(step) {
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
-      ctx.save();
-      ctx.fillStyle = "#818cf8";
-      ctx.font = "bold 20px Noto Sans TC";
-      ctx.textAlign = "center";
-      ctx.fillText("五年級上學期 數學觀念視覺化", cx, cy);
-      ctx.restore();
     }
 
     function startTimer() {
@@ -1364,9 +1015,9 @@
       if (scorePercent >= 90) {
         advice.innerHTML = "🌟 <strong>太棒了！概念極佳！</strong> 你對五年級上學期的觀念掌握度非常高，請繼續保持高水準的思考歷程。";
       } else if (scorePercent >= 70) {
-        advice.innerHTML = "👍 <strong>表現優良！</strong> 基礎觀念很紮實，部分錯題可以切換至「教學題模式」觀看動態示範進行復習。";
+        advice.innerHTML = "👍 <strong>表現優良！</strong> 基礎觀念很紮實，部分錯題可以切換至「教學題模式」查看課本標準解題法進行復習。";
       } else {
-        advice.innerHTML = "💪 <strong>加油！再接再厲！</strong> 建議多利用「觀念提示」與「動態演示」功能，按部就班釐清題意。";
+        advice.innerHTML = "💪 <strong>加油！再接再厲！</strong> 建議多利用「觀念提示」與「解題步驟」功能，按部就班釐清題意。";
       }
 
       document.getElementById('result-modal').classList.remove('hidden');

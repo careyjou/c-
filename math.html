@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>國小五年級上學期數學 互動教學與測驗系統</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    /* Scrollbar Styling for Tablet */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Tablet Touch Active Feedback */
+    .touch-btn {
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+    .touch-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Custom fraction formatting */
+    .fraction {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 4px;
+    }
+    .fraction .numerator {
+      border-bottom: 2px solid currentColor;
+      padding-bottom: 1px;
+    }
+    .fraction .denominator {
+      padding-top: 1px;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <button id="toggle-sidebar-btn" class="p-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white md:hidden touch-btn">
+          <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="flex items-center space-x-2">
+          <span class="bg-yellow-400 text-indigo-950 font-black px-2.5 py-1 rounded-md text-sm sm:text-base">小五上</span>
+          <h1 class="text-lg sm:text-2xl font-bold tracking-wide">數學互動教學與測驗系統</h1>
+        </div>
+      </div>
+
+      <!-- Mode Switcher Tabs for Tablet/Desktop -->
+      <div class="flex bg-indigo-800 p-1 rounded-xl shadow-inner text-xs sm:text-sm font-bold">
+        <button id="mode-teach-btn" onclick="switchMode('teach')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow">
+          <i class="fa-solid fa-lightbulb text-amber-500 mr-1 sm:mr-1.5"></i>教學題 (50)
+        </button>
+        <button id="mode-real-btn" onclick="switchMode('real')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white">
+          <i class="fa-solid fa-pen-clip text-emerald-300 mr-1 sm:mr-1.5"></i>真實題 (50)
+        </button>
+        <button id="mode-hard-btn" onclick="switchMode('hard')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white">
+          <i class="fa-solid fa-fire text-rose-400 mr-1 sm:mr-1.5"></i>困難題 (50)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row p-3 sm:p-5 gap-4">
+    
+    <!-- Sidebar: Question Navigation & Unit Filters -->
+    <aside id="sidebar" class="w-full md:w-80 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col shrink-0 overflow-hidden hidden md:flex">
+      <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-layer-group text-indigo-600"></i>
+          <h2 class="font-bold text-slate-700">題目導覽與篩選</h2>
+        </div>
+        <span id="current-mode-badge" class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">
+          教學練習模式
+        </span>
+      </div>
+
+      <!-- Unit Filter -->
+      <div class="p-3 border-b border-slate-100 bg-slate-50/50">
+        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">單元單獨練習：</label>
+        <select id="unit-filter" onchange="filterQuestionsByUnit()" class="w-full bg-white border border-slate-300 text-slate-700 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
+          <option value="all">🌟 全部單元 (50題)</option>
+          <option value="1">1. 因數與倍數</option>
+          <option value="2">2. 異分母分數加減</option>
+          <option value="3">3. 多邊形與內角和</option>
+          <option value="4">4. 平面圖形面積</option>
+          <option value="5">5. 小數乘法</option>
+          <option value="6">6. 線對稱圖形</option>
+        </select>
+      </div>
+
+      <!-- Question Grid (1-50) -->
+      <div class="p-3 flex-1 overflow-y-auto">
+        <div class="text-xs font-bold text-slate-400 mb-2 flex justify-between items-center">
+          <span>題目列表</span>
+          <span id="progress-text" class="text-indigo-600">已完成 0 / 50</span>
+        </div>
+        <div id="question-grid" class="grid grid-cols-5 gap-2">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Quiz Summary / Timer Box -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-3">
+        <div id="test-timer-box" class="hidden flex items-center justify-between bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+          <span class="text-xs font-bold text-indigo-700"><i class="fa-regular fa-clock mr-1"></i>測驗時間</span>
+          <span id="timer-display" class="font-mono font-bold text-indigo-900 text-lg">00:00</span>
+        </div>
+        
+        <button id="submit-quiz-btn" onclick="submitCurrentQuiz()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow text-sm flex items-center justify-center space-x-2 touch-btn">
+          <i class="fa-solid fa-check-circle"></i>
+          <span>送出本次測驗並評分</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Question Workspace -->
+    <main class="flex-1 flex flex-col gap-4 overflow-hidden">
+      
+      <!-- Question Card Header -->
+      <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 flex flex-col gap-4">
+        
+        <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
+          <div class="flex items-center space-x-3">
+            <span id="q-number-badge" class="bg-indigo-600 text-white font-black px-3 py-1 rounded-lg text-lg">
+              第 1 題
+            </span>
+            <span id="q-unit-tag" class="bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-bold px-3 py-1 rounded-md border border-indigo-100">
+              單元：因數與倍數
+            </span>
+          </div>
+          
+          <div class="flex items-center space-x-2">
+            <button onclick="navigateQuestion(-1)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm touch-btn flex items-center">
+              <i class="fa-solid fa-chevron-left mr-1"></i> 上一題
+            </button>
+            <button onclick="navigateQuestion(1)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm touch-btn flex items-center">
+              下一題 <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Title / Stem -->
+        <div class="text-base sm:text-xl font-bold text-slate-800 leading-relaxed min-h-[60px]" id="q-stem">
+          載入題目中...
+        </div>
+
+        <!-- Options Container -->
+        <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Feedback & Status Box -->
+        <div id="feedback-box" class="hidden p-4 rounded-xl text-sm font-bold flex items-center space-x-3">
+          <i id="feedback-icon" class="text-2xl"></i>
+          <span id="feedback-msg"></span>
+        </div>
+
+      </div>
+
+      <!-- Teaching Toolbar & Interactive Teaching Section (Visible only in Teaching Mode) -->
+      <div id="teaching-section" class="flex-1 flex flex-col gap-4">
+        
+        <!-- Action Buttons Bar for Teaching -->
+        <div class="flex items-center justify-between gap-3 bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
+          <button onclick="toggleHint()" class="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
+            <i class="fa-solid fa-lightbulb"></i>
+            <span>觀念提示</span>
+          </button>
+          
+          <button onclick="toggleSteps()" class="flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
+            <i class="fa-solid fa-book-open"></i>
+            <span>課本標準解題法</span>
+          </button>
+
+          <button onclick="toggleAnimation()" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
+            <i class="fa-solid fa-circle-play"></i>
+            <span>動態教學演示</span>
+          </button>
+        </div>
+
+        <!-- Hint Card (Collapsible) -->
+        <div id="hint-card" class="hidden bg-amber-50 rounded-2xl p-4 sm:p-5 border border-amber-200 text-amber-900 shadow-sm transition-all">
+          <div class="flex items-center space-x-2 font-bold text-amber-800 mb-2">
+            <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
+            <h3>解題觀念提示：</h3>
+          </div>
+          <div id="hint-content" class="text-sm sm:text-base leading-relaxed font-medium">
+            提示內容載入中...
+          </div>
+        </div>
+
+        <!-- Textbook Steps Card (Collapsible) -->
+        <div id="steps-card" class="hidden bg-sky-50 rounded-2xl p-4 sm:p-5 border border-sky-200 text-sky-950 shadow-sm transition-all">
+          <div class="flex items-center space-x-2 font-bold text-sky-800 mb-3 border-b border-sky-200/60 pb-2">
+            <i class="fa-solid fa-book-bookmark text-sky-600 text-lg"></i>
+            <h3>課本標準解題步驟 (翰林/康軒/南一範式)：</h3>
+          </div>
+          <div id="steps-content" class="space-y-3 text-sm sm:text-base">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Animated Demonstration Canvas Block -->
+        <div id="animation-card" class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid fa-wand-magic-sparkles text-indigo-600 text-lg"></i>
+              <h3 class="font-bold text-slate-800 text-base sm:text-lg">動態觀念視覺化示範</h3>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="replayAnimation()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-lg text-xs touch-btn">
+                <i class="fa-solid fa-rotate-right mr-1"></i>重播
+              </button>
+              <button id="anim-step-btn" onclick="nextAnimStep()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs touch-btn">
+                <i class="fa-solid fa-forward-step mr-1"></i>下一步
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas Responsive Viewport -->
+          <div class="relative w-full bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center min-h-[260px] sm:min-h-[320px] shadow-inner">
+            <canvas id="math-canvas" width="600" height="300" class="max-w-full h-auto block"></canvas>
+            
+            <!-- Canvas Overlay Text Box -->
+            <div id="canvas-overlay" class="absolute bottom-3 left-3 right-3 bg-slate-900/85 backdrop-blur text-white p-3 rounded-lg text-xs sm:text-sm font-medium border border-slate-700">
+              正在準備動態演示...
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Score & Result Modal -->
+  <div id="result-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-bounce-short">
+      <div id="score-icon-bg" class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-4xl mb-4">
+        <i class="fa-solid fa-trophy"></i>
+      </div>
+      <h2 class="text-2xl font-black text-slate-800 mb-1">測驗完成！</h2>
+      <p id="result-subtitle" class="text-slate-500 font-medium text-sm mb-4">台灣國小五年級上學期數學測驗</p>
+
+      <div class="bg-slate-50 rounded-2xl p-4 w-full grid grid-cols-2 gap-4 mb-6 border border-slate-200">
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-slate-500 font-bold mb-1">答對題數</span>
+          <span id="result-score" class="text-3xl font-black text-emerald-600">0 / 50</span>
+        </div>
+        <div class="flex flex-col items-center">
+          <span class="text-xs text-slate-500 font-bold mb-1">測驗得分</span>
+          <span id="result-percentage" class="text-3xl font-black text-indigo-600">0分</span>
+        </div>
+      </div>
+
+      <div id="result-advice" class="text-sm text-slate-600 mb-6 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100 text-left w-full">
+        診斷建議載入中...
+      </div>
+
+      <div class="flex w-full space-x-3">
+        <button onclick="closeResultModal()" class="flex-1 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-sm touch-btn">
+          檢視答題與錯題
+        </button>
+        <button onclick="restartQuiz()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow touch-btn">
+          重新測驗
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Sidebar Drawer Overlay -->
+  <div id="mobile-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden"></div>
+
+  <script>
+    /* =========================================================================
+     *  TAIWAN GRADE 5 SEMESTER 1 MATH QUESTION DATABASE & LOGIC ENGINE
+     * ========================================================================= */
+
+    // Application State
+    let currentMode = 'teach'; // 'teach', 'real', 'hard'
+    let currentFilteredUnit = 'all';
+    let currentQuestionIndex = 0;
+    let questionsList = [];
+    let userAnswers = {}; // { qIndex: selectedOption }
+    let testTimer = null;
+    let secondsElapsed = 0;
+    
+    // Canvas Animation State
+    let canvas, ctx;
+    let animStep = 0;
+    let totalAnimSteps = 3;
+    let animProgress = 0;
+    let animFrameReq = null;
+
+    // Unit Definitions
+    const UNITS = {
+      1: "1. 因數與倍數",
+      2: "2. 異分母分數加減",
+      3: "3. 多邊形與內角和",
+      4: "4. 平面圖形面積",
+      5: "5. 小數乘法",
+      6: "6. 線對稱圖形"
+    };
+
+    // Helper: GCD & LCM
+    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+    function lcm(a, b) { return (a * b) / gcd(a, b); }
+
+    function generateTeachingQuestions() {
+      const list = [];
+
+      // 1. 因數與倍數 (1-8)
+      list.push({
+        unit: 1,
+        stem: "媽媽準備了 24 顆蘋果和 36 顆橘子，要平分給小朋友，每人分到的蘋果要一樣多，橘子也要一樣多。最多可以分給多少位小朋友？",
+        options: ["4 位", "6 位", "12 位", "24 位"],
+        answer: 2,
+        hint: "求「最多可以分給多少人」，就是要找出 24 和 36 的「最大公因數 (GCD)」。",
+        steps: [
+          "步驟 1：列出 24 的因數：1, 2, 3, 4, 6, 8, 12, 24。",
+          "步驟 2：列出 36 的因數：1, 2, 3, 4, 6, 9, 12, 18, 36。",
+          "步驟 3：找出共同的因數（公因數）：1, 2, 3, 4, 6, 12。其中最大的是 12。",
+          "結論：最多可以分給 12 位小朋友。"
+        ],
+        animType: "factors"
+      });
+
+      list.push({
+        unit: 1,
+        stem: "公車 A 每 15 分鐘發一班，公車 B 每 20 分鐘發一班。若早上 8:00 兩車同時出發，下一次兩車同時出發是什麼時候？",
+        options: ["8:35", "9:00", "9:20", "10:00"],
+        answer: 1,
+        hint: "同時出發的時間間隔是 15 和 20 的「最小公倍數 (LCM)」。",
+        steps: [
+          "步驟 1：15 的倍數有：15, 30, 45, 60, 75, 90...",
+          "步驟 2：20 的倍數有：20, 40, 60, 80, 100...",
+          "步驟 3：最小公倍數是 60 分鐘（即 1 小時）。",
+          "結論：8:00 加上 1 小時，下次同時出發為早上 9:00。"
+        ],
+        animType: "multiples"
+      });
+
+      list.push({
+        unit: 1,
+        stem: "下列哪一個數是 42 的因數？",
+        options: ["5", "7", "8", "9"],
+        answer: 1,
+        hint: "如果 42 能被該數整除（餘數為 0），則該數為 42 的因數。",
+        steps: [
+          "步驟 1：驗證 42 ÷ 5 = 8 ... 2 (非整除)",
+          "步驟 2：驗證 42 ÷ 7 = 6 (整除！)",
+          "結論：7 是 42 的因數。"
+        ],
+        animType: "factors"
+      });
+
+      list.push({
+        unit: 1,
+        stem: "1 到 50 的自然數中，7 的倍數共有幾個？",
+        options: ["5 個", "6 個", "7 個", "8 個"],
+        answer: 2,
+        hint: "使用除法：50 除以 7，商數即為倍數的個數。",
+        steps: [
+          "步驟 1：計算 50 ÷ 7 = 7 ... 1",
+          "步驟 2：7 的倍數為 7, 14, 21, 28, 35, 42, 49，共 7 個。",
+          "結論：共有 7 個倍數。"
+        ],
+        animType: "multiples"
+      });
+
+      list.push({
+        unit: 1,
+        stem: "18 與 24 的最小公倍數是多少？",
+        options: ["48", "72", "96", "144"],
+        answer: 1,
+        hint: "利用短除法或列舉法找出同時能被 18 與 24 整除的最小正整數。",
+        steps: [
+          "步驟 1：18 = 2 × 3²，24 = 2³ × 3",
+          "步驟 2：取最高次方 2³ × 3² = 8 × 9 = 72。",
+          "結論：最小公倍數為 72。"
+        ],
+        animType: "multiples"
+      });
+
+      // 2. 異分母分數加減 (6-16)
+      list.push({
+        unit: 2,
+        stem: "計算 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 的結果是多少？",
+        options: [
+          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>7</span></span>",
+          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>",
+          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
+          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>"
+        ],
+        answer: 1,
+        hint: "異分母分數不能直接相加！必須先找出分母 3 和 4 的公倍數（通分）變成同分母。",
+        steps: [
+          "步驟 1：分母 3 和 4 的最小公倍數是 12。",
+          "步驟 2：將分數擴分：1/3 = 4/12，1/4 = 3/12。",
+          "步驟 3：分子相加：4/12 + 3/12 = 7/12。",
+          "結論：結果為 7/12。"
+        ],
+        animType: "fraction_add"
+      });
+
+      list.push({
+        unit: 2,
+        stem: "小明有一條繩子長 <span class='fraction'><span class='numerator'>4</span><span class='denominator'>5</span></span> 公尺，用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公尺後，還剩下多少公尺？",
+        options: [
+          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>10</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>3</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>10</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span> 公尺"
+        ],
+        answer: 0,
+        hint: "進行減法前，需要先將分母 5 與 2 通分為同分母 10。",
+        steps: [
+          "步驟 1：4/5 通分化為 8/10",
+          "步驟 2：1/2 通分化為 5/10",
+          "步驟 3：相減：8/10 - 5/10 = 3/10 公尺。",
+          "結論：還剩下 3/10 公尺。"
+        ],
+        animType: "fraction_add"
+      });
+
+      list.push({
+        unit: 2,
+        stem: "計算 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> - 1<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 等於多少？",
+        options: [
+          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>",
+          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span>",
+          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span>",
+          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>"
+        ],
+        answer: 0,
+        hint: "帶分數相減時，若分子不夠減，需要向整數借 1 化為假分數。",
+        steps: [
+          "步驟 1：通分分母為 6：2(3/6) - 1(4/6)",
+          "步驟 2：分子 3 不夠減 4，向整數借 1 化為 6/6：1(9/6) - 1(4/6)",
+          "步驟 3：整數 1-1=0，分子 9-4=5，得到 5/6。"
+        ],
+        animType: "fraction_add"
+      });
+
+      // 3. 多邊形與內角和 (17-25)
+      list.push({
+        unit: 3,
+        stem: "一個正五邊形的每一個內角是多少度？",
+        options: ["90°", "108°", "120°", "135°"],
+        answer: 1,
+        hint: "n 邊形的內角和公式為 (n - 2) × 180°。正多邊形每個內角皆相等。",
+        steps: [
+          "步驟 1：計算五邊形內角和 = (5 - 2) × 180° = 3 × 180° = 540°。",
+          "步驟 2：正五邊形有 5 個相等的角：540° ÷ 5 = 108°。",
+          "結論：每個內角為 108°。"
+        ],
+        animType: "polygon_angles"
+      });
+
+      list.push({
+        unit: 3,
+        stem: "三角形的內角和是多少度？",
+        options: ["90°", "180°", "270°", "360°"],
+        answer: 1,
+        hint: "任何三角形三個內角相加，都可以剪下拼成一條直線（平角）。",
+        steps: [
+          "步驟 1：將三角形三個角標示為 ∠A、∠B、∠C。",
+          "步驟 2：將三個角撕下頂點對齊拼在一起，會正好組成一條直線（平角）。",
+          "結論：三角形內角和固定為 180°。"
+        ],
+        animType: "polygon_angles"
+      });
+
+      list.push({
+        unit: 3,
+        stem: "一個六邊形可以從同一個頂點畫出幾條對角線？將六邊形分成幾個三角形？",
+        options: ["3條對角線，分成 4個三角形", "4條對角線，分成 5個三角形", "2條對角線，分成 3個三角形", "3條對角線，分成 3個三角形"],
+        answer: 0,
+        hint: "從 n 邊形一個頂點可以畫出 (n - 3) 條對角線，分割成 (n - 2) 個三角形。",
+        steps: [
+          "步驟 1：對角線數量 = 6 - 3 = 3 條。",
+          "步驟 2：分割出的三角形數量 = 6 - 2 = 4 個。",
+          "步驟 3：內角和 = 4 × 180° = 720°。"
+        ],
+        animType: "polygon_angles"
+      });
+
+      // 4. 平面圖形面積 (26-35)
+      list.push({
+        unit: 4,
+        stem: "一個梯形的上底是 6 公分，下底是 10 公分，高是 5 公分，請問它的面積是多少平方公分？",
+        options: ["80 平方公分", "40 平方公分", "30 平方公分", "50 平方公分"],
+        answer: 1,
+        hint: "梯形面積公式 = (上底 + 下底) × 高 ÷ 2。",
+        steps: [
+          "步驟 1：將上底與下底相加：6 + 10 = 16 公分。",
+          "步驟 2：乘以高：16 × 5 = 80。",
+          "步驟 3：除以 2（因為兩個全等梯形可以拼成一個平行四邊形）：80 ÷ 2 = 40 平方公分。",
+          "結論：面積為 40 平方公分。"
+        ],
+        animType: "trapezoid_area"
+      });
+
+      list.push({
+        unit: 4,
+        stem: "一個三角形的底是 12 公分，高是 8 公分，請問面積是多少平方公分？",
+        options: ["96 平方公分", "48 平方公分", "24 平方公分", "36 平方公分"],
+        answer: 1,
+        hint: "三角形面積公式 = 底 × 高 ÷ 2。",
+        steps: [
+          "步驟 1：底乘以高：12 × 8 = 96。",
+          "步驟 2：除以 2（兩個全等三角形拼成平行四邊形）：96 ÷ 2 = 48 平方公分。",
+          "結論：面積為 48 平方公分。"
+        ],
+        animType: "trapezoid_area"
+      });
+
+      list.push({
+        unit: 4,
+        stem: "一個平行四邊形的底是 15 公分，面積是 120 平方公分，請問它的高是多少公分？",
+        options: ["6 公分", "8 公分", "10 公分", "12 公分"],
+        answer: 1,
+        hint: "平行四邊形面積 = 底 × 高，因此 高 = 面積 ÷ 底。",
+        steps: [
+          "步驟 1：使用反推公式：高 = 120 ÷ 15。",
+          "步驟 2：計算：120 ÷ 15 = 8 公分。",
+          "結論：高為 8 公分。"
+        ],
+        animType: "trapezoid_area"
+      });
+
+      // 5. 小數乘法 (36-42)
+      list.push({
+        unit: 5,
+        stem: "計算 2.4 × 1.5 的結果是多少？",
+        options: ["3.6", "36", "0.36", "3.65"],
+        answer: 0,
+        hint: "先當作整數相乘 (24 × 15)，再看被乘數與乘數共有幾位小數，將小數點點回相應位置。",
+        steps: [
+          "步驟 1：先算整數乘法：24 × 15 = 360。",
+          "步驟 2：數小數點位數：2.4 (1位) + 1.5 (1位) = 共有 2 位小數。",
+          "步驟 3：將 360 向左移動 2 位小數點：3.60 = 3.6。",
+          "結論：答案為 3.6。"
+        ],
+        animType: "decimal_mult"
+      });
+
+      list.push({
+        unit: 5,
+        stem: "一公斤蘋果賣 45.8 元，買 3.5 公斤需要多少元？",
+        options: ["160.3 元", "160.30 元", "160.3 元 (簡化後)", "160.3 元 (即 160.3)"],
+        answer: 0,
+        hint: "總價 = 單價 × 重量，即 45.8 × 3.5。",
+        steps: [
+          "步驟 1：458 × 35 = 16030。",
+          "步驟 2：被乘數1位 + 乘數1位 = 2位小數。",
+          "步驟 3：160.30 尾數 0 去除簡化為 160.3 元。"
+        ],
+        animType: "decimal_mult"
+      });
+
+      // 6. 線對稱圖形 (43-50)
+      list.push({
+        unit: 6,
+        stem: "下列哪一個圖形「不是」線對稱圖形？",
+        options: ["正方形", "等腰三角形", "一般平行四邊形", "圓形"],
+        answer: 2,
+        hint: "沿著對稱軸對折後，左右兩邊必須完全重合才稱為線對稱圖形。",
+        steps: [
+          "正方形：有 4 條對稱軸。",
+          "等腰三角形：有 1 條對稱軸。",
+          "圓形：有無限多條對稱軸。",
+          "一般平行四邊形：對角對折無法完全重合，故「不是」線對稱圖形。"
+        ],
+        animType: "symmetry"
+      });
+
+      list.push({
+        unit: 6,
+        stem: "正五邊形共有幾條對稱軸？",
+        options: ["1 條", "3 條", "5 條", "10 條"],
+        answer: 2,
+        hint: "正多邊形的邊數等於其對稱軸的條數。",
+        steps: [
+          "步驟 1：正 n 邊形會有 n 條對稱軸。",
+          "步驟 2：正五邊形連接每個頂點與對邊中點的直線皆為對稱軸。",
+          "結論：共有 5 條對稱軸。"
+        ],
+        animType: "symmetry"
+      });
+
+      // Expand to 50 template questions dynamically to ensure full dataset
+      const totalToGenerate = 50 - list.length;
+      for (let i = 0; i < totalToGenerate; i++) {
+        const u = (i % 6) + 1;
+        if (u === 1) {
+          const numA = 6 + (i * 2);
+          const numB = 9 + (i * 3);
+          const g = gcd(numA, numB);
+          list.push({
+            unit: 1,
+            stem: `請問 ${numA} 與 ${numB} 的最大公因數是多少？`,
+            options: [`${g}`, `${g * 2}`, `${g + 1}`, `${Math.max(1, g - 1)}`],
+            answer: 0,
+            hint: `列出 ${numA} 和 ${numB} 的所有因數，找出共同的最大數。`,
+            steps: [`步驟 1：${numA} 與 ${numB} 的公因數最高為 ${g}。`],
+            animType: "factors"
+          });
+        } else if (u === 2) {
+          list.push({
+            unit: 2,
+            stem: `計算 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> 的結果簡化後是多少？`,
+            options: [
+              "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span>",
+              "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>8</span></span>",
+              "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>",
+              "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span>"
+            ],
+            answer: 0,
+            hint: "將 1/2 通分為 3/6，再進行相加與約分。",
+            steps: ["步驟 1：1/2 = 3/6", "步驟 2：3/6 + 1/6 = 4/6 = 2/3。"],
+            animType: "fraction_add"
+          });
+        } else if (u === 3) {
+          const sides = 5 + (i % 4); // 5, 6, 7, 8
+          const sum = (sides - 2) * 180;
+          list.push({
+            unit: 3,
+            stem: `一個 ${sides} 邊形的內角和是多少度？`,
+            options: [`${sum}°`, `${sum + 180}°`, `${sum - 180}°`, `${sum / 2}°`],
+            answer: 0,
+            hint: "公式：(n - 2) × 180°。",
+            steps: [`(${sides} - 2) × 180° = ${sum}°。`],
+            animType: "polygon_angles"
+          });
+        } else if (u === 4) {
+          const base = 8 + i;
+          const h = 6 + i;
+          const area = (base * h) / 2;
+          list.push({
+            unit: 4,
+            stem: `已知一個三角形的底為 ${base} 公分，高為 ${h} 公分，請問面積是多少？`,
+            options: [`${area} 平方公分`, `${area * 2} 平方公分`, `${area + 10} 平方公分`, `${area - 5} 平方公分`],
+            answer: 0,
+            hint: "三角形面積 = 底 × 高 ÷ 2",
+            steps: [`${base} × ${h} ÷ 2 = ${area} 平方公分。`],
+            animType: "trapezoid_area"
+          });
+        } else if (u === 5) {
+          const val1 = (1.2 + (i * 0.1)).toFixed(1);
+          const val2 = 3;
+          const res = (parseFloat(val1) * val2).toFixed(1);
+          list.push({
+            unit: 5,
+            stem: `計算 ${val1} × ${val2} 等於多少？`,
+            options: [`${res}`, `${(res * 10).toFixed(0)}`, `${(res / 10).toFixed(2)}`, `${(parseFloat(res) + 0.5).toFixed(1)}`],
+            answer: 0,
+            hint: "直接進行小數乘法計算。",
+            steps: [`${val1} × ${val2} = ${res}`],
+            animType: "decimal_mult"
+          });
+        } else {
+          list.push({
+            unit: 6,
+            stem: "正方形共有幾條對稱軸？",
+            options: ["4 條", "2 條", "8 條", "無數條"],
+            answer: 0,
+            hint: "包含 2 條對角線與 2 條對邊中點連線。",
+            steps: ["正方形具備 4 條對稱軸。"],
+            animType: "symmetry"
+          });
+        }
+      }
+
+      return list;
+    }
+
+    function generateExamQuestions(isHard = false) {
+      const list = [];
+      for (let i = 1; i <= 50; i++) {
+        const u = ((i - 1) % 6) + 1;
+        let q = {};
+
+        if (!isHard) {
+          // Standard Exam Questions
+          if (u === 1) {
+            const a = 12 + (i % 10) * 2;
+            const b = 18 + (i % 10) * 3;
+            const ans = gcd(a, b);
+            q = {
+              unit: 1,
+              stem: `【真實題 ${i}】求 ${a} 和 ${b} 的最大公因數？`,
+              options: [`${ans}`, `${ans * 2}`, `${Math.max(1, ans - 2)}`, `${ans + 3}`],
+              answer: 0
+            };
+          } else if (u === 2) {
+            q = {
+              unit: 2,
+              stem: `【真實題 ${i}】計算 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 的結果是多少？`,
+              options: [
+                "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>8</span></span>",
+                "<span class='fraction'><span class='numerator'>4</span><span class='denominator'>12</span></span>",
+                "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>",
+                "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>8</span></span>"
+              ],
+              answer: 0
+            };
+          } else if (u === 3) {
+            q = {
+              unit: 3,
+              stem: `【真實題 ${i}】正八邊形的內角和是多少度？`,
+              options: ["1080°", "900°", "720°", "1260°"],
+              answer: 0
+            };
+          } else if (u === 4) {
+            const top = 4 + (i % 5);
+            const bot = 8 + (i % 5);
+            const h = 6;
+            const area = ((top + bot) * h) / 2;
+            q = {
+              unit: 4,
+              stem: `【真實題 ${i}】梯形上底 ${top}cm、下底 ${bot}cm、高 ${h}cm，求面積？`,
+              options: [`${area} cm²`, `${area * 2} cm²`, `${area - 6} cm²`, `${area + 12} cm²`],
+              answer: 0
+            };
+          } else if (u === 5) {
+            const v1 = (2.5 + (i * 0.2)).toFixed(1);
+            const res = (parseFloat(v1) * 1.2).toFixed(2);
+            q = {
+              unit: 5,
+              stem: `【真實題 ${i}】計算 ${v1} × 1.2 的結果？`,
+              options: [`${res}`, `${(res * 10).toFixed(1)}`, `${(res / 10).toFixed(3)}`, `${(parseFloat(res) + 0.11).toFixed(2)}`],
+              answer: 0
+            };
+          } else {
+            q = {
+              unit: 6,
+              stem: `【真實題 ${i}】長方形有幾條對稱軸？`,
+              options: ["2 條", "4 條", "1 條", "0 條"],
+              answer: 0
+            };
+          }
+        } else {
+          // Hard Challenge Questions
+          if (u === 1) {
+            q = {
+              unit: 1,
+              stem: `【困難挑戰 ${i}】有一包糖果數量在 100 到 150 顆之間，每 12 顆裝一袋或每 15 顆裝一袋都剛好裝完，請問這包糖果有多少顆？`,
+              options: ["120 顆", "135 顆", "140 顆", "150 顆"],
+              answer: 0
+            };
+          } else if (u === 2) {
+            q = {
+              unit: 2,
+              stem: `【困難挑戰 ${i}】水桶裡原本有 5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公升的水，倒出 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 公升後，再倒入 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公升，現在水桶裡有多少公升的水？`,
+              options: [
+                "4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
+                "3<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span> 公升",
+                "4<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span> 公升",
+                "3<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span> 公升"
+              ],
+              answer: 0
+            };
+          } else if (u === 3) {
+            q = {
+              unit: 3,
+              stem: `【困難挑戰 ${i}】一個多邊形的內角和是 1440°，請問這個多邊形是幾邊形？`,
+              options: ["十邊形", "九邊形", "八邊形", "十二邊形"],
+              answer: 0
+            };
+          } else if (u === 4) {
+            q = {
+              unit: 4,
+              stem: `【困難挑戰 ${i}】一個平行四邊形土地底長 24 公尺，高 15 公尺。若在中間開闢一條寬 2 公尺的平行四邊形小路，剩餘的草地面積是多少平方公尺？`,
+              options: ["330 平方公尺", "340 平方公尺", "360 平方公尺", "300 平方公尺"],
+              answer: 0
+            };
+          } else if (u === 5) {
+            q = {
+              unit: 5,
+              stem: `【困難挑戰 ${i}】小華跑步每秒跑 4.25 公尺，他跑了 1 分 20 秒，一共跑了多少公尺？`,
+              options: ["340 公尺", "255 公尺", "300 公尺", "380 公尺"],
+              answer: 0
+            };
+          } else {
+            q = {
+              unit: 6,
+              stem: `【困難挑戰 ${i}】在坐標或格線上，點 A(3, 5) 對於對稱軸 L(x=5) 的對稱點 A' 坐標為何？`,
+              options: ["(7, 5)", "(5, 5)", "(1, 5)", "(7, 3)"],
+              answer: 0
+            };
+          }
+        }
+        list.push(q);
+      }
+      return list;
+    }
+
+    window.onload = function() {
+      // Initialize Canvas
+      canvas = document.getElementById('math-canvas');
+      ctx = canvas.getContext('2d');
+
+      // Load initial mode
+      switchMode('teach');
+
+      // Handle window resize for dynamic canvas scaling
+      window.addEventListener('resize', () => {
+        renderCurrentCanvasAnimation();
+      });
+    };
+
+    function switchMode(mode) {
+      currentMode = mode;
+      userAnswers = {};
+      currentQuestionIndex = 0;
+
+      // Update Tab Styles
+      document.getElementById('mode-teach-btn').className = mode === 'teach' 
+        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow font-bold" 
+        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
+      
+      document.getElementById('mode-real-btn').className = mode === 'real' 
+        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-emerald-700 shadow font-bold" 
+        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
+
+      document.getElementById('mode-hard-btn').className = mode === 'hard' 
+        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-rose-700 shadow font-bold" 
+        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
+
+      const badge = document.getElementById('current-mode-badge');
+      const teachingSec = document.getElementById('teaching-section');
+      const timerBox = document.getElementById('test-timer-box');
+
+      if (mode === 'teach') {
+        badge.innerText = "教學練習模式";
+        badge.className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
+        teachingSec.classList.remove('hidden');
+        timerBox.classList.add('hidden');
+        stopTimer();
+        questionsList = generateTeachingQuestions();
+      } else if (mode === 'real') {
+        badge.innerText = "真實模擬測驗";
+        badge.className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold";
+        teachingSec.classList.add('hidden');
+        timerBox.classList.remove('hidden');
+        startTimer();
+        questionsList = generateExamQuestions(false);
+      } else {
+        badge.innerText = "進階困難挑戰";
+        badge.className = "bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold";
+        teachingSec.classList.add('hidden');
+        timerBox.classList.remove('hidden');
+        startTimer();
+        questionsList = generateExamQuestions(true);
+      }
+
+      filterQuestionsByUnit();
+    }
+
+    function filterQuestionsByUnit() {
+      const selectedUnit = document.getElementById('unit-filter').value;
+      currentFilteredUnit = selectedUnit;
+      currentQuestionIndex = 0;
+      renderQuestionGrid();
+      loadQuestion(currentQuestionIndex);
+    }
+
+    function renderQuestionGrid() {
+      const grid = document.getElementById('question-grid');
+      grid.innerHTML = '';
+
+      let activeCount = 0;
+      questionsList.forEach((q, idx) => {
+        if (currentFilteredUnit !== 'all' && q.unit != currentFilteredUnit) {
+          return;
+        }
+        activeCount++;
+
+        const isAnswered = userAnswers[idx] !== undefined;
+        const isCurrent = idx === currentQuestionIndex;
+
+        const btn = document.createElement('button');
+        btn.className = `h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center border touch-btn ${
+          isCurrent 
+            ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-300' 
+            : isAnswered 
+              ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+        }`;
+        btn.innerText = `${idx + 1}`;
+        btn.onclick = () => {
+          currentQuestionIndex = idx;
+          renderQuestionGrid();
+          loadQuestion(idx);
+        };
+        grid.appendChild(btn);
+      });
+
+      const answeredTotal = Object.keys(userAnswers).length;
+      document.getElementById('progress-text').innerText = `已完成 ${answeredTotal} / ${questionsList.length}`;
+    }
+
+    function loadQuestion(index) {
+      if (!questionsList[index]) return;
+      const q = questionsList[index];
+
+      document.getElementById('q-number-badge').innerText = `第 ${index + 1} 題`;
+      document.getElementById('q-unit-tag').innerText = `單元：${UNITS[q.unit] || '綜合'}`;
+      document.getElementById('q-stem').innerHTML = q.stem;
+
+      // Hide Hint & Steps Cards on new question
+      document.getElementById('hint-card').classList.add('hidden');
+      document.getElementById('steps-card').classList.add('hidden');
+
+      // Populate Options
+      const optContainer = document.getElementById('options-container');
+      optContainer.innerHTML = '';
+
+      const selectedOpt = userAnswers[index];
+
+      q.options.forEach((optText, optIdx) => {
+        const isSelected = selectedOpt === optIdx;
+        const isCorrect = optIdx === q.answer;
+
+        let btnClass = "p-4 rounded-xl border-2 text-left font-bold text-sm sm:text-base flex items-center justify-between transition-all touch-btn ";
+
+        if (selectedOpt !== undefined) {
+          if (currentMode === 'teach') {
+            if (isSelected && isCorrect) {
+              btnClass += "border-emerald-500 bg-emerald-50 text-emerald-900";
+            } else if (isSelected && !isCorrect) {
+              btnClass += "border-rose-500 bg-rose-50 text-rose-900";
+            } else if (isCorrect) {
+              btnClass += "border-emerald-400 bg-emerald-50/50 text-emerald-800";
+            } else {
+              btnClass += "border-slate-200 bg-slate-50 text-slate-400";
+            }
+          } else {
+            // Exam Mode: Only show selected highlight
+            if (isSelected) {
+              btnClass += "border-indigo-600 bg-indigo-50 text-indigo-900";
+            } else {
+              btnClass += "border-slate-200 bg-white text-slate-700 hover:bg-slate-50";
+            }
+          }
+        } else {
+          btnClass += "border-slate-200 bg-white hover:border-indigo-300 text-slate-700 hover:bg-indigo-50/30";
+        }
+
+        const optBtn = document.createElement('button');
+        optBtn.className = btnClass;
+        optBtn.onclick = () => selectOption(optIdx);
+
+        const labelLetter = String.fromCharCode(65 + optIdx); // A, B, C, D
+        optBtn.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center text-xs font-black shrink-0">${labelLetter}</span>
+            <span>${optText}</span>
+          </div>
+          ${selectedOpt !== undefined && currentMode === 'teach' ? (isCorrect ? '<i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>' : (isSelected ? '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>' : '')) : ''}
+        `;
+
+        optContainer.appendChild(optBtn);
+      });
+
+      // Feedback Box
+      const fbBox = document.getElementById('feedback-box');
+      if (selectedOpt !== undefined && currentMode === 'teach') {
+        fbBox.classList.remove('hidden');
+        if (selectedOpt === q.answer) {
+          fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-emerald-100 text-emerald-900 border border-emerald-200";
+          document.getElementById('feedback-icon').className = "fa-solid fa-circle-check text-emerald-600 text-2xl";
+          document.getElementById('feedback-msg').innerText = "答對了！非常優秀，請參考下方動態教學強化觀念。";
+        } else {
+          fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-rose-100 text-rose-900 border border-rose-200";
+          document.getElementById('feedback-icon').className = "fa-solid fa-circle-xmark text-rose-500 text-2xl";
+          document.getElementById('feedback-msg').innerText = `答錯了！正確答案是 (${String.fromCharCode(65 + q.answer)})。可以點擊觀念提示或解題步驟了解詳情。`;
+        }
+      } else {
+        fbBox.classList.add('hidden');
+      }
+
+      // Populate Hint & Steps text
+      if (q.hint) {
+        document.getElementById('hint-content').innerText = q.hint;
+      }
+      if (q.steps) {
+        const stepsContainer = document.getElementById('steps-content');
+        stepsContainer.innerHTML = q.steps.map(s => `<div class="p-2.5 bg-white rounded-lg border border-sky-100 shadow-sm font-medium"><i class="fa-solid fa-arrow-right text-sky-500 mr-2"></i>${s}</div>`).join('');
+      }
+
+      // Render Canvas Animation for Teaching Mode
+      if (currentMode === 'teach') {
+        animStep = 0;
+        renderCurrentCanvasAnimation();
+      }
+    }
+
+    function selectOption(optIdx) {
+      userAnswers[currentQuestionIndex] = optIdx;
+      renderQuestionGrid();
+      loadQuestion(currentQuestionIndex);
+    }
+
+    function navigateQuestion(direction) {
+      const newIndex = currentQuestionIndex + direction;
+      if (newIndex >= 0 && newIndex < questionsList.length) {
+        currentQuestionIndex = newIndex;
+        renderQuestionGrid();
+        loadQuestion(currentQuestionIndex);
+      }
+    }
+
+    function toggleHint() {
+      const card = document.getElementById('hint-card');
+      card.classList.toggle('hidden');
+    }
+
+    function toggleSteps() {
+      const card = document.getElementById('steps-card');
+      card.classList.toggle('hidden');
+    }
+
+    function toggleAnimation() {
+      const card = document.getElementById('animation-card');
+      card.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderCurrentCanvasAnimation() {
+      if (!canvas || !ctx) return;
+      const q = questionsList[currentQuestionIndex];
+      if (!q) return;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Background Gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#1e293b');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const type = q.animType || "trapezoid_area";
+      const overlay = document.getElementById('canvas-overlay');
+
+      if (type === "trapezoid_area") {
+        drawTrapezoidAnimation(animStep);
+        if (animStep === 0) overlay.innerText = "【第一步】展示原始梯形：上底 a、下底 b、高 h。";
+        else if (animStep === 1) overlay.innerText = "【第二步】複製一個完全相同的倒立梯形拼在右側。";
+        else overlay.innerText = "【第三步】拼成大平行四邊形：底=(a+b)，面積=(a+b)×h ÷ 2。";
+      } else if (type === "fraction_add") {
+        drawFractionAnimation(animStep);
+        if (animStep === 0) overlay.innerText = "【第一步】展示不同分母的圓形或條狀等分數。";
+        else if (animStep === 1) overlay.innerText = "【第二步】將圖形細分進行「通分」，變成相同大小的切片。";
+        else overlay.innerText = "【第三步】將相同切片合併相加，求得最終結果。";
+      } else if (type === "polygon_angles") {
+        drawPolygonAnimation(animStep);
+        if (animStep === 0) overlay.innerText = "【第一步】畫出多邊形並選定一個頂點。";
+        else if (animStep === 1) overlay.innerText = "【第二步】連線畫出對角線，將多邊形分割為多個三角形。";
+        else overlay.innerText = "【第三步】每個三角形內角和 180°，總內角和 = (n-2) × 180°。";
+      } else if (type === "symmetry") {
+        drawSymmetryAnimation(animStep);
+        if (animStep === 0) overlay.innerText = "【第一步】標示紅線對稱軸與左側圖形頂點。";
+        else overlay.innerText = "【第二步】沿著對稱軸翻摺，左右兩側完全重合對稱。";
+      } else {
+        drawDefaultAnimation(animStep);
+        overlay.innerText = "動態觀念展示：依步驟學習數學原理。";
+      }
+    }
+
+    function nextAnimStep() {
+      animStep = (animStep + 1) % 3;
+      renderCurrentCanvasAnimation();
+    }
+
+    function replayAnimation() {
+      animStep = 0;
+      renderCurrentCanvasAnimation();
+    }
+
+    /* --- Canvas Drawing Primitives --- */
+    function drawTrapezoidAnimation(step) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      ctx.lineWidth = 3;
+
+      // Original Trapezoid
+      ctx.beginPath();
+      ctx.moveTo(cx - 100, cy + 50); // Lower left
+      ctx.lineTo(cx + 60, cy + 50);  // Lower right
+      ctx.lineTo(cx + 20, cy - 50);  // Upper right
+      ctx.lineTo(cx - 60, cy - 50);  // Upper left
+      ctx.closePath();
+
+      ctx.fillStyle = "rgba(99, 102, 241, 0.4)";
+      ctx.strokeStyle = "#818cf8";
+      ctx.fill();
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 14px Noto Sans TC";
+      ctx.fillText("上底 (a)", cx - 30, cy - 60);
+      ctx.fillText("下底 (b)", cx - 30, cy + 70);
+
+      if (step >= 1) {
+        // Second Mirror Trapezoid
+        ctx.beginPath();
+        ctx.moveTo(cx + 60, cy + 50);
+        ctx.lineTo(cx + 180, cy + 50);
+        ctx.lineTo(cx + 140, cy - 50);
+        ctx.lineTo(cx + 20, cy - 50);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(244, 63, 94, 0.4)";
+        ctx.strokeStyle = "#fb7185";
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      if (step >= 2) {
+        // Highlighting Parallelogram Outline
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(cx - 120, cy - 65, 310, 140);
+        ctx.fillStyle = "#f59e0b";
+        ctx.fillText("拼成平行四邊形面積 = (上底 + 下底) × 高", cx - 110, cy - 80);
+      }
+
+      ctx.restore();
+    }
+
+    function drawFractionAnimation(step) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      // Draw Circle 1
+      ctx.beginPath();
+      ctx.arc(cx - 120, cy, 60, 0, Math.PI * 2);
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      if (step === 0) {
+        // Cut into 3 slices
+        for (let i = 0; i < 3; i++) {
+          const angle = (i * 2 * Math.PI) / 3;
+          ctx.beginPath();
+          ctx.moveTo(cx - 120, cy);
+          ctx.lineTo(cx - 120 + 60 * Math.cos(angle), cy + 60 * Math.sin(angle));
+          ctx.stroke();
+        }
+      } else {
+        // Cut into 12 slices (Common Denominator)
+        for (let i = 0; i < 12; i++) {
+          const angle = (i * 2 * Math.PI) / 12;
+          ctx.beginPath();
+          ctx.moveTo(cx - 120, cy);
+          ctx.lineTo(cx - 120 + 60 * Math.cos(angle), cy + 60 * Math.sin(angle));
+          ctx.strokeStyle = step === 2 ? "#34d399" : "#a7f3d0";
+          ctx.stroke();
+        }
+      }
+
+      // Circle 2
+      ctx.beginPath();
+      ctx.arc(cx + 120, cy, 60, 0, Math.PI * 2);
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Noto Sans TC";
+      ctx.fillText(step === 0 ? "1/3 + 1/4 (無法直接加)" : "4/12 + 3/12 = 7/12 (通分成功)", cx - 100, cy + 95);
+
+      ctx.restore();
+    }
+
+    function drawPolygonAnimation(step) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = 80;
+
+      ctx.save();
+      // Pentagon
+      const vertices = [];
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+        vertices.push({
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle)
+        });
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(vertices[0].x, vertices[0].y);
+      for (let i = 1; i < 5; i++) ctx.lineTo(vertices[i].x, vertices[i].y);
+      ctx.closePath();
+
+      ctx.fillStyle = "rgba(99, 102, 241, 0.3)";
+      ctx.strokeStyle = "#6366f1";
+      ctx.lineWidth = 4;
+      ctx.fill();
+      ctx.stroke();
+
+      if (step >= 1) {
+        // Diagonals from Vertex 0
+        ctx.strokeStyle = "#f59e0b";
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+        ctx.lineTo(vertices[2].x, vertices[2].y);
+        ctx.moveTo(vertices[0].x, vertices[0].y);
+        ctx.lineTo(vertices[3].x, vertices[3].y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Noto Sans TC";
+      ctx.fillText(step === 2 ? "分成 3 個三角形：3 × 180° = 540°" : "五邊形頂點分割法", cx - 110, cy + 110);
+
+      ctx.restore();
+    }
+
+    function drawSymmetryAnimation(step) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      // Symmetry Axis Line
+      ctx.strokeStyle = "#ef4444";
+      ctx.setLineDash([6, 6]);
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 100);
+      ctx.lineTo(cx, cy + 100);
+      ctx.stroke();
+
+      // Left Wing
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - 80);
+      ctx.lineTo(cx - 70, cy - 20);
+      ctx.lineTo(cx - 30, cy + 60);
+      ctx.lineTo(cx, cy + 30);
+      ctx.closePath();
+
+      ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 3;
+      ctx.fill();
+      ctx.stroke();
+
+      if (step >= 1) {
+        // Right Mirror Wing
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 80);
+        ctx.lineTo(cx + 70, cy - 20);
+        ctx.lineTo(cx + 30, cy + 60);
+        ctx.lineTo(cx, cy + 30);
+        ctx.closePath();
+
+        ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 16px Noto Sans TC";
+      ctx.fillText("紅虛線為對稱軸", cx - 55, cy + 120);
+
+      ctx.restore();
+    }
+
+    function drawDefaultAnimation(step) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      ctx.fillStyle = "#818cf8";
+      ctx.font = "bold 20px Noto Sans TC";
+      ctx.textAlign = "center";
+      ctx.fillText("五年級上學期 數學觀念視覺化", cx, cy);
+      ctx.restore();
+    }
+
+    function startTimer() {
+      stopTimer();
+      secondsElapsed = 0;
+      updateTimerDisplay();
+      testTimer = setInterval(() => {
+        secondsElapsed++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (testTimer) clearInterval(testTimer);
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+      const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+      document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+    }
+
+    function submitCurrentQuiz() {
+      stopTimer();
+
+      let correctCount = 0;
+      const total = questionsList.length;
+
+      questionsList.forEach((q, idx) => {
+        if (userAnswers[idx] === q.answer) {
+          correctCount++;
+        }
+      });
+
+      const scorePercent = Math.round((correctCount / total) * 100);
+
+      document.getElementById('result-score').innerText = `${correctCount} / ${total}`;
+      document.getElementById('result-percentage').innerText = `${scorePercent}分`;
+
+      const advice = document.getElementById('result-advice');
+      if (scorePercent >= 90) {
+        advice.innerHTML = "🌟 <strong>太棒了！概念極佳！</strong> 你對五年級上學期的觀念掌握度非常高，請繼續保持高水準的思考歷程。";
+      } else if (scorePercent >= 70) {
+        advice.innerHTML = "👍 <strong>表現優良！</strong> 基礎觀念很紮實，部分錯題可以切換至「教學題模式」觀看動態示範進行復習。";
+      } else {
+        advice.innerHTML = "💪 <strong>加油！再接再厲！</strong> 建議多利用「觀念提示」與「動態演示」功能，按部就班釐清題意。";
+      }
+
+      document.getElementById('result-modal').classList.remove('hidden');
+    }
+
+    function closeResultModal() {
+      document.getElementById('result-modal').classList.add('hidden');
+    }
+
+    function restartQuiz() {
+      closeResultModal();
+      userAnswers = {};
+      currentQuestionIndex = 0;
+      if (currentMode !== 'teach') startTimer();
+      renderQuestionGrid();
+      loadQuestion(0);
+    }
+
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobile-overlay');
+
+      sidebar.classList.toggle('hidden');
+      overlay.classList.toggle('hidden');
+    }
+
+    document.getElementById('toggle-sidebar-btn').onclick = toggleMobileSidebar;
+  </script>
+</body>
+</html>

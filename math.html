@@ -98,7 +98,7 @@
       <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-layer-group text-indigo-600"></i>
-          <h2 class="font-bold text-slate-700">題目導覽與篩選</h2>
+          <h2 class="font-bold text-slate-700">題目導覽與單元順序</h2>
         </div>
         <span id="current-mode-badge" class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold">
           教學練習模式
@@ -107,15 +107,15 @@
 
       <!-- Unit Filter -->
       <div class="p-3 border-b border-slate-100 bg-slate-50/50">
-        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">單元單獨練習：</label>
+        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">依單元篩選：</label>
         <select id="unit-filter" onchange="filterQuestionsByUnit()" class="w-full bg-white border border-slate-300 text-slate-700 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none">
-          <option value="all">🌟 全部單元 (50題)</option>
-          <option value="1">1. 因數與倍數</option>
-          <option value="2">2. 異分母分數加減</option>
-          <option value="3">3. 多邊形與內角和</option>
-          <option value="4">4. 平面圖形面積</option>
-          <option value="5">5. 小數乘法</option>
-          <option value="6">6. 線對稱圖形</option>
+          <option value="all">🌟 全部 50 題 (依單元與難度排序)</option>
+          <option value="1">1. 因數與倍數 (第 1~9 題)</option>
+          <option value="2">2. 異分母分數加減 (第 10~18 題)</option>
+          <option value="3">3. 多邊形與內角和 (第 19~26 題)</option>
+          <option value="4">4. 平面圖形面積 (第 27~35 題)</option>
+          <option value="5">5. 小數乘法 (第 36~43 題)</option>
+          <option value="6">6. 線對稱圖形 (第 44~50 題)</option>
         </select>
       </div>
 
@@ -146,17 +146,17 @@
 
     <!-- Main Question Workspace -->
     <main class="flex-1 flex flex-col gap-4 overflow-hidden">
-      
-      <!-- Question Card Header -->
-      <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 flex flex-col gap-4">
-        
+        <!-- Question Header Info -->
         <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
-          <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2 sm:space-x-3">
             <span id="q-number-badge" class="bg-indigo-600 text-white font-black px-3 py-1 rounded-lg text-lg">
               第 1 題
             </span>
             <span id="q-unit-tag" class="bg-indigo-50 text-indigo-700 text-xs sm:text-sm font-bold px-3 py-1 rounded-md border border-indigo-100">
-              單元：因數與倍數
+              單元：1. 因數與倍數
+            </span>
+            <span id="q-diff-tag" class="bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-md border border-amber-200">
+              難度：★☆☆ (基礎)
             </span>
           </div>
           
@@ -192,15 +192,20 @@
       <div id="teaching-section" class="flex-1 flex flex-col gap-4">
         
         <!-- Action Buttons Bar for Teaching -->
-        <div class="flex items-center justify-between gap-3 bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100">
-          <button onclick="toggleHint()" class="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
+        <div class="flex items-center justify-between gap-3 bg-indigo-50/80 p-3 rounded-2xl border border-indigo-100 flex-wrap sm:flex-nowrap">
+          <button onclick="toggleHint()" class="flex-1 py-2.5 px-3 sm:px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center space-x-1.5 touch-btn">
             <i class="fa-solid fa-lightbulb"></i>
             <span>觀念提示</span>
           </button>
           
-          <button onclick="toggleSteps()" class="flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl text-sm shadow-sm flex items-center justify-center space-x-2 touch-btn">
+          <button onclick="toggleSteps()" class="flex-1 py-2.5 px-3 sm:px-4 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center space-x-1.5 touch-btn">
             <i class="fa-solid fa-book-open"></i>
             <span>課本標準解題法</span>
+          </button>
+
+          <button onclick="toggleVideo()" class="flex-1 py-2.5 px-3 sm:px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl text-xs sm:text-sm shadow-sm flex items-center justify-center space-x-1.5 touch-btn">
+            <i class="fa-brands fa-youtube text-base"></i>
+            <span>單元影音解說</span>
           </button>
         </div>
 
@@ -223,6 +228,20 @@
           </div>
           <div id="steps-content" class="space-y-3 text-sm sm:text-base">
             <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- YouTube Educational Video Card (Collapsible) -->
+        <div id="video-card" class="hidden bg-rose-50 rounded-2xl p-4 sm:p-5 border border-rose-200 text-rose-950 shadow-sm transition-all">
+          <div class="flex items-center space-x-2 font-bold text-rose-800 mb-2 border-b border-rose-200/60 pb-2">
+            <i class="fa-brands fa-youtube text-rose-600 text-xl"></i>
+            <h3 id="video-card-title">單元影音解說微課程</h3>
+          </div>
+          <p id="video-card-desc" class="text-xs sm:text-sm text-rose-700 mb-3 font-medium">
+            搭配優質數位教學影片，強化學習觀念：
+          </p>
+          <div class="relative w-full overflow-hidden rounded-xl border border-rose-200 bg-black aspect-video shadow-md">
+            <iframe id="youtube-iframe" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
 
@@ -270,16 +289,13 @@
   <div id="mobile-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden"></div>
 
   <script>
-    /* =========================================================================
-     *  TAIWAN GRADE 5 SEMESTER 1 MATH QUESTION DATABASE & LOGIC ENGINE
-     * ========================================================================= */
-
+    
     // Application State
-    let currentMode = 'teach'; // 'teach', 'real', 'hard'
+    let currentMode = 'teach'; 
     let currentFilteredUnit = 'all';
     let currentQuestionIndex = 0;
     let questionsList = [];
-    let userAnswers = {}; // { qIndex: selectedOption }
+    let userAnswers = {}; 
     let testTimer = null;
     let secondsElapsed = 0;
 
@@ -293,84 +309,148 @@
       6: "6. 線對稱圖形"
     };
 
-    // Helper: GCD & LCM
+    // YouTube Teaching Video Database mapped by Unit ID
+    const UNIT_VIDEOS = {
+      1: {
+        title: "📹 單元 1：【均一教育平台】因數與倍數 & 最大公因數觀念解說",
+        embedId: "NEafa4sDswc",
+        desc: "觀看均一教育平台的優質影音，快速掌握因數、倍數與最大公因數的定義與解題技巧。"
+      },
+      2: {
+        title: "📹 單元 2：【均一教育平台】異分母分數的通分與加減",
+        embedId: "dO7NhJ9TBo8",
+        desc: "觀看影音解說，釐清分數加減時如何利用最小公倍數進行通分。"
+      },
+      3: {
+        title: "📹 單元 3：【均一教育平台】多邊形內角和公式與分割說明",
+        embedId: "iTbZzMPy0B8",
+        desc: "學習如何將多邊形畫對角線分割成三角形，推導出 (n-2)×180° 的內角和公式。"
+      },
+      4: {
+        title: "📹 單元 4：【均一教育平台】平行四邊形、三角形與梯形面積計算",
+        embedId: "VGZ9AuQ1ZEw",
+        desc: "觀看梯形與平面圖形面積公式的割補由來與計算示範。"
+      },
+      5: {
+        title: "📹 單元 5：【均一教育平台】小數乘以整數與小數乘法",
+        embedId: "O6LpX8Chjpk",
+        desc: "瞭解小數乘法中，積的小數位數決定方式與直式運算技巧。"
+      },
+      6: {
+        title: "📹 單元 6：【均一教育平台】線對稱圖形與對稱軸性質",
+        embedId: "gBIQHJMoZp4",
+        desc: "透過動畫與實例，認識對稱軸、對稱點、對稱邊與對摺重合的幾何特性。"
+      }
+    };
+
     function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
     function lcm(a, b) { return (a * b) / gcd(a, b); }
 
+    // Generate 50 Teaching Questions ordered strictly Unit 1->6, Easy->Hard within each unit
     function generateTeachingQuestions() {
       const list = [];
 
-      // 1. 因數與倍數 (1-8)
+      // ==========================================
+      // 單元 1：因數與倍數 (第 1 ~ 9 題)
+      // ==========================================
       list.push({
-        unit: 1,
-        stem: "媽媽準備了 24 顆蘋果和 36 顆橘子，要平分給小朋友，每人分到的蘋果要一樣多，橘子也要一樣多。最多可以分給多少位小朋友？",
+        unit: 1, difficulty: "★☆☆ (基礎)",
+        stem: "下列哪一個數是 36 的因數？",
+        options: ["5", "8", "9", "10"],
+        answer: 2,
+        hint: "如果 36 除以該數可以整除（餘數為 0），則該數為 36 的因數。",
+        steps: ["驗證：36 ÷ 9 = 4 ... 餘 0，故 9 是 36 的因數。"]
+      });
+      list.push({
+        unit: 1, difficulty: "★☆☆ (基礎)",
+        stem: "1 到 40 的自然數中，8 的倍數共有幾個？",
+        options: ["3 個", "4 個", "5 個", "6 個"],
+        answer: 2,
+        hint: "計算 40 除以 8 的商數，即可得到倍數的總個數。",
+        steps: ["40 ÷ 8 = 5，分別為 8, 16, 24, 32, 40，共 5 個。"]
+      });
+      list.push({
+        unit: 1, difficulty: "★★☆ (進階)",
+        stem: "請找出 18 與 24 的所有「公因數」有哪些？",
+        options: ["1, 2, 3, 6", "1, 2, 4, 8", "1, 3, 6, 9", "1, 2, 3, 4, 6"],
+        answer: 0,
+        hint: "分別列出 18 與 24 的因數，再找出兩者共同的因數。",
+        steps: [
+          "18 的因數：1, 2, 3, 6, 9, 18",
+          "24 的因數：1, 2, 3, 4, 6, 8, 12, 24",
+          "共同的公因數為：1, 2, 3, 6。"
+        ]
+      });
+      list.push({
+        unit: 1, difficulty: "★★☆ (進階)",
+        stem: "12 與 15 的「最小公倍數」是多少？",
+        options: ["30", "60", "90", "120"],
+        answer: 1,
+        hint: "利用短除法或列舉倍數，找出同時能被 12 和 15 整除的最小正整數。",
+        steps: ["12 的倍數：12, 24, 36, 48, 60...；15 的倍數：15, 30, 45, 60...。最小公倍數為 60。"]
+      });
+      list.push({
+        unit: 1, difficulty: "★★☆ (應用)",
+        stem: "媽媽將 24 顆蘋果和 36 顆橘子平分給小朋友，每人分到的蘋果要一樣多，橘子也要一樣多。最多可以分給幾位小朋友？",
         options: ["4 位", "6 位", "12 位", "24 位"],
         answer: 2,
-        hint: "求「最多可以分給多少人」，就是要找出 24 和 36 的「最大公因數 (GCD)」。",
-        steps: [
-          "步驟 1：列出 24 的因數：1, 2, 3, 4, 6, 8, 12, 24。",
-          "步驟 2：列出 36 的因數：1, 2, 3, 4, 6, 9, 12, 18, 36。",
-          "步驟 3：找出共同的因數（公因數）：1, 2, 3, 4, 6, 12。其中最大的是 12。",
-          "結論：最多可以分給 12 位小朋友。"
-        ]
+        hint: "「最多可以分給幾人」求的是 24 和 36 的最大公因數 (GCD)。",
+        steps: ["24 與 36 的最大公因數為 12，故最多可分給 12 位小朋友。"]
       });
-
       list.push({
-        unit: 1,
-        stem: "公車 A 每 15 分鐘發一班，公車 B 每 20 分鐘發一班。若早上 8:00 兩車同時出發，下一次兩車同時出發是什麼時候？",
+        unit: 1, difficulty: "★★☆ (應用)",
+        stem: "公車 A 每 15 分鐘發一班，公車 B 每 20 分鐘發一班。若早上 8:00 兩車同時開出，下一次兩車同時發車是幾點幾分？",
         options: ["8:35", "9:00", "9:20", "10:00"],
         answer: 1,
-        hint: "同時出發的時間間隔是 15 和 20 的「最小公倍數 (LCM)」。",
-        steps: [
-          "步驟 1：15 的倍數有：15, 30, 45, 60, 75, 90...",
-          "步驟 2：20 的倍數有：20, 40, 60, 80, 100...",
-          "步驟 3：最小公倍數是 60 分鐘（即 1 小時）。",
-          "結論：8:00 加上 1 小時，下次同時出發為早上 9:00。"
-        ]
+        hint: "下一次同時發車的時間間隔是 15 與 20 的最小公倍數 (LCM)。",
+        steps: ["15 與 20 的最小公倍數是 60 分鐘（1 小時）。8:00 + 1 小時 = 9:00。"]
       });
-
       list.push({
-        unit: 1,
-        stem: "下列哪一個數是 42 的因數？",
-        options: ["5", "7", "8", "9"],
+        unit: 1, difficulty: "★★★ (挑戰)",
+        stem: "有一個三位數 54□，它既是 2 的倍數，也是 3 的倍數，請問個位數字 □ 可能填入的數字最大是多少？",
+        options: ["4", "6", "8", "9"],
         answer: 1,
-        hint: "如果 42 能被該數整除（餘數為 0），則該數為 42 的因數。",
+        hint: "2 的倍數個位數必須是偶數(0,2,4,6,8)；3 的倍數各位數字和必須能被 3 整除。",
         steps: [
-          "步驟 1：驗證 42 ÷ 5 = 8 ... 2 (非整除)",
-          "步驟 2：驗證 42 ÷ 7 = 6 (整除！)",
-          "結論：7 是 42 的因數。"
+          "各數字和：5 + 4 + □ = 9 + □。",
+          "為使 9 + □ 是 3 的倍數，且 □ 是偶數，可能值有 □ = 0, 6。",
+          "其中最大的是 6。"
         ]
       });
-
       list.push({
-        unit: 1,
-        stem: "1 到 50 的自然數中，7 的倍數共有幾個？",
-        options: ["5 個", "6 個", "7 個", "8 個"],
+        unit: 1, difficulty: "★★★ (挑戰)",
+        stem: "某年級學生人數在 100 到 150 人之間，如果每 12 人排成一列或每 16 人排成一列都剛好排完，請問該年級共有多少人？",
+        options: ["108 人", "120 人", "144 人", "148 人"],
         answer: 2,
-        hint: "使用除法：50 除以 7，商數即為倍數的個數。",
+        hint: "人數必須是 12 和 16 的公倍數，且介於 100 到 150 之間。",
         steps: [
-          "步驟 1：計算 50 ÷ 7 = 7 ... 1",
-          "步驟 2：7 的倍數為 7, 14, 21, 28, 35, 42, 49，共 7 個。",
-          "結論：共有 7 個倍數。"
+          "12 與 16 的最小公倍數為 48。",
+          "48 的倍數有：48, 96, 144, 192...",
+          "介於 100 與 150 之間的只有 144 人。"
         ]
       });
-
       list.push({
-        unit: 1,
-        stem: "18 與 24 的最小公倍數是多少？",
-        options: ["48", "72", "96", "144"],
+        unit: 1, difficulty: "★★★ (複合)",
+        stem: "已知 A、B 兩數的最大公因數是 6，最小公倍數是 72。若 A 是 18，則 B 是多少？",
+        options: ["12", "24", "36", "48"],
         answer: 1,
-        hint: "利用短除法或列舉法找出同時能被 18 與 24 整除的最小正整數。",
-        steps: [
-          "步驟 1：18 = 2 × 3²，24 = 2³ × 3",
-          "步驟 2：取最高次方 2³ × 3² = 8 × 9 = 72。",
-          "結論：最小公倍數為 72。"
-        ]
+        hint: "公式觀念：兩數的乘積等於其最大公因數乘以最小公倍數 (A × B = GCD × LCM)。",
+        steps: ["18 × B = 6 × 72 = 432，故 B = 432 ÷ 18 = 24。"]
       });
 
-      // 2. 異分母分數加減 (6-16)
+      // ==========================================
+      // 單元 2：異分母分數加減 (第 10 ~ 18 題)
+      // ==========================================
       list.push({
-        unit: 2,
+        unit: 2, difficulty: "★☆☆ (基礎)",
+        stem: "將分數 <span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span> 擴分為分母為 15 的等值分數，分子應該是多少？",
+        options: ["4", "6", "8", "10"],
+        answer: 1,
+        hint: "分子與分母同時乘以相同的數（3），分數的大小不變。",
+        steps: ["分母 5 × 3 = 15，分子 2 × 3 = 6。故分子為 6。"]
+      });
+      list.push({
+        unit: 2, difficulty: "★☆☆ (基礎)",
         stem: "計算 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 的結果是多少？",
         options: [
           "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>7</span></span>",
@@ -379,381 +459,532 @@
           "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>"
         ],
         answer: 1,
-        hint: "異分母分數不能直接相加！必須先找出分母 3 和 4 的公倍數（通分）變成同分母。",
-        steps: [
-          "步驟 1：分母 3 和 4 的最小公倍數是 12。",
-          "步驟 2：將分數擴分：1/3 = 4/12，1/4 = 3/12。",
-          "步驟 3：分子相加：4/12 + 3/12 = 7/12。",
-          "結論：結果為 7/12。"
-        ]
+        hint: "異分母分數加法必須先「通分」，將分母化為相同的最小公倍數 12。",
+        steps: ["1/3 = 4/12，1/4 = 3/12。相加得 4/12 + 3/12 = 7/12。"]
       });
-
       list.push({
-        unit: 2,
-        stem: "小明有一條繩子長 <span class='fraction'><span class='numerator'>4</span><span class='denominator'>5</span></span> 公尺，用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公尺後，還剩下多少公尺？",
+        unit: 2, difficulty: "★★☆ (進階)",
+        stem: "計算 <span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span> - <span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span> 的結果，化為最簡分數是多少？",
         options: [
-          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>10</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>3</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>10</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span> 公尺"
+          "<span class='fraction'><span class='numerator'>11</span><span class='denominator'>24</span></span>",
+          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>2</span></span>",
+          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>24</span></span>",
+          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span>"
         ],
         answer: 0,
-        hint: "進行減法前，需要先將分母 5 與 2 通分為同分母 10。",
-        steps: [
-          "步驟 1：4/5 通分化為 8/10",
-          "步驟 2：1/2 通分化為 5/10",
-          "步驟 3：相減：8/10 - 5/10 = 3/10 公尺。",
-          "結論：還剩下 3/10 公尺。"
-        ]
+        hint: "6 與 8 的最小公倍數是 24。",
+        steps: ["5/6 通分化為 20/24，3/8 通分化為 9/24。相減 20/24 - 9/24 = 11/24。"]
       });
-
       list.push({
-        unit: 2,
-        stem: "計算 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> - 1<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 等於多少？",
+        unit: 2, difficulty: "★★☆ (進階)",
+        stem: "計算 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span> 等於多少？",
         options: [
-          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>",
-          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span>",
-          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span>",
-          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>"
+          "3<span class='fraction'><span class='numerator'>3</span><span class='denominator'>9</span></span>",
+          "3<span class='fraction'><span class='numerator'>13</span><span class='denominator'>20</span></span>",
+          "3<span class='fraction'><span class='numerator'>7</span><span class='denominator'>20</span></span>",
+          "4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>20</span></span>"
         ],
-        answer: 0,
-        hint: "帶分數相減時，若分子不夠減，需要向整數借 1 化為假分數。",
-        steps: [
-          "步驟 1：通分分母為 6：2(3/6) - 1(4/6)",
-          "步驟 2：分子 3 不夠減 4，向整數借 1 化為 6/6：1(9/6) - 1(4/6)",
-          "步驟 3：整數 1-1=0，分子 9-4=5，得到 5/6。"
-        ]
-      });
-
-      // 3. 多邊形與內角和 (17-25)
-      list.push({
-        unit: 3,
-        stem: "一個正五邊形的每一個內角是多少度？",
-        options: ["90°", "108°", "120°", "135°"],
         answer: 1,
-        hint: "n 邊形的內角和公式為 (n - 2) × 180°。正多邊形每個內角皆相等。",
+        hint: "整數部分與分數部分分開相加，分數部分通分母為 20。",
+        steps: ["整數：1 + 2 = 3。分數：1/4 (5/20) + 2/5 (8/20) = 13/20。結果為 3 13/20。"]
+      });
+      list.push({
+        unit: 2, difficulty: "★★☆ (進階)",
+        stem: "計算 3<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> 等於多少？",
+        options: [
+          "1<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>",
+          "2<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
+          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
+          "2<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
+        ],
+        answer: 0,
+        hint: "通分後分子不夠減時，需向整數部分借 1 化為假分數。",
         steps: [
-          "步驟 1：計算五邊形內角和 = (5 - 2) × 180° = 3 × 180° = 540°。",
-          "步驟 2：正五邊形有 5 個相等的角：540° ÷ 5 = 108°。",
-          "結論：每個內角為 108°。"
+          "通分：3(4/12) - 1(9/12)。",
+          "4 不夠減 9，借 1 得：2(16/12) - 1(9/12) = 1(7/12)。"
+        ]
+      });
+      list.push({
+        unit: 2, difficulty: "★★☆ (應用)",
+        stem: "小明有一條繩子長 <span class='fraction'><span class='numerator'>7</span><span class='denominator'>8</span></span> 公尺，用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公尺後，還剩下多少公尺？",
+        options: [
+          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>6</span><span class='denominator'>6</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>8</span></span> 公尺",
+          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公尺"
+        ],
+        answer: 0,
+        hint: "用總長度減去用掉的長度，1/2 需通分為 4/8。",
+        steps: ["7/8 - 1/2 = 7/8 - 4/8 = 3/8 公尺。"]
+      });
+      list.push({
+        unit: 2, difficulty: "★★★ (挑戰)",
+        stem: "一桶豆漿有 5 公升，大華喝了 1<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 公升，小明喝了 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公升，還剩下多少公升？",
+        options: [
+          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
+          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span> 公升",
+          "2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
+          "<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span> 公升"
+        ],
+        answer: 0,
+        hint: "先計算兩人共喝了多少公升，再用 5 公升去減。",
+        steps: [
+          "共喝：1(8/12) + 2(3/12) = 3(11/12) 公升。",
+          "剩下：5 - 3(11/12) = 4(12/12) - 3(11/12) = 1(1/12) 公升。"
+        ]
+      });
+      list.push({
+        unit: 2, difficulty: "★★★ (挑戰)",
+        stem: "計算 2 - <span class='fraction'><span class='numerator'>3</span><span class='denominator'>5</span></span> - <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 的結果是多少？",
+        options: [
+          "<span class='fraction'><span class='numerator'>9</span><span class='denominator'>10</span></span>",
+          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>10</span></span>",
+          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>10</span></span>",
+          "1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>10</span></span>"
+        ],
+        answer: 0,
+        hint: "通分分母為 10，將 2 化為 20/10 再連續相減。",
+        steps: ["20/10 - 6/10 - 5/10 = 9/10。"]
+      });
+      list.push({
+        unit: 2, difficulty: "★★★ (複合)",
+        stem: "甲數是 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>，乙數比甲數少 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span>，丙數比乙數多 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span>，求丙數是多少？",
+        options: [
+          "3<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>",
+          "2<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>",
+          "3<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
+          "2<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
+        ],
+        answer: 0,
+        hint: "先求乙數 = 甲數 - 3/4，再求丙數 = 乙數 + 1(1/3)。",
+        steps: [
+          "乙數 = 2(2/4) - 3/4 = 1(3/4)。",
+          "丙數 = 1(3/4) + 1(1/3) = 1(9/12) + 1(4/12) = 2(13/12) = 3(1/12)。"
         ]
       });
 
+      // ==========================================
+      // 單元 3：多邊形與內角和 (第 19 ~ 26 題)
+      // ==========================================
       list.push({
-        unit: 3,
-        stem: "三角形的內角和是多少度？",
+        unit: 3, difficulty: "★☆☆ (基礎)",
+        stem: "任何一個三角形的三個內角和是多少度？",
         options: ["90°", "180°", "270°", "360°"],
         answer: 1,
-        hint: "任何三角形三個內角相加，都可以剪下拼成一條直線（平角）。",
-        steps: [
-          "步驟 1：將三角形三個角標示為 ∠A、∠B、∠C。",
-          "步驟 2：將三個角撕下頂點對齊拼在一起，會正好組成一條直線（平角）。",
-          "結論：三角形內角和固定為 180°。"
-        ]
+        hint: "三角形內角和固定為平角（180 度）。",
+        steps: ["三角形內角和 = 180°。"]
       });
-
       list.push({
-        unit: 3,
-        stem: "一個六邊形可以從同一個頂點畫出幾條對角線？將六邊形分成幾個三角形？",
-        options: ["3條對角線，分成 4個三角形", "4條對角線，分成 5個三角形", "2條對角線，分成 3個三角形", "3條對角線，分成 3個三角形"],
-        answer: 0,
-        hint: "從 n 邊形一個頂點可以畫出 (n - 3) 條對角線，分割成 (n - 2) 個三角形。",
-        steps: [
-          "步驟 1：對角線數量 = 6 - 3 = 3 條。",
-          "步驟 2：分割出的三角形數量 = 6 - 2 = 4 個。",
-          "步驟 3：內角和 = 4 × 180° = 720°。"
-        ]
-      });
-
-      // 4. 平面圖形面積 (26-35)
-      list.push({
-        unit: 4,
-        stem: "一個梯形的上底是 6 公分，下底是 10 公分，高是 5 公分，請問它的面積是多少平方公分？",
-        options: ["80 平方公分", "40 平方公分", "30 平方公分", "50 平方公分"],
+        unit: 3, difficulty: "★☆☆ (基礎)",
+        stem: "任何一個四邊形的內角和是多少度？",
+        options: ["180°", "360°", "540°", "720°"],
         answer: 1,
-        hint: "梯形面積公式 = (上底 + 下底) × 高 ÷ 2。",
+        hint: "四邊形可由一個頂點畫對角線分成 2 個三角形。",
+        steps: ["2 × 180° = 360°。"]
+      });
+      list.push({
+        unit: 3, difficulty: "★★☆ (進階)",
+        stem: "一個五邊形的內角和是多少度？",
+        options: ["360°", "540°", "720°", "900°"],
+        answer: 1,
+        hint: "n 邊形內角和公式：(n - 2) × 180°。",
+        steps: ["(5 - 2) × 180° = 3 × 180° = 540°。"]
+      });
+      list.push({
+        unit: 3, difficulty: "★★☆ (進階)",
+        stem: "一個「正六邊形」的每一個內角是多少度？",
+        options: ["108°", "120°", "135°", "140°"],
+        answer: 1,
+        hint: "先求出六邊形內角和，再平均分配給 6 個相等的內角。",
         steps: [
-          "步驟 1：將上底與下底相加：6 + 10 = 16 公分。",
-          "步驟 2：乘以高：16 × 5 = 80。",
-          "步驟 3：除以 2（因為兩個全等梯形可以拼成一個平行四邊形）：80 ÷ 2 = 40 平方公分。",
-          "結論：面積為 40 平方公分。"
+          "內角和 = (6 - 2) × 180° = 720°。",
+          "每個內角 = 720° ÷ 6 = 120°。"
+        ]
+      });
+      list.push({
+        unit: 3, difficulty: "★★☆ (進階)",
+        stem: "從八邊形的一個頂點出發，最多可以畫出幾條對角線？可將八邊形分成幾個三角形？",
+        options: ["5 條對角線，6 個三角形", "6 條對角線，7 個三角形", "4 條對角線，5 個三角形", "5 條對角線，5 個三角形"],
+        answer: 0,
+        hint: "對角線數 = n - 3，分割出的三角形數 = n - 2。",
+        steps: ["對角線：8 - 3 = 5 條。三角形：8 - 2 = 6 個。"]
+      });
+      list.push({
+        unit: 3, difficulty: "★★★ (挑戰)",
+        stem: "在一個三角形中，∠A = 50°，∠B = 60°，請問 ∠C 是多少度？這是一個什麼三角形？",
+        options: ["70°，銳角三角形", "70°，直角三角形", "80°，銳角三角形", "70°，鈍角三角形"],
+        answer: 0,
+        hint: "∠C = 180° - 50° - 60°。三個角皆小於 90° 即為銳角三角形。",
+        steps: ["∠C = 180° - 110° = 70°。因三個角都是銳角，故為銳角三角形。"]
+      });
+      list.push({
+        unit: 3, difficulty: "★★★ (挑戰)",
+        stem: "已知一個多邊形的內角和是 1080°，請問這個多邊形是幾邊形？",
+        options: ["六邊形", "七邊形", "八邊形", "九邊形"],
+        answer: 2,
+        hint: "利用公式反推：(n - 2) × 180° = 1080°。",
+        steps: [
+          "n - 2 = 1080 ÷ 180 = 6。",
+          "n = 6 + 2 = 8，故為八邊形。"
+        ]
+      });
+      list.push({
+        unit: 3, difficulty: "★★★ (複合)",
+        stem: "正五邊形的每一個內角比正三角形的每一個內角多幾度？",
+        options: ["30°", "48°", "60°", "108°"],
+        answer: 1,
+        hint: "分別算出正五邊形與正三角形的內角度數再相減。",
+        steps: [
+          "正三角形每個內角 = 180° ÷ 3 = 60°。",
+          "正五邊形每個內角 = (5 - 2) × 180° ÷ 5 = 108°。",
+          "108° - 60° = 48°。"
         ]
       });
 
+      // ==========================================
+      // 單元 4：平面圖形面積 (第 27 ~ 35 題)
+      // ==========================================
       list.push({
-        unit: 4,
-        stem: "一個三角形的底是 12 公分，高是 8 公分，請問面積是多少平方公分？",
-        options: ["96 平方公分", "48 平方公分", "24 平方公分", "36 平方公分"],
+        unit: 4, difficulty: "★☆☆ (基礎)",
+        stem: "一個平行四邊形的底是 12 公分，高是 7 公分，面積是多少平方公分？",
+        options: ["42 平方公分", "84 平方公分", "38 平方公分", "96 平方公分"],
+        answer: 1,
+        hint: "平行四邊形面積公式 = 底 × 高。",
+        steps: ["12 × 7 = 84 平方公分。"]
+      });
+      list.push({
+        unit: 4, difficulty: "★☆☆ (基礎)",
+        stem: "一個三角形的底是 10 公分，高是 6 公分，面積是多少平方公分？",
+        options: ["60 平方公分", "30 平方公分", "15 平方公分", "45 平方公分"],
         answer: 1,
         hint: "三角形面積公式 = 底 × 高 ÷ 2。",
-        steps: [
-          "步驟 1：底乘以高：12 × 8 = 96。",
-          "步驟 2：除以 2（兩個全等三角形拼成平行四邊形）：96 ÷ 2 = 48 平方公分。",
-          "結論：面積為 48 平方公分。"
-        ]
+        steps: ["10 × 6 ÷ 2 = 30 平方公分。"]
       });
-
       list.push({
-        unit: 4,
-        stem: "一個平行四邊形的底是 15 公分，面積是 120 平方公分，請問它的高是多少公分？",
-        options: ["6 公分", "8 公分", "10 公分", "12 公分"],
-        answer: 1,
-        hint: "平行四邊形面積 = 底 × 高，因此 高 = 面積 ÷ 底。",
-        steps: [
-          "步驟 1：使用反推公式：高 = 120 ÷ 15。",
-          "步驟 2：計算：120 ÷ 15 = 8 公分。",
-          "結論：高為 8 公分。"
-        ]
-      });
-
-      // 5. 小數乘法 (36-42)
-      list.push({
-        unit: 5,
-        stem: "計算 2.4 × 1.5 的結果是多少？",
-        options: ["3.6", "36", "0.36", "3.65"],
+        unit: 4, difficulty: "★☆☆ (基礎)",
+        stem: "一個梯形的上底是 5 公分，下底是 9 公分，高是 4 公分，面積是多少平方公分？",
+        options: ["28 平方公分", "56 平方公分", "36 平方公分", "18 平方公分"],
         answer: 0,
-        hint: "先當作整數相乘 (24 × 15)，再看被乘數與乘數共有幾位小數，將小數點點回相應位置。",
-        steps: [
-          "步驟 1：先算整數乘法：24 × 15 = 360。",
-          "步驟 2：數小數點位數：2.4 (1位) + 1.5 (1位) = 共有 2 位小數。",
-          "步驟 3：將 360 向左移動 2 位小數點：3.60 = 3.6。",
-          "結論：答案為 3.6。"
-        ]
+        hint: "梯形面積公式 = (上底 + 下底) × 高 ÷ 2。",
+        steps: ["(5 + 9) × 4 ÷ 2 = 14 × 4 ÷ 2 = 28 平方公分。"]
       });
-
       list.push({
-        unit: 5,
-        stem: "一公斤蘋果賣 45.8 元，買 3.5 公斤需要多少元？",
-        options: ["160.3 元", "160.30 元", "160.3 元 (簡化後)", "160.3 元 (即 160.3)"],
-        answer: 0,
-        hint: "總價 = 單價 × 重量，即 45.8 × 3.5。",
-        steps: [
-          "步驟 1：458 × 35 = 16030。",
-          "步驟 2：被乘數1位 + 乘數1位 = 2位小數。",
-          "步驟 3：160.30 尾數 0 去除簡化為 160.3 元。"
-        ]
-      });
-
-      // 6. 線對稱圖形 (43-50)
-      list.push({
-        unit: 6,
-        stem: "下列哪一個圖形「不是」線對稱圖形？",
-        options: ["正方形", "等腰三角形", "一般平行四邊形", "圓形"],
+        unit: 4, difficulty: "★★☆ (進階)",
+        stem: "已知一個三角形的面積是 48 平方公分，底是 12 公分，請問它的高是多少公分？",
+        options: ["4 公分", "6 公分", "8 公分", "10 公分"],
         answer: 2,
-        hint: "沿著對稱軸對折後，左右兩邊必須完全重合才稱為線對稱圖形。",
+        hint: "利用反推公式：高 = 面積 × 2 ÷ 底。",
+        steps: ["高 = 48 × 2 ÷ 12 = 96 ÷ 12 = 8 公分。"]
+      });
+      list.push({
+        unit: 4, difficulty: "★★☆ (進階)",
+        stem: "已知一個梯形面積是 75 平方公分，高是 10 公分，若上底是 6 公分，下底是多少公分？",
+        options: ["7 公分", "8 公分", "9 公分", "10 公分"],
+        answer: 2,
+        hint: "兩底和 (上底 + 下底) = 面積 × 2 ÷ 高。",
         steps: [
-          "正方形：有 4 條對稱軸。",
-          "等腰三角形：有 1 條對稱軸。",
-          "圓形：有無限多條對稱軸。",
-          "一般平行四邊形：對角對折無法完全重合，故「不是」線對稱圖形。"
+          "上底 + 下底 = 75 × 2 ÷ 10 = 15。",
+          "下底 = 15 - 6 = 9 公分。"
+        ]
+      });
+      list.push({
+        unit: 4, difficulty: "★★☆ (應用)",
+        stem: "同底等高的平行四邊形與三角形，平行四邊形的面積是三角形面積的幾倍？",
+        options: ["1/2 倍", "1 倍", "2 倍", "4 倍"],
+        answer: 2,
+        hint: "平行四邊形面積 = 底×高；三角形面積 = 底×高÷2。",
+        steps: ["因為三角形面積要除以 2，所以平行四邊形面積是三角形的 2 倍。"]
+      });
+      list.push({
+        unit: 4, difficulty: "★★★ (挑戰)",
+        stem: "一個平行四邊形花園底長 20 公尺，高 12 公尺。若在花園中間開闢一條寬 2 公尺的矩形小路，剩餘的花園面積是多少平方公尺？",
+        options: ["216 平方公尺", "240 平方公尺", "220 平方公尺", "200 平方公尺"],
+        answer: 0,
+        hint: "將兩側土地扣除路寬後拼起來，新花園的底變為 (20 - 2) 公尺。",
+        steps: ["(20 - 2) × 12 = 18 × 12 = 216 平方公尺。"]
+      });
+      list.push({
+        unit: 4, difficulty: "★★★ (挑戰)",
+        stem: "直角三角形的三條邊分別為 6 公分、8 公分、10 公分，請問最長邊（斜邊）上的高是多少公分？",
+        options: ["4.2 公分", "4.8 公分", "5.0 公分", "5.2 公分"],
+        answer: 1,
+        hint: "兩條直角邊為底和高求出面積，再用斜邊作為底反推斜邊上的高。",
+        steps: [
+          "面積 = 6 × 8 ÷ 2 = 24 平方公分。",
+          "斜邊上的高 = 24 × 2 ÷ 10 = 4.8 公分。"
+        ]
+      });
+      list.push({
+        unit: 4, difficulty: "★★★ (複合)",
+        stem: "由一個長方形（長 10cm、寬 6cm）和一個梯形（上底 10cm、下底 14cm、高 5cm）拼成的複合圖形，總面積是多少？",
+        options: ["120 cm²", "120 平方公分", "120 cm²", "120 平方公分"], // Unified
+        options: ["90 平方公分", "120 平方公分", "110 平方公分", "100 平方公分"],
+        answer: 1,
+        hint: "分別算出長方形面積與梯形面積再相加。",
+        steps: [
+          "長方形面積 = 10 × 6 = 60。",
+          "梯形面積 = (10 + 14) × 5 ÷ 2 = 60。",
+          "總面積 = 60 + 60 = 120 平方公分。"
         ]
       });
 
+      // ==========================================
+      // 單元 5：小數乘法 (第 36 ~ 43 題)
+      // ==========================================
       list.push({
-        unit: 6,
+        unit: 5, difficulty: "★☆☆ (基礎)",
+        stem: "計算 0.8 × 7 的結果是多少？",
+        options: ["5.6", "0.56", "56", "0.056"],
+        answer: 0,
+        hint: "先算 8 × 7 = 56，因被乘數有一位小數，結果點上一位小數。",
+        steps: ["8 × 7 = 56 ➔ 5.6。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★☆☆ (基礎)",
+        stem: "計算 2.5 × 0.4 的結果是多少？",
+        options: ["1", "1.0", "0.1", "10"],
+        answer: 0,
+        hint: "25 × 4 = 100，共有 2 位小數，1.00 簡化為 1。",
+        steps: ["2.5 × 0.4 = 1.00 = 1。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★★☆ (進階)",
+        stem: "計算 1.25 × 0.8 的結果是多少？",
+        options: ["1", "0.1", "10", "1.25"],
+        answer: 0,
+        hint: "125 × 8 = 1000，被乘數 2 位 + 乘數 1 位 = 3 位小數。",
+        steps: ["1.25 × 0.8 = 1.000 = 1。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★★☆ (進階)",
+        stem: "計算 4.15 × 3.2 的結果是多少？",
+        options: ["13.28", "132.8", "1.328", "13.08"],
+        answer: 0,
+        hint: "先算 415 × 32 = 13280，共 3 位小數，末尾 0 去除。",
+        steps: ["4.15 (2位) × 3.2 (1位) = 13.280 ➔ 13.28。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★★☆ (應用)",
+        stem: "一公斤蘋果賣 45.5 元，媽媽買了 3.2 公斤，一共要付多少元？",
+        options: ["145.6 元", "1456 元", "14.56 元", "146 元"],
+        answer: 0,
+        hint: "總價 = 單價 × 重量 = 45.5 × 3.2。",
+        steps: ["45.5 × 3.2 = 145.60 ➔ 145.6 元。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★★★ (挑戰)",
+        stem: "小華跑步的速度是每秒 3.85 公尺，他跑了 1 分鐘 20 秒，一共跑了多少公尺？",
+        options: ["308 公尺", "269.5 公尺", "385 公尺", "320 公尺"],
+        answer: 0,
+        hint: "先將時間換算為秒數：1 分 20 秒 = 80 秒，再乘以速度。",
+        steps: ["80 秒 × 3.85 = 308 公尺。"]
+      });
+      list.push({
+        unit: 5, difficulty: "★★★ (挑戰)",
+        stem: "長方形土地長 12.5 公尺，寬 8.4 公尺，如果每平方公尺售價 1500 元，這塊土地總共賣多少元？",
+        options: ["157,500 元", "105,000 元", "125,000 元", "150,000 元"],
+        answer: 0,
+        hint: "先求土地面積 = 長 × 寬，再乘以單價。",
+        steps: [
+          "面積 = 12.5 × 8.4 = 105 平方公尺。",
+          "總價 = 105 × 1500 = 157,500 元。"
+        ]
+      });
+      list.push({
+        unit: 5, difficulty: "★★★ (複合)",
+        stem: "已知 38 × 24 = 912，請直接判斷 0.38 × 2.4 的結果是多少？",
+        options: ["0.912", "9.12", "0.0912", "91.2"],
+        answer: 0,
+        hint: "利用小數點位數規律：0.38 (2位) + 2.4 (1位) = 3 位小數。",
+        steps: ["912 向左移動 3 位小數點 ➔ 0.912。"]
+      });
+
+      // ==========================================
+      // 單元 6：線對稱圖形 (第 44 ~ 50 題)
+      // ==========================================
+      list.push({
+        unit: 6, difficulty: "★☆☆ (基礎)",
+        stem: "下列哪一個圖形「不是」線對稱圖形？",
+        options: ["等腰三角形", "正方形", "一般平行四邊形", "圓形"],
+        answer: 2,
+        hint: "沿對稱軸對折後，左右兩邊必須能夠完全重合。",
+        steps: ["一般平行四邊形對角對折無法完全重合，故不是線對稱圖形。"]
+      });
+      list.push({
+        unit: 6, difficulty: "★☆☆ (基礎)",
+        stem: "長方形共有幾條對稱軸？",
+        options: ["1 條", "2 條", "4 條", "無數條"],
+        answer: 1,
+        hint: "長方形連接兩對邊中點的直線為對稱軸，對角線折起來無法重合。",
+        steps: ["長方形有 2 條對稱軸。"]
+      });
+      list.push({
+        unit: 6, difficulty: "★★☆ (進階)",
         stem: "正五邊形共有幾條對稱軸？",
         options: ["1 條", "3 條", "5 條", "10 條"],
         answer: 2,
-        hint: "正多邊形的邊數等於其對稱軸的條數。",
-        steps: [
-          "步驟 1：正 n 邊形會有 n 條對稱軸。",
-          "步驟 2：正五邊形連接每個頂點與對邊中點的直線皆為對稱軸。",
-          "結論：共有 5 條對稱軸。"
-        ]
+        hint: "正 n 邊形會有 n 條對稱軸。",
+        steps: ["正五邊形有 5 條對稱軸（頂點連至對邊中點）。"]
       });
-
-      // Expand to 50 template questions dynamically to ensure full dataset
-      const totalToGenerate = 50 - list.length;
-      for (let i = 0; i < totalToGenerate; i++) {
-        const u = (i % 6) + 1;
-        if (u === 1) {
-          const numA = 6 + (i * 2);
-          const numB = 9 + (i * 3);
-          const g = gcd(numA, numB);
-          list.push({
-            unit: 1,
-            stem: `請問 ${numA} 與 ${numB} 的最大公因數是多少？`,
-            options: [`${g}`, `${g * 2}`, `${g + 1}`, `${Math.max(1, g - 1)}`],
-            answer: 0,
-            hint: `列出 ${numA} 和 ${numB} 的所有因數，找出共同的最大數。`,
-            steps: [`步驟 1：${numA} 與 ${numB} 的公因數最高為 ${g}。`]
-          });
-        } else if (u === 2) {
-          list.push({
-            unit: 2,
-            stem: `計算 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> 的結果簡化後是多少？`,
-            options: [
-              "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span>",
-              "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>8</span></span>",
-              "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>",
-              "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span>"
-            ],
-            answer: 0,
-            hint: "將 1/2 通分為 3/6，再進行相加與約分。",
-            steps: ["步驟 1：1/2 = 3/6", "步驟 2：3/6 + 1/6 = 4/6 = 2/3。"]
-          });
-        } else if (u === 3) {
-          const sides = 5 + (i % 4); // 5, 6, 7, 8
-          const sum = (sides - 2) * 180;
-          list.push({
-            unit: 3,
-            stem: `一個 ${sides} 邊形的內角和是多少度？`,
-            options: [`${sum}°`, `${sum + 180}°`, `${sum - 180}°`, `${sum / 2}°`],
-            answer: 0,
-            hint: "公式：(n - 2) × 180°。",
-            steps: [`(${sides} - 2) × 180° = ${sum}°。`]
-          });
-        } else if (u === 4) {
-          const base = 8 + i;
-          const h = 6 + i;
-          const area = (base * h) / 2;
-          list.push({
-            unit: 4,
-            stem: `已知一個三角形的底為 ${base} 公分，高為 ${h} 公分，請問面積是多少？`,
-            options: [`${area} 平方公分`, `${area * 2} 平方公分`, `${area + 10} 平方公分`, `${area - 5} 平方公分`],
-            answer: 0,
-            hint: "三角形面積 = 底 × 高 ÷ 2",
-            steps: [`${base} × ${h} ÷ 2 = ${area} 平方公分。`]
-          });
-        } else if (u === 5) {
-          const val1 = (1.2 + (i * 0.1)).toFixed(1);
-          const val2 = 3;
-          const res = (parseFloat(val1) * val2).toFixed(1);
-          list.push({
-            unit: 5,
-            stem: `計算 ${val1} × ${val2} 等於多少？`,
-            options: [`${res}`, `${(res * 10).toFixed(0)}`, `${(res / 10).toFixed(2)}`, `${(parseFloat(res) + 0.5).toFixed(1)}`],
-            answer: 0,
-            hint: "直接進行小數乘法計算。",
-            steps: [`${val1} × ${val2} = ${res}`]
-          });
-        } else {
-          list.push({
-            unit: 6,
-            stem: "正方形共有幾條對稱軸？",
-            options: ["4 條", "2 條", "8 條", "無數條"],
-            answer: 0,
-            hint: "包含 2 條對角線與 2 條對邊中點連線。",
-            steps: ["正方形具備 4 條對稱軸。"]
-          });
-        }
-      }
+      list.push({
+        unit: 6, difficulty: "★★☆ (進階)",
+        stem: "圓形共有幾條對稱軸？",
+        options: ["1 條", "2 條", "360 條", "無數條"],
+        answer: 3,
+        hint: "通過圓心的任何一條直線（直徑所在的直線）都是圓的對稱軸。",
+        steps: ["圓形有無數條對稱軸。"]
+      });
+      list.push({
+        unit: 6, difficulty: "★★☆ (性質)",
+        stem: "在線對稱圖形中，連接相對應點的連線與對稱軸有什麼關係？",
+        options: ["互相平行", "互相垂直且被對稱軸平分", "互相重合", "長度不相等"],
+        answer: 1,
+        hint: "線對稱的重要性質：對稱點連線會垂直對稱軸，且距離相等。",
+        steps: ["對稱點連線必定垂直對稱軸，且對稱軸會平分該連線。"]
+      });
+      list.push({
+        unit: 6, difficulty: "★★★ (挑戰)",
+        stem: "等腰梯形有幾條對稱軸？菱形有幾條對稱軸？",
+        options: ["等腰梯形 1 條，菱形 2 條", "等腰梯形 2 條，菱形 2 條", "等腰梯形 1 條，菱形 4 條", "等腰梯形 0 條，菱形 2 條"],
+        answer: 0,
+        hint: "等腰梯形過上下底中點；菱形兩對角線為對稱軸。",
+        steps: ["等腰梯形有 1 條對稱軸，菱形有 2 條對稱軸。"]
+      });
+      list.push({
+        unit: 6, difficulty: "★★★ (複合)",
+        stem: "在方格紙上，點 A 距離對稱軸 4 格，若點 A' 是點 A 的對稱點，請問點 A 與點 A' 之間的距離是多少格？",
+        options: ["4 格", "6 格", "8 格", "16 格"],
+        answer: 2,
+        hint: "兩對稱點到對稱軸的距離相等，總距離為距離的 2 倍。",
+        steps: ["4 格 × 2 = 8 格。"]
+      });
 
       return list;
     }
 
+    // Generate Exam/Hard Questions sorted strictly by Unit 1->6, Easy->Hard
     function generateExamQuestions(isHard = false) {
       const list = [];
-      for (let i = 1; i <= 50; i++) {
-        const u = ((i - 1) % 6) + 1;
-        let q = {};
+      const prefix = isHard ? "【困難挑戰】" : "【真實測驗】";
 
+      for (let i = 1; i <= 50; i++) {
+        let u = 1;
+        let diffText = "★☆☆";
+        if (i <= 9) { u = 1; diffText = i <= 3 ? "★☆☆" : (i <= 6 ? "★★☆" : "★★★"); }
+        else if (i <= 18) { u = 2; diffText = i <= 12 ? "★☆☆" : (i <= 15 ? "★★☆" : "★★★"); }
+        else if (i <= 26) { u = 3; diffText = i <= 21 ? "★☆☆" : (i <= 24 ? "★★☆" : "★★★"); }
+        else if (i <= 35) { u = 4; diffText = i <= 29 ? "★☆☆" : (i <= 32 ? "★★☆" : "★★★"); }
+        else if (i <= 43) { u = 5; diffText = i <= 38 ? "★☆☆" : (i <= 41 ? "★★☆" : "★★★"); }
+        else { u = 6; diffText = i <= 46 ? "★☆☆" : (i <= 48 ? "★★☆" : "★★★"); }
+
+        let q = {};
         if (!isHard) {
-          // Standard Exam Questions
+          // Standard Exam Questions sorted by Unit
           if (u === 1) {
-            const a = 12 + (i % 10) * 2;
-            const b = 18 + (i % 10) * 3;
-            const ans = gcd(a, b);
+            const numA = 12 + i * 2;
+            const numB = 18 + i * 2;
+            const ans = gcd(numA, numB);
             q = {
-              unit: 1,
-              stem: `【真實題 ${i}】求 ${a} 和 ${b} 的最大公因數？`,
-              options: [`${ans}`, `${ans * 2}`, `${Math.max(1, ans - 2)}`, `${ans + 3}`],
+              unit: 1, difficulty: diffText,
+              stem: `${prefix} 求 ${numA} 與 ${numB} 的最大公因數？`,
+              options: [`${ans}`, `${ans * 2}`, `${Math.max(1, ans - 1)}`, `${ans + 3}`],
               answer: 0
             };
           } else if (u === 2) {
             q = {
-              unit: 2,
-              stem: `【真實題 ${i}】計算 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 的結果是多少？`,
+              unit: 2, difficulty: diffText,
+              stem: `${prefix} 計算 <span class='fraction'><span class='numerator'>${i%3 + 1}</span><span class='denominator'>4</span></span> + <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 的結果？`,
               options: [
-                "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>8</span></span>",
-                "<span class='fraction'><span class='numerator'>4</span><span class='denominator'>12</span></span>",
-                "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>",
-                "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>8</span></span>"
+                `<span class='fraction'><span class='numerator'>${(i%3 + 1)*3 + 4}</span><span class='denominator'>12</span></span>`,
+                `<span class='fraction'><span class='numerator'>${i%3 + 2}</span><span class='denominator'>7</span></span>`,
+                `<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>`,
+                `<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>`
               ],
               answer: 0
             };
           } else if (u === 3) {
+            const sides = 5 + (i % 5);
+            const sum = (sides - 2) * 180;
             q = {
-              unit: 3,
-              stem: `【真實題 ${i}】正八邊形的內角和是多少度？`,
-              options: ["1080°", "900°", "720°", "1260°"],
+              unit: 3, difficulty: diffText,
+              stem: `${prefix} 一個正 ${sides} 邊形的內角和是多少度？`,
+              options: [`${sum}°`, `${sum + 180}°`, `${sum - 180}°`, `${sum / 2}°`],
               answer: 0
             };
           } else if (u === 4) {
-            const top = 4 + (i % 5);
-            const bot = 8 + (i % 5);
-            const h = 6;
-            const area = ((top + bot) * h) / 2;
+            const b = 10 + i;
+            const h = 6 + (i % 4);
+            const area = (b * h) / 2;
             q = {
-              unit: 4,
-              stem: `【真實題 ${i}】梯形上底 ${top}cm、下底 ${bot}cm、高 ${h}cm，求面積？`,
-              options: [`${area} cm²`, `${area * 2} cm²`, `${area - 6} cm²`, `${area + 12} cm²`],
+              unit: 4, difficulty: diffText,
+              stem: `${prefix} 三角形的底為 ${b}cm，高為 ${h}cm，求面積？`,
+              options: [`${area} cm²`, `${area * 2} cm²`, `${area + 5} cm²`, `${area - 3} cm²`],
               answer: 0
             };
           } else if (u === 5) {
-            const v1 = (2.5 + (i * 0.2)).toFixed(1);
-            const res = (parseFloat(v1) * 1.2).toFixed(2);
+            const val = (1.5 + (i * 0.1)).toFixed(1);
+            const res = (parseFloat(val) * 2.4).toFixed(2);
             q = {
-              unit: 5,
-              stem: `【真實題 ${i}】計算 ${v1} × 1.2 的結果？`,
-              options: [`${res}`, `${(res * 10).toFixed(1)}`, `${(res / 10).toFixed(3)}`, `${(parseFloat(res) + 0.11).toFixed(2)}`],
+              unit: 5, difficulty: diffText,
+              stem: `${prefix} 計算 ${val} × 2.4 等於多少？`,
+              options: [`${res}`, `${(res * 10).toFixed(1)}`, `${(res / 10).toFixed(3)}`, `${(parseFloat(res) + 0.12).toFixed(2)}`],
               answer: 0
             };
           } else {
             q = {
-              unit: 6,
-              stem: `【真實題 ${i}】長方形有幾條對稱軸？`,
-              options: ["2 條", "4 條", "1 條", "0 條"],
+              unit: 6, difficulty: diffText,
+              stem: `${prefix} 正方形共有幾條對稱軸？`,
+              options: ["4 條", "2 條", "8 條", "無數條"],
               answer: 0
             };
           }
         } else {
-          // Hard Challenge Questions
+          // Hard Questions sorted by Unit
           if (u === 1) {
             q = {
-              unit: 1,
-              stem: `【困難挑戰 ${i}】有一包糖果數量在 100 到 150 顆之間，每 12 顆裝一袋或每 15 顆裝一袋都剛好裝完，請問這包糖果有多少顆？`,
-              options: ["120 顆", "135 顆", "140 顆", "150 顆"],
+              unit: 1, difficulty: diffText,
+              stem: `${prefix} 某數加上 3 後是 15 與 20 的公倍數，已知該數小於 200，請問該數最大是多少？`,
+              options: ["177", "180", "117", "120"],
               answer: 0
             };
           } else if (u === 2) {
             q = {
-              unit: 2,
-              stem: `【困難挑戰 ${i}】水桶裡原本有 5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公升的水，倒出 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 公升後，再倒入 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公升，現在水桶裡有多少公升的水？`,
+              unit: 2, difficulty: diffText,
+              stem: `${prefix} 計算 4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 的結果？`,
               options: [
-                "4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
-                "3<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span> 公升",
-                "4<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span> 公升",
-                "3<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span> 公升"
+                "5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>",
+                "4<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>",
+                "5<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
+                "4<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
               ],
               answer: 0
             };
           } else if (u === 3) {
             q = {
-              unit: 3,
-              stem: `【困難挑戰 ${i}】一個多邊形的內角和是 1440°，請問這個多邊形是幾邊形？`,
-              options: ["十邊形", "九邊形", "八邊形", "十二邊形"],
+              unit: 3, difficulty: diffText,
+              stem: `${prefix} 一個正多邊形的每一個內角是 144°，請問這個多邊形是幾邊形？`,
+              options: ["十邊形", "十二邊形", "八邊形", "九邊形"],
               answer: 0
             };
           } else if (u === 4) {
             q = {
-              unit: 4,
-              stem: `【困難挑戰 ${i}】一個平行四邊形土地底長 24 公尺，高 15 公尺。若在中間開闢一條寬 2 公尺的平行四邊形小路，剩餘的草地面積是多少平方公尺？`,
-              options: ["330 平方公尺", "340 平方公尺", "360 平方公尺", "300 平方公尺"],
+              unit: 4, difficulty: diffText,
+              stem: `${prefix} 一個梯形上底增加 4 公分後會變成平行四邊形，面積會增加 20 平方公分。若原梯形高為 10 公分，下底為 12 公分，求原梯形面積？`,
+              options: ["100 平方公分", "120 平方公分", "80 平方公分", "90 平方公分"],
               answer: 0
             };
           } else if (u === 5) {
             q = {
-              unit: 5,
-              stem: `【困難挑戰 ${i}】小華跑步每秒跑 4.25 公尺，他跑了 1 分 20 秒，一共跑了多少公尺？`,
-              options: ["340 公尺", "255 公尺", "300 公尺", "380 公尺"],
+              unit: 5, difficulty: diffText,
+              stem: `${prefix} 一包白米 3.75 公斤售價 240 元，小明買了 2.4 包，一共要付多少元？`,
+              options: ["576 元", "500 元", "600 元", "480 元"],
               answer: 0
             };
           } else {
             q = {
-              unit: 6,
-              stem: `【困難挑戰 ${i}】在坐標或格線上，點 A(3, 5) 對於對稱軸 L(x=5) 的對稱點 A' 坐標為何？`,
-              options: ["(7, 5)", "(5, 5)", "(1, 5)", "(7, 3)"],
+              unit: 6, difficulty: diffText,
+              stem: `${prefix} 在直角座標平面上，點 A(2, 6) 對於對稱軸 L(x=4) 的對稱點 A' 座標為何？`,
+              options: ["(6, 6)", "(4, 6)", "(2, 4)", "(8, 6)"],
               answer: 0
             };
           }
@@ -763,101 +994,6 @@
       return list;
     }
 
-    window.onload = function() {
-      // Load initial mode
-      switchMode('teach');
-    };
-
-    function switchMode(mode) {
-      currentMode = mode;
-      userAnswers = {};
-      currentQuestionIndex = 0;
-
-      // Update Tab Styles
-      document.getElementById('mode-teach-btn').className = mode === 'teach' 
-        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow font-bold" 
-        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
-      
-      document.getElementById('mode-real-btn').className = mode === 'real' 
-        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-emerald-700 shadow font-bold" 
-        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
-
-      document.getElementById('mode-hard-btn').className = mode === 'hard' 
-        ? "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-rose-700 shadow font-bold" 
-        : "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
-
-      const badge = document.getElementById('current-mode-badge');
-      const teachingSec = document.getElementById('teaching-section');
-      const timerBox = document.getElementById('test-timer-box');
-
-      if (mode === 'teach') {
-        badge.innerText = "教學練習模式";
-        badge.className = "bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold";
-        teachingSec.classList.remove('hidden');
-        timerBox.classList.add('hidden');
-        stopTimer();
-        questionsList = generateTeachingQuestions();
-      } else if (mode === 'real') {
-        badge.innerText = "真實模擬測驗";
-        badge.className = "bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold";
-        teachingSec.classList.add('hidden');
-        timerBox.classList.remove('hidden');
-        startTimer();
-        questionsList = generateExamQuestions(false);
-      } else {
-        badge.innerText = "進階困難挑戰";
-        badge.className = "bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold";
-        teachingSec.classList.add('hidden');
-        timerBox.classList.remove('hidden');
-        startTimer();
-        questionsList = generateExamQuestions(true);
-      }
-
-      filterQuestionsByUnit();
-    }
-
-    function filterQuestionsByUnit() {
-      const selectedUnit = document.getElementById('unit-filter').value;
-      currentFilteredUnit = selectedUnit;
-      currentQuestionIndex = 0;
-      renderQuestionGrid();
-      loadQuestion(currentQuestionIndex);
-    }
-
-    function renderQuestionGrid() {
-      const grid = document.getElementById('question-grid');
-      grid.innerHTML = '';
-
-      let activeCount = 0;
-      questionsList.forEach((q, idx) => {
-        if (currentFilteredUnit !== 'all' && q.unit != currentFilteredUnit) {
-          return;
-        }
-        activeCount++;
-
-        const isAnswered = userAnswers[idx] !== undefined;
-        const isCurrent = idx === currentQuestionIndex;
-
-        const btn = document.createElement('button');
-        btn.className = `h-10 rounded-lg text-xs font-bold transition-all flex items-center justify-center border touch-btn ${
-          isCurrent 
-            ? 'bg-indigo-600 text-white border-indigo-600 ring-2 ring-indigo-300' 
-            : isAnswered 
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
-              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-        }`;
-        btn.innerText = `${idx + 1}`;
-        btn.onclick = () => {
-          currentQuestionIndex = idx;
-          renderQuestionGrid();
-          loadQuestion(idx);
-        };
-        grid.appendChild(btn);
-      });
-
-      const answeredTotal = Object.keys(userAnswers).length;
-      document.getElementById('progress-text').innerText = `已完成 ${answeredTotal} / ${questionsList.length}`;
-    }
 
     function loadQuestion(index) {
       if (!questionsList[index]) return;
@@ -865,11 +1001,22 @@
 
       document.getElementById('q-number-badge').innerText = `第 ${index + 1} 題`;
       document.getElementById('q-unit-tag').innerText = `單元：${UNITS[q.unit] || '綜合'}`;
+      document.getElementById('q-diff-tag').innerText = `難度：${q.difficulty || '★☆☆'}`;
       document.getElementById('q-stem').innerHTML = q.stem;
 
-      // Hide Hint & Steps Cards on new question
+      // Hide Hint, Steps & Video Cards on new question
       document.getElementById('hint-card').classList.add('hidden');
       document.getElementById('steps-card').classList.add('hidden');
+      document.getElementById('video-card').classList.add('hidden');
+
+      // Update YouTube video content according to current question's unit
+      const videoInfo = UNIT_VIDEOS[q.unit];
+      if (videoInfo) {
+        document.getElementById('video-card-title').innerText = videoInfo.title;
+        document.getElementById('video-card-desc').innerText = videoInfo.desc;
+        const iframe = document.getElementById('youtube-iframe');
+        iframe.src = `https://www.youtube.com/embed/${videoInfo.embedId}?rel=0`;
+      }
 
       // Populate Options
       const optContainer = document.getElementById('options-container');
@@ -895,7 +1042,6 @@
               btnClass += "border-slate-200 bg-slate-50 text-slate-400";
             }
           } else {
-            // Exam Mode: Only show selected highlight
             if (isSelected) {
               btnClass += "border-indigo-600 bg-indigo-50 text-indigo-900";
             } else {
@@ -910,7 +1056,7 @@
         optBtn.className = btnClass;
         optBtn.onclick = () => selectOption(optIdx);
 
-        const labelLetter = String.fromCharCode(65 + optIdx); // A, B, C, D
+        const labelLetter = String.fromCharCode(65 + optIdx);
         optBtn.innerHTML = `
           <div class="flex items-center space-x-3">
             <span class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-600 flex items-center justify-center text-xs font-black shrink-0">${labelLetter}</span>
@@ -939,7 +1085,6 @@
         fbBox.classList.add('hidden');
       }
 
-      // Populate Hint & Steps text
       if (q.hint) {
         document.getElementById('hint-content').innerText = q.hint;
       }
@@ -971,6 +1116,11 @@
 
     function toggleSteps() {
       const card = document.getElementById('steps-card');
+      card.classList.toggle('hidden');
+    }
+
+    function toggleVideo() {
+      const card = document.getElementById('video-card');
       card.classList.toggle('hidden');
     }
 
@@ -1044,7 +1194,135 @@
       overlay.classList.toggle('hidden');
     }
 
-    document.getElementById('toggle-sidebar-btn').onclick = toggleMobileSidebar;
+    function switchMode(mode) {
+      currentMode = mode;
+      userAnswers = {};
+      currentQuestionIndex = 0;
+      currentFilteredUnit = 'all';
+
+      // Reset filter dropdown selection
+      const filterSelect = document.getElementById('unit-filter');
+      if (filterSelect) filterSelect.value = 'all';
+
+      // Get UI elements
+      const badge = document.getElementById('current-mode-badge');
+      const teachBtn = document.getElementById('mode-teach-btn');
+      const realBtn = document.getElementById('mode-real-btn');
+      const hardBtn = document.getElementById('mode-hard-btn');
+      const teachSec = document.getElementById('teaching-section');
+      const timerBox = document.getElementById('test-timer-box');
+
+      // Header button visual state styles
+      const activeClass = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-white text-indigo-700 shadow font-bold";
+      const inactiveClass = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-indigo-100 hover:text-white font-bold";
+
+      if (teachBtn) teachBtn.className = mode === 'teach' ? activeClass : inactiveClass;
+      if (realBtn) realBtn.className = mode === 'real' ? activeClass : inactiveClass;
+      if (hardBtn) hardBtn.className = mode === 'hard' ? activeClass : inactiveClass;
+
+      if (mode === 'teach') {
+        if (badge) {
+          badge.innerText = '教學練習模式';
+          badge.className = 'bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-bold';
+        }
+        if (teachSec) teachSec.classList.remove('hidden');
+        if (timerBox) timerBox.classList.add('hidden');
+        stopTimer();
+        questionsList = generateTeachingQuestions();
+      } else if (mode === 'real') {
+        if (badge) {
+          badge.innerText = '真實測驗模式';
+          badge.className = 'bg-emerald-100 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-bold';
+        }
+        if (teachSec) teachSec.classList.add('hidden');
+        if (timerBox) timerBox.classList.remove('hidden');
+        startTimer();
+        questionsList = generateExamQuestions(false);
+      } else if (mode === 'hard') {
+        if (badge) {
+          badge.innerText = '困難挑戰模式';
+          badge.className = 'bg-rose-100 text-rose-800 text-xs px-2.5 py-1 rounded-full font-bold';
+        }
+        if (teachSec) teachSec.classList.add('hidden');
+        if (timerBox) timerBox.classList.remove('hidden');
+        startTimer();
+        questionsList = generateExamQuestions(true);
+      }
+
+      renderQuestionGrid();
+      loadQuestion(0);
+    }
+
+    function filterQuestionsByUnit() {
+      const filterVal = document.getElementById('unit-filter').value;
+      currentFilteredUnit = filterVal;
+      
+      // Jump to the first question belonging to the selected unit
+      let firstMatchIndex = 0;
+      if (filterVal !== 'all') {
+        const matchIdx = questionsList.findIndex(q => q.unit.toString() === filterVal);
+        if (matchIdx !== -1) firstMatchIndex = matchIdx;
+      }
+      
+      currentQuestionIndex = firstMatchIndex;
+      renderQuestionGrid();
+      loadQuestion(currentQuestionIndex);
+    }
+
+    function renderQuestionGrid() {
+      const grid = document.getElementById('question-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      let answeredCount = Object.keys(userAnswers).length;
+      document.getElementById('progress-text').innerText = `已完成 ${answeredCount} / ${questionsList.length}`;
+
+      questionsList.forEach((q, idx) => {
+        const isVisible = currentFilteredUnit === 'all' || q.unit.toString() === currentFilteredUnit;
+
+        const btn = document.createElement('button');
+        btn.innerText = idx + 1;
+        
+        let baseStyle = "w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center transition-all touch-btn ";
+        
+        if (!isVisible) {
+          baseStyle += "opacity-30 ";
+        }
+
+        const isCurrent = idx === currentQuestionIndex;
+        const isAnswered = userAnswers[idx] !== undefined;
+
+        if (isCurrent) {
+          baseStyle += "ring-2 ring-indigo-600 ring-offset-1 ";
+        }
+
+        if (isAnswered) {
+          if (currentMode === 'teach') {
+            const isCorrect = userAnswers[idx] === q.answer;
+            baseStyle += isCorrect ? "bg-emerald-500 text-white" : "bg-rose-500 text-white";
+          } else {
+            baseStyle += "bg-indigo-600 text-white";
+          }
+        } else {
+          baseStyle += "bg-slate-100 hover:bg-slate-200 text-slate-700";
+        }
+
+        btn.className = baseStyle;
+        btn.onclick = () => {
+          currentQuestionIndex = idx;
+          renderQuestionGrid();
+          loadQuestion(idx);
+        };
+
+        grid.appendChild(btn);
+      });
+    }
+
+    // Initialize application on page load
+    window.onload = function() {
+      document.getElementById('toggle-sidebar-btn').onclick = toggleMobileSidebar;
+      switchMode('teach');
+    };
   </script>
 </body>
 </html>

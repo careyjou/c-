@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Lite (v3.0 P1 階梯協同/遺物/擊殺掉錢)</title>
+    <title>How Many Dudes? Lite (v4.0 組合A：3合1升星 + 自由拖曳站位)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -69,6 +69,7 @@
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 15px;
+            cursor: pointer;
         }
         canvas {
             display: block;
@@ -269,8 +270,8 @@
 </head>
 <body>
 
-    <h1>How Many Dudes? Lite (v3.0 P1 升級版)</h1>
-    <div class="subtitle">新增：2/4 階梯協同、三選一遺物選取、擊殺掉金幣、失敗保留累積金幣！</div>
+    <h1>How Many Dudes? Lite (v4.0 組合A升級)</h1>
+    <div class="subtitle">新增：3合1自動升星系統 (★/★★/★★★) + 戰前 3x3 陣型區滑鼠拖曳站位！</div>
 
     <div id="game-container">
         <!-- Relic Choice Modal -->
@@ -308,8 +309,8 @@
         <div class="shop-section">
             <div class="shop-controls">
                 <div>
-                    <span>🛒 Dude 商店 (上限 8 位)</span>
-                    <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/8</span>
+                    <span>🛒 Dude 商店 (上限 9 格陣型)</span>
+                    <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/9 (拖曳調整站位)</span>
                 </div>
                 <div>
                     <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
@@ -323,7 +324,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到 Dude 牧場！敵人被擊殺時會直接掉落金幣，即使挑戰失敗金幣也會完整保留！
+            [系統] 歡迎來到 Dude 牧場！獲得 3 個同星級 Dude 自動觸發 3合1 升星！戰前可用滑鼠拖曳單位調整 3x3 陣型！
         </div>
     </div>
 
@@ -336,15 +337,28 @@ const state = {
     maxWave: 10,
     inBattle: false,
     speed: 1,
-    dudes: [],
+    dudes: [], // List of active dudes with slotIndex (0-8) and tier (1, 2, 3)
     shop: [],
-    relics: [], // Array of acquired relic objects
-    maxDudes: 8
+    relics: [],
+    maxDudes: 9
 };
+
+// 3x3 Grid Slot Layout (startX: 60, startY: 45)
+const GRID_SLOTS = [
+    { id: 0, row: 0, col: 0, label: '前排上', x: 80, y: 60 },
+    { id: 1, row: 1, col: 0, label: '前排中', x: 80, y: 160 },
+    { id: 2, row: 2, col: 0, label: '前排下', x: 80, y: 260 },
+    { id: 3, row: 0, col: 1, label: '中排上', x: 200, y: 60 },
+    { id: 4, row: 1, col: 1, label: '中排中', x: 200, y: 160 },
+    { id: 5, row: 2, col: 1, label: '中排下', x: 200, y: 260 },
+    { id: 6, row: 0, col: 2, label: '後排上', x: 320, y: 60 },
+    { id: 7, row: 1, col: 2, label: '後排中', x: 320, y: 160 },
+    { id: 8, row: 2, col: 2, label: '後排下', x: 320, y: 260 }
+];
 
 // Relics Database
 const RELICS_DATABASE = [
-    { id: 'cursed_book', icon: '📜', name: '詛咒之書', desc: '全隊攻擊力 +30%，但最大生命 -10%。' },
+    { id: 'cursed_book', icon: '📜', name: '詛詛之書', desc: '全隊攻擊力 +30%，但最大生命 -10%。' },
     { id: 'compound_interest', icon: '🏦', name: '複利契約', desc: '每波戰鬥開始時，獲取當前未花金幣 10% 的額外利息。' },
     { id: 'explosive_guts', icon: '💣', name: '爆裂內臟', desc: '所有友軍陣亡時觸發爆炸，造成 20 點小範圍 AOE 傷害。' },
     { id: 'golden_touch', icon: '🪙', name: '點金之觸', desc: '敵人被擊殺時，金幣掉落量 +$1。' },
@@ -388,7 +402,12 @@ let combatParticles = [];
 let battleAnimationId = null;
 let screenShake = 0;
 
+// Drag & Drop State
+let draggedDude = null;
+let currentMousePos = { x: 0, y: 0 };
+
 function init() {
+    setupDragAndDrop();
     rerollShop();
     updateUI();
     drawIdleArena();
@@ -506,6 +525,44 @@ function selectRelic(relic) {
     updateUI();
 }
 
+// 3-in-1 Merging Check
+function checkAndMergeDudes() {
+    let merged = false;
+    for (let tier = 1; tier <= 2; tier++) {
+        const counts = {};
+        state.dudes.forEach(d => {
+            if ((d.tier || 1) === tier) {
+                counts[d.id] = (counts[d.id] || 0) + 1;
+            }
+        });
+
+        for (let dudeId in counts) {
+            if (counts[dudeId] >= 3) {
+                const matches = state.dudes.filter(d => d.id === dudeId && (d.tier || 1) === tier);
+                if (matches.length >= 3) {
+                    const keeper = matches[0];
+                    const remove1 = matches[1];
+                    const remove2 = matches[2];
+
+                    keeper.tier = tier + 1;
+                    keeper.hp = Math.round(keeper.hp * 2.2);
+                    keeper.atk = Math.round(keeper.atk * 2.2);
+
+                    state.dudes = state.dudes.filter(d => d !== remove1 && d !== remove2);
+
+                    const starStr = keeper.tier === 2 ? '★★ 2星' : '★★★ 3星神級';
+                    log(`⭐【3合1 升星爆發】合成本體！${keeper.name} 晉升為 ${starStr} (血量與傷害 x2.2)！`);
+                    merged = true;
+                    break;
+                }
+            }
+        }
+        if (merged) break;
+    }
+
+    if (merged) checkAndMergeDudes();
+}
+
 function rerollShop() {
     if (state.gold < 2 && state.shop.length > 0) {
         log('金幣不足，無法刷新商店！');
@@ -516,7 +573,7 @@ function rerollShop() {
     state.shop = [];
     for (let i = 0; i < 4; i++) {
         const randomType = DUDE_TYPES[Math.floor(Math.random() * DUDE_TYPES.length)];
-        state.shop.push({ ...randomType });
+        state.shop.push({ ...randomType, tier: 1 });
     }
     renderShop();
     updateUI();
@@ -547,7 +604,7 @@ function renderShop() {
 function buyDude(index) {
     if (state.inBattle) return;
     if (state.dudes.length >= state.maxDudes) {
-        log('陣容已滿（最多 8 位 Dude）！');
+        log('陣型格已滿（最多 9 格）！');
         return;
     }
 
@@ -559,20 +616,91 @@ function buyDude(index) {
         return;
     }
 
+    const occupiedSlots = state.dudes.map(d => d.slotIndex);
+    let freeSlot = 0;
+    for (let i = 0; i < 9; i++) {
+        if (!occupiedSlots.includes(i)) {
+            freeSlot = i;
+            break;
+        }
+    }
+
     state.gold -= item.price;
-    state.dudes.push({ ...item });
+    state.dudes.push({ ...item, slotIndex: freeSlot, tier: 1 });
     state.shop.splice(index, 1);
 
-    log(`成功招募 ${item.name}！`);
+    log(`成功招募 ${item.name}！已放置於 [${GRID_SLOTS[freeSlot].label}]。`);
+    checkAndMergeDudes();
     renderShop();
     updateUI();
     drawIdleArena();
 }
 
+// Drag & Drop Setup
+function setupDragAndDrop() {
+    const arena = document.getElementById('arena-container');
+
+    arena.addEventListener('mousedown', (e) => {
+        if (state.inBattle) return;
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        for (let d of state.dudes) {
+            const slot = GRID_SLOTS[d.slotIndex];
+            const dist = Math.hypot(mouseX - slot.x, mouseY - slot.y);
+            if (dist <= 22) {
+                draggedDude = d;
+                currentMousePos = { x: mouseX, y: mouseY };
+                break;
+            }
+        }
+    });
+
+    arena.addEventListener('mousemove', (e) => {
+        if (state.inBattle || !draggedDude) return;
+        const rect = canvas.getBoundingClientRect();
+        currentMousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        drawIdleArena();
+    });
+
+    arena.addEventListener('mouseup', (e) => {
+        if (state.inBattle || !draggedDude) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const dropX = e.clientX - rect.left;
+        const dropY = e.clientY - rect.top;
+
+        let targetSlot = -1;
+        let minDist = 60;
+
+        GRID_SLOTS.forEach(slot => {
+            const dist = Math.hypot(dropX - slot.x, dropY - slot.y);
+            if (dist < minDist) {
+                minDist = dist;
+                targetSlot = slot.id;
+            }
+        });
+
+        if (targetSlot !== -1 && targetSlot !== draggedDude.slotIndex) {
+            const existing = state.dudes.find(d => d.slotIndex === targetSlot);
+            if (existing) {
+                existing.slotIndex = draggedDude.slotIndex;
+            }
+            draggedDude.slotIndex = targetSlot;
+            log(`已調整站位：${draggedDude.name} 移動至 [${GRID_SLOTS[targetSlot].label}]！`);
+        }
+
+        draggedDude = null;
+        drawIdleArena();
+    });
+}
+
 function drawIdleArena() {
+    if (state.inBattle) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = '#1e293b';
+    ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
     for (let x = 0; x < canvas.width; x += 40) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -581,28 +709,76 @@ function drawIdleArena() {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
     }
 
-    const startX = 80;
-    const startY = 60;
-    state.dudes.forEach((d, i) => {
-        const x = startX + (i % 3) * 60;
-        const y = startY + Math.floor(i / 3) * 70;
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 2;
+    ctx.fillRect(40, 20, 320, 280);
+    ctx.strokeRect(40, 20, 320, 280);
 
-        ctx.fillStyle = getFamilyColor(d.family);
+    ctx.fillStyle = '#60a5fa';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('🛡️ 玩家 3x3 戰術陣型區 (可滑鼠拖曳單位)', 50, 40);
+
+    GRID_SLOTS.forEach(slot => {
+        ctx.strokeStyle = '#475569';
+        ctx.fillStyle = '#0f172a';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.arc(slot.x, slot.y, 22, 0, Math.PI * 2);
         ctx.fill();
+        ctx.stroke();
 
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(d.name.substring(0, 2), x, y + 4);
+        ctx.fillText(slot.label, slot.x, slot.y + 32);
     });
 
+    state.dudes.forEach(d => {
+        if (d === draggedDude) return;
+        const slot = GRID_SLOTS[d.slotIndex];
+        drawDudeOnCanvas(d, slot.x, slot.y);
+    });
+
+    if (draggedDude) {
+        drawDudeOnCanvas(draggedDude, currentMousePos.x, currentMousePos.y, true);
+    }
+
     if (state.dudes.length === 0) {
-        ctx.fillStyle = '#475569';
-        ctx.font = '16px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '15px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('尚無 Dude，請先從下方商店招募單位！', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('點擊下方商店招募 Dude，單位會自動放入 3x3 陣型區！', 200, 160);
+    }
+}
+
+function drawDudeOnCanvas(d, x, y, isDragging = false) {
+    const tier = d.tier || 1;
+    const radius = 16 + (tier - 1) * 3;
+
+    if (tier >= 2) {
+        ctx.strokeStyle = tier === 3 ? '#ef4444' : '#f39c12';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = getFamilyColor(d.family);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.name.substring(0, 2), x, y + 3);
+
+    if (tier >= 2) {
+        ctx.fillStyle = '#facc15';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(tier === 2 ? '★★' : '★★★', x, y - radius - 3);
     }
 }
 
@@ -625,7 +801,6 @@ function startBattle() {
     document.getElementById('btn-battle').disabled = true;
     document.getElementById('btn-reroll').disabled = true;
 
-    // Apply Compound Interest Relic
     if (state.relics.some(r => r.id === 'compound_interest')) {
         let interest = Math.floor(state.gold * 0.1);
         if (interest > 0) {
@@ -651,23 +826,26 @@ function startBattle() {
     }
 
     combatEntities = [];
-    state.dudes.forEach((d, i) => {
-        const col = i % 3;
-        const row = Math.floor(i / 3);
+    state.dudes.forEach(d => {
+        const slot = GRID_SLOTS[d.slotIndex];
+        const tier = d.tier || 1;
+        const tierMult = tier === 1 ? 1.0 : (tier === 2 ? 2.2 : 4.5);
+
         combatEntities.push({
             isDude: true,
             id: d.id,
             name: d.name,
             family: d.family,
-            x: 60 + col * 50,
-            y: 50 + row * 65,
-            hp: Math.round(d.hp * hpBuff),
-            maxHp: Math.round(d.hp * hpBuff),
-            atk: Math.round(d.atk * atkBuff),
+            tier: tier,
+            x: slot.x,
+            y: slot.y,
+            hp: Math.round(d.hp * hpBuff * tierMult),
+            maxHp: Math.round(d.hp * hpBuff * tierMult),
+            atk: Math.round(d.atk * atkBuff * tierMult),
             range: d.range * (rangeBuff * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0)),
             speed: d.speed * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0),
             cooldown: 0,
-            radius: 14,
+            radius: 14 + (tier - 1) * 3,
             color: getFamilyColor(d.family)
         });
     });
@@ -765,9 +943,9 @@ function battleLoop() {
                     } else if (e.id === 'cleric' && e.isDude) {
                         let lowestDude = dudes.sort((a, b) => a.hp - b.hp)[0];
                         if (lowestDude) {
-                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 15);
+                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 15 * e.tier);
                             combatParticles.push({
-                                x: lowestDude.x, y: lowestDude.y, text: '+15 HP', color: '#4ade80', life: 25
+                                x: lowestDude.x, y: lowestDude.y, text: `+${15 * e.tier} HP`, color: '#4ade80', life: 25
                             });
                             combatParticles.push({
                                 type: 'beam', x1: e.x, y1: e.y, x2: lowestDude.x, y2: lowestDude.y, color: '#22c55e', life: 10
@@ -798,7 +976,6 @@ function battleLoop() {
                             x: nearest.x, y: nearest.y, text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
                         });
 
-                        // Enemy Death & Money Drop
                         if (nearest.hp <= 0 && !nearest.isDude) {
                             let droppedGold = nearest.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
                             state.gold += droppedGold;
@@ -809,7 +986,6 @@ function battleLoop() {
                             });
                         }
 
-                        // Dude Death Effects
                         if (nearest.hp <= 0 && nearest.isDude) {
                             if (nearest.hasInsurance) {
                                 state.gold += 5;
@@ -819,7 +995,7 @@ function battleLoop() {
 
                             if (counts['undead'] >= 4 && Math.random() < 0.5) {
                                 combatEntities.push({
-                                    isDude: true, id: 'skeleton', name: '小骷髏', family: 'undead',
+                                    isDude: true, id: 'skeleton', name: '小骷髏', family: 'undead', tier: 1,
                                     x: nearest.x, y: nearest.y, hp: 15, maxHp: 15, atk: 6, range: 40, speed: 1.5, cooldown: 0, radius: 10, color: '#e9d5ff'
                                 });
                                 combatParticles.push({ x: nearest.x, y: nearest.y, text: '💀 骷髏降臨', color: '#e9d5ff', life: 25 });
@@ -891,6 +1067,14 @@ function battleLoop() {
 
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
+
+        if (e.isDude && e.tier >= 2) {
+            ctx.strokeStyle = e.tier === 3 ? '#ef4444' : '#f39c12';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
 
         ctx.fillStyle = e.color;
         ctx.beginPath();
@@ -966,7 +1150,6 @@ function endBattle(victory) {
         rerollShop();
     } else {
         state.lives--;
-        // Retain all accumulated gold when defeated
         log(`💀 戰敗！剩餘生命：${state.lives}。（已為你保留戰鬥中累積的所有 $${state.gold} 金幣！）`);
 
         if (state.lives <= 0) {

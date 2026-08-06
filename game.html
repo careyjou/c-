@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Lite (多少個 Dude？輕量網頁版 v2.0)</title>
+    <title>How Many Dudes? Lite (v3.0 P1 階梯協同/遺物/擊殺掉錢)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -37,6 +37,7 @@
             border-radius: 12px;
             padding: 15px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            position: relative;
         }
         .top-bar {
             display: flex;
@@ -75,7 +76,7 @@
             height: 100%;
         }
 
-        /* Synergy Panel */
+        /* Synergy & Relic Panels */
         .info-panel {
             display: flex;
             gap: 15px;
@@ -87,7 +88,7 @@
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #334155;
-            min-height: 70px;
+            min-height: 75px;
         }
         .panel-title {
             font-size: 14px;
@@ -97,7 +98,7 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-        .synergy-tag {
+        .synergy-tag, .relic-tag {
             display: inline-block;
             background: #334155;
             padding: 4px 8px;
@@ -110,6 +111,58 @@
             color: #000;
             font-weight: bold;
         }
+        .relic-tag {
+            background: #8b5cf6;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Modal Overlay for Relic Choice */
+        #relic-modal {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 12px;
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        #relic-modal.show {
+            display: flex;
+        }
+        .modal-title {
+            font-size: 22px;
+            color: #f1c40f;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .relic-choices {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        .relic-card {
+            background: #1e293b;
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 15px;
+            width: 240px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .relic-card:hover {
+            transform: translateY(-4px);
+            border-color: #a855f7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+        .relic-icon { font-size: 32px; margin-bottom: 8px; }
+        .relic-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #e9d5ff; }
+        .relic-desc { font-size: 12px; color: #cbd5e1; }
 
         /* Shop Section */
         .shop-section {
@@ -216,10 +269,17 @@
 </head>
 <body>
 
-    <h1>How Many Dudes? Lite (v2.0 P0 特效與倍速升級)</h1>
-    <div class="subtitle">新增 1x/2x 戰鬥倍速、飛彈子彈投射物、動態爆破與治癒光束！</div>
+    <h1>How Many Dudes? Lite (v3.0 P1 升級版)</h1>
+    <div class="subtitle">新增：2/4 階梯協同、三選一遺物選取、擊殺掉金幣、失敗保留累積金幣！</div>
 
     <div id="game-container">
+        <!-- Relic Choice Modal -->
+        <div id="relic-modal">
+            <div class="modal-title">🔮 獲得強大遺物 (Relic Choice)</div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:20px;">選擇一項遺物以大幅改寫你的戰鬥規則：</div>
+            <div class="relic-choices" id="relic-choices-container"></div>
+        </div>
+
         <!-- Top Stats -->
         <div class="top-bar">
             <div class="stat-item wave">🌊 波次: <span id="ui-wave">1 / 10</span></div>
@@ -232,11 +292,15 @@
             <canvas id="battleCanvas" width="870" height="320"></canvas>
         </div>
 
-        <!-- Synergy Panel -->
+        <!-- Synergy & Relic Panels -->
         <div class="info-panel">
             <div class="panel-box">
-                <div class="panel-title">👥 家族協同加成 (Synergies)</div>
+                <div class="panel-title">👥 階梯協同加成 (2/4 Synergies)</div>
                 <div id="synergy-list">尚未啟動協同</div>
+            </div>
+            <div class="panel-box">
+                <div class="panel-title">🔮 已持有遺物 (Relics)</div>
+                <div id="relic-list">尚無遺物</div>
             </div>
         </div>
 
@@ -259,7 +323,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到 Dude 牧場！點擊商店卡片招募 Dude，點擊右上角「倍速」可調整戰鬥節奏。
+            [系統] 歡迎來到 Dude 牧場！敵人被擊殺時會直接掉落金幣，即使挑戰失敗金幣也會完整保留！
         </div>
     </div>
 
@@ -271,11 +335,22 @@ const state = {
     wave: 1,
     maxWave: 10,
     inBattle: false,
-    speed: 1, // 1x or 2x
+    speed: 1,
     dudes: [],
     shop: [],
+    relics: [], // Array of acquired relic objects
     maxDudes: 8
 };
+
+// Relics Database
+const RELICS_DATABASE = [
+    { id: 'cursed_book', icon: '📜', name: '詛咒之書', desc: '全隊攻擊力 +30%，但最大生命 -10%。' },
+    { id: 'compound_interest', icon: '🏦', name: '複利契約', desc: '每波戰鬥開始時，獲取當前未花金幣 10% 的額外利息。' },
+    { id: 'explosive_guts', icon: '💣', name: '爆裂內臟', desc: '所有友軍陣亡時觸發爆炸，造成 20 點小範圍 AOE 傷害。' },
+    { id: 'golden_touch', icon: '🪙', name: '點金之觸', desc: '敵人被擊殺時，金幣掉落量 +$1。' },
+    { id: 'blood_shield', icon: '🛡️', name: '吸血護盾', desc: '戰士與近戰單位每次攻擊恢復 3 點生命。' },
+    { id: 'magic_overload', icon: '⚡', name: '魔力超載', desc: '奇幻族與遠程單位的攻擊射程與速度 +20%。' }
+];
 
 // Dude Database
 const DUDE_TYPES = [
@@ -291,16 +366,16 @@ const DUDE_TYPES = [
 
 // Enemy Waves Config
 const ENEMY_WAVES = [
-    { name: '第 1 波：10 個幼童 (Toddlers)', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6' },
-    { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6' },
-    { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8' },
-    { name: '第 4 波：8 隻野狼群 (Pack of Wolves)', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8' },
-    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 500, atk: 30, speed: 1.1, size: 30, color: '#facc15' },
-    { name: '第 6 波：20 個狂暴幼童 (Enraged Toddlers)', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185' },
-    { name: '第 7 波：3 隻大猩猩 (Gorillas)', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569' },
-    { name: '第 8 波：5 隻大猩猩隊 (Gorilla Squad)', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155' },
-    { name: '第 9 波：大猩猩與野狼混合軍', count: 10, hp: 200, atk: 22, speed: 1.4, size: 18, color: '#a855f7' },
-    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 1800, atk: 50, speed: 0.9, size: 40, color: '#ef4444' }
+    { name: '第 1 波：10 個幼童 (Toddlers)', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6', bounty: 1 },
+    { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6', bounty: 1 },
+    { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8', bounty: 2 },
+    { name: '第 4 波：8 隻野狼群 (Pack of Wolves)', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8', bounty: 2 },
+    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 500, atk: 30, speed: 1.1, size: 30, color: '#facc15', bounty: 10 },
+    { name: '第 6 波：20 個狂暴幼童 (Enraged Toddlers)', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185', bounty: 1 },
+    { name: '第 7 波：3 隻大猩猩 (Gorillas)', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569', bounty: 5 },
+    { name: '第 8 波：5 隻大猩猩隊 (Gorilla Squad)', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155', bounty: 5 },
+    { name: '第 9 波：大猩猩與野狼混合軍', count: 10, hp: 200, atk: 22, speed: 1.4, size: 18, color: '#a855f7', bounty: 3 },
+    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 1800, atk: 50, speed: 0.9, size: 40, color: '#ef4444', bounty: 50 }
 ];
 
 // Canvas & Animation Setup
@@ -338,6 +413,7 @@ function updateUI() {
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
 
     updateSynergiesUI();
+    updateRelicsUI();
 }
 
 function updateSynergiesUI() {
@@ -355,13 +431,18 @@ function updateSynergiesUI() {
         let desc = '';
         let active = false;
 
-        if (count >= 2) {
-            active = true;
-            hasActive = true;
-            if (fam === 'undead') desc = '不死(+2): 攻擊力+15%';
-            if (fam === 'warrior') desc = '戰士(+2): 最大生命+25%';
-            if (fam === 'fantasy') desc = '奇幻(+2): 射程+20%';
-            if (fam === 'employed') desc = '上班族(+2): 通關額外+$2';
+        if (count >= 4) {
+            active = true; hasActive = true;
+            if (fam === 'undead') desc = '不死(4): 死亡 50% 機率召喚骷髏';
+            if (fam === 'warrior') desc = '戰士(4): 獲得 20% 反傷護盾';
+            if (fam === 'fantasy') desc = '奇幻(4): 攻擊附帶連鎖閃電';
+            if (fam === 'employed') desc = '上班族(4): 開局獲得保險單(死掉+$5)';
+        } else if (count >= 2) {
+            active = true; hasActive = true;
+            if (fam === 'undead') desc = '不死(2): 攻擊力+15%';
+            if (fam === 'warrior') desc = '戰士(2): 最大生命+25%';
+            if (fam === 'fantasy') desc = '奇幻(2): 射程+20%';
+            if (fam === 'employed') desc = '上班族(2): 通關額外+$2';
         } else {
             desc = `${familyNames[fam]} (${count}/2)`;
         }
@@ -373,8 +454,56 @@ function updateSynergiesUI() {
     }
 
     if (!hasActive && Object.keys(counts).length === 0) {
-        list.innerHTML = '<span style="color:#64748b; font-size:12px;">招募 2 位同家族 Dude 觸發協同加成！</span>';
+        list.innerHTML = '<span style="color:#64748b; font-size:12px;">招募 2/4 位同家族 Dude 觸發階梯協同加成！</span>';
     }
+}
+
+function updateRelicsUI() {
+    const list = document.getElementById('relic-list');
+    list.innerHTML = '';
+
+    if (state.relics.length === 0) {
+        list.innerHTML = '<span style="color:#64748b; font-size:12px;">尚無遺物（將在指定關卡通關後獲得）</span>';
+        return;
+    }
+
+    state.relics.forEach(r => {
+        const tag = document.createElement('span');
+        tag.className = 'relic-tag';
+        tag.innerText = `${r.icon} ${r.name}`;
+        tag.title = r.desc;
+        list.appendChild(tag);
+    });
+}
+
+function showRelicModal() {
+    const available = RELICS_DATABASE.filter(r => !state.relics.some(owned => owned.id === r.id));
+    if (available.length === 0) return;
+
+    const choices = [...available].sort(() => 0.5 - Math.random()).slice(0, 3);
+    const container = document.getElementById('relic-choices-container');
+    container.innerHTML = '';
+
+    choices.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'relic-card';
+        card.onclick = () => selectRelic(r);
+        card.innerHTML = `
+            <div class="relic-icon">${r.icon}</div>
+            <div class="relic-name">${r.name}</div>
+            <div class="relic-desc">${r.desc}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    document.getElementById('relic-modal').classList.add('show');
+}
+
+function selectRelic(relic) {
+    state.relics.push(relic);
+    document.getElementById('relic-modal').classList.remove('show');
+    log(`🔮 成功選擇遺物【${relic.name}】！${relic.desc}`);
+    updateUI();
 }
 
 function rerollShop() {
@@ -496,6 +625,16 @@ function startBattle() {
     document.getElementById('btn-battle').disabled = true;
     document.getElementById('btn-reroll').disabled = true;
 
+    // Apply Compound Interest Relic
+    if (state.relics.some(r => r.id === 'compound_interest')) {
+        let interest = Math.floor(state.gold * 0.1);
+        if (interest > 0) {
+            state.gold += interest;
+            log(`🏦【複利契約】獲得 $${interest} 利息！`);
+            updateUI();
+        }
+    }
+
     const waveInfo = ENEMY_WAVES[state.wave - 1];
     log(`⚔️ 開始 ${waveInfo.name}！`);
 
@@ -505,6 +644,11 @@ function startBattle() {
     let atkBuff = counts['undead'] >= 2 ? 1.15 : 1.0;
     let hpBuff = counts['warrior'] >= 2 ? 1.25 : 1.0;
     let rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
+
+    if (state.relics.some(r => r.id === 'cursed_book')) {
+        atkBuff *= 1.30;
+        hpBuff *= 0.90;
+    }
 
     combatEntities = [];
     state.dudes.forEach((d, i) => {
@@ -520,13 +664,18 @@ function startBattle() {
             hp: Math.round(d.hp * hpBuff),
             maxHp: Math.round(d.hp * hpBuff),
             atk: Math.round(d.atk * atkBuff),
-            range: d.range * rangeBuff,
-            speed: d.speed,
+            range: d.range * (rangeBuff * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0)),
+            speed: d.speed * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0),
             cooldown: 0,
             radius: 14,
             color: getFamilyColor(d.family)
         });
     });
+
+    if (counts['employed'] >= 4 && combatEntities.length > 0) {
+        let lucky = combatEntities[Math.floor(Math.random() * combatEntities.length)];
+        lucky.hasInsurance = true;
+    }
 
     for (let i = 0; i < waveInfo.count; i++) {
         combatEntities.push({
@@ -539,6 +688,7 @@ function startBattle() {
             atk: waveInfo.atk,
             range: 35,
             speed: waveInfo.speed,
+            bounty: waveInfo.bounty || 1,
             cooldown: 0,
             radius: waveInfo.size,
             color: waveInfo.color
@@ -555,7 +705,6 @@ function battleLoop() {
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Apply Screen Shake
     if (screenShake > 0) {
         const rx = (Math.random() - 0.5) * screenShake;
         const ry = (Math.random() - 0.5) * screenShake;
@@ -580,7 +729,9 @@ function battleLoop() {
         return;
     }
 
-    // Update Entities
+    const counts = {};
+    dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
 
@@ -598,63 +749,96 @@ function battleLoop() {
 
         if (nearest) {
             if (minDist <= e.range) {
-                // Trigger Attack / Projectile Spawning
                 if (e.cooldown <= 0) {
                     e.cooldown = (50 / e.speed) / gameSpeed;
 
                     if (e.id === 'wizard' && e.isDude) {
-                        // Spawn Fireball Projectile
                         combatProjectiles.push({
                             x: e.x, y: e.y, target: nearest, damage: e.atk,
                             speed: 5 * gameSpeed, radius: 6, color: '#f97316', type: 'fireball'
                         });
                     } else if (e.id === 'cowboy' && e.isDude) {
-                        // Spawn Bullet Beam
                         combatProjectiles.push({
                             x: e.x, y: e.y, target: nearest, damage: e.atk,
                             speed: 10 * gameSpeed, radius: 3, color: '#facc15', type: 'bullet'
                         });
                     } else if (e.id === 'cleric' && e.isDude) {
-                        // Heal Beam to lowest HP ally
                         let lowestDude = dudes.sort((a, b) => a.hp - b.hp)[0];
                         if (lowestDude) {
                             lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 15);
                             combatParticles.push({
                                 x: lowestDude.x, y: lowestDude.y, text: '+15 HP', color: '#4ade80', life: 25
                             });
-                            // Heal beam line
                             combatParticles.push({
                                 type: 'beam', x1: e.x, y1: e.y, x2: lowestDude.x, y2: lowestDude.y, color: '#22c55e', life: 10
                             });
                         }
                     } else {
-                        // Direct Melee Hit
                         nearest.hp -= e.atk;
+
+                        if (e.isDude && state.relics.some(r => r.id === 'blood_shield')) {
+                            e.hp = Math.min(e.maxHp, e.hp + 3);
+                        }
+
+                        if (!e.isDude && counts['warrior'] >= 4) {
+                            e.hp -= Math.round(e.atk * 0.2);
+                        }
+
+                        if (e.isDude && counts['fantasy'] >= 4) {
+                            let splashed = enemies.filter(en => en !== nearest && en.hp > 0).slice(0, 2);
+                            splashed.forEach(s => {
+                                s.hp -= Math.round(e.atk * 0.5);
+                                combatParticles.push({
+                                    type: 'beam', x1: nearest.x, y1: nearest.y, x2: s.x, y2: s.y, color: '#38bdf8', life: 8
+                                });
+                            });
+                        }
+
                         combatParticles.push({
                             x: nearest.x, y: nearest.y, text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
                         });
 
-                        // Check Zombie Explode on Death
-                        if (nearest.hp <= 0 && nearest.id === 'zombie' && nearest.isDude) {
-                            screenShake = 12;
-                            // Poison explosion particles
+                        // Enemy Death & Money Drop
+                        if (nearest.hp <= 0 && !nearest.isDude) {
+                            let droppedGold = nearest.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
+                            state.gold += droppedGold;
+                            updateUI();
+
                             combatParticles.push({
-                                type: 'ring', x: nearest.x, y: nearest.y, radius: 10, maxRadius: 40, color: '#a855f7', life: 15
+                                x: nearest.x, y: nearest.y - 10, text: `+$${droppedGold} 金幣`, color: '#f39c12', life: 35
                             });
-                            // AOE Damage
-                            enemies.forEach(en => {
-                                if (Math.hypot(en.x - nearest.x, en.y - nearest.y) <= 60) {
-                                    en.hp -= 25;
-                                    combatParticles.push({
-                                        x: en.x, y: en.y, text: '-25自爆', color: '#c084fc', life: 30
-                                    });
-                                }
-                            });
+                        }
+
+                        // Dude Death Effects
+                        if (nearest.hp <= 0 && nearest.isDude) {
+                            if (nearest.hasInsurance) {
+                                state.gold += 5;
+                                updateUI();
+                                combatParticles.push({ x: nearest.x, y: nearest.y, text: '+$5保險金', color: '#facc15', life: 35 });
+                            }
+
+                            if (counts['undead'] >= 4 && Math.random() < 0.5) {
+                                combatEntities.push({
+                                    isDude: true, id: 'skeleton', name: '小骷髏', family: 'undead',
+                                    x: nearest.x, y: nearest.y, hp: 15, maxHp: 15, atk: 6, range: 40, speed: 1.5, cooldown: 0, radius: 10, color: '#e9d5ff'
+                                });
+                                combatParticles.push({ x: nearest.x, y: nearest.y, text: '💀 骷髏降臨', color: '#e9d5ff', life: 25 });
+                            }
+
+                            if (nearest.id === 'zombie' || state.relics.some(r => r.id === 'explosive_guts')) {
+                                screenShake = 10;
+                                combatParticles.push({ type: 'ring', x: nearest.x, y: nearest.y, radius: 10, maxRadius: 40, color: '#a855f7', life: 15 });
+                                enemies.forEach(en => {
+                                    if (Math.hypot(en.x - nearest.x, en.y - nearest.y) <= 60) {
+                                        en.hp -= 20;
+                                        combatParticles.push({ x: en.x, y: en.y, text: '-20爆破', color: '#c084fc', life: 25 });
+                                    }
+                                });
+                            }
                         }
                     }
                 }
             } else {
-                // Movement
                 const angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
                 e.x += Math.cos(angle) * (e.speed * 1.5 * gameSpeed);
                 e.y += Math.sin(angle) * (e.speed * 1.5 * gameSpeed);
@@ -664,7 +848,6 @@ function battleLoop() {
         if (e.cooldown > 0) e.cooldown--;
     });
 
-    // Update & Render Projectiles
     combatProjectiles.forEach((p, idx) => {
         if (!p.target || p.target.hp <= 0) {
             combatProjectiles.splice(idx, 1);
@@ -675,18 +858,25 @@ function battleLoop() {
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
 
-        // Draw Projectile
         ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Hit Target
         if (Math.hypot(p.target.x - p.x, p.target.y - p.y) <= p.target.radius + p.radius) {
             p.target.hp -= p.damage;
             combatParticles.push({
                 x: p.target.x, y: p.target.y, text: `-${p.damage}`, color: '#fb923c', life: 25
             });
+
+            if (p.target.hp <= 0 && !p.target.isDude) {
+                let droppedGold = p.target.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
+                state.gold += droppedGold;
+                updateUI();
+                combatParticles.push({
+                    x: p.target.x, y: p.target.y - 10, text: `+$${droppedGold} 金幣`, color: '#f39c12', life: 35
+                });
+            }
 
             if (p.type === 'fireball') {
                 screenShake = 6;
@@ -699,7 +889,6 @@ function battleLoop() {
         }
     });
 
-    // Render Entities
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
 
@@ -708,7 +897,6 @@ function battleLoop() {
         ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Health Bar
         const barW = e.radius * 2;
         const barH = 4;
         const hpPct = Math.max(0, e.hp / e.maxHp);
@@ -718,7 +906,6 @@ function battleLoop() {
         ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
     });
 
-    // Update & Render Particles
     combatParticles.forEach((p, index) => {
         if (p.type === 'ring') {
             ctx.strokeStyle = p.color;
@@ -763,7 +950,11 @@ function endBattle(victory) {
         let reward = 5 + state.wave * 2 + bonusGold;
         state.gold += reward;
 
-        log(`🎉 勝利！獲得金幣 $${reward}。`);
+        log(`🎉 勝利！波次結算獲得獎金 $${reward}。`);
+
+        if ([3, 6, 9].includes(state.wave)) {
+            setTimeout(showRelicModal, 500);
+        }
 
         if (state.wave >= state.maxWave) {
             log('🏆【通關勝利】恭喜你擊敗破滅之神！帶領 Dude 大軍獲得最終勝利！');
@@ -775,11 +966,12 @@ function endBattle(victory) {
         rerollShop();
     } else {
         state.lives--;
-        log(`💀 戰敗！剩餘生命：${state.lives}`);
+        // Retain all accumulated gold when defeated
+        log(`💀 戰敗！剩餘生命：${state.lives}。（已為你保留戰鬥中累積的所有 $${state.gold} 金幣！）`);
 
         if (state.lives <= 0) {
             log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
-            alert('💥 Game Over！所有生命已耗盡。');
+            alert(`💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$${state.gold}`);
             location.reload();
             return;
         }

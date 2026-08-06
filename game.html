@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Lite (多少個 Dude？輕量網頁版)</title>
+    <title>How Many Dudes? Lite (多少個 Dude？輕量網頁版 v2.0)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -136,6 +136,8 @@
         }
         .btn:hover { background: #2563eb; transform: translateY(-1px); }
         .btn:disabled { background: #475569; cursor: not-allowed; transform: none; }
+        .btn-speed { background: #10b981; }
+        .btn-speed:hover { background: #059669; }
         .btn-battle { background: #ef4444; font-size: 16px; padding: 10px 24px; }
         .btn-battle:hover { background: #dc2626; }
         .btn-reroll { background: #8b5cf6; }
@@ -214,8 +216,8 @@
 </head>
 <body>
 
-    <h1>How Many Dudes? Lite</h1>
-    <div class="subtitle">招募你的 Dude 大軍，挑戰波次怪物與荒謬 BOSS！</div>
+    <h1>How Many Dudes? Lite (v2.0 P0 特效與倍速升級)</h1>
+    <div class="subtitle">新增 1x/2x 戰鬥倍速、飛彈子彈投射物、動態爆破與治癒光束！</div>
 
     <div id="game-container">
         <!-- Top Stats -->
@@ -246,6 +248,7 @@
                     <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/8</span>
                 </div>
                 <div>
+                    <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
                     <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">刷新商店 ($2)</button>
                     <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開始戰鬥！</button>
                 </div>
@@ -256,7 +259,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到 Dude 牧場！點擊商店卡片招募 Dude，準備好後點擊「開始戰鬥」。
+            [系統] 歡迎來到 Dude 牧場！點擊商店卡片招募 Dude，點擊右上角「倍速」可調整戰鬥節奏。
         </div>
     </div>
 
@@ -268,6 +271,7 @@ const state = {
     wave: 1,
     maxWave: 10,
     inBattle: false,
+    speed: 1, // 1x or 2x
     dudes: [],
     shop: [],
     maxDudes: 8
@@ -275,14 +279,14 @@ const state = {
 
 // Dude Database
 const DUDE_TYPES = [
-    { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 40, speed: 1.2, price: 3, desc: '對近距離敵人造成穩定傷害。' },
-    { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '射速快，消耗低。' },
-    { id: 'warrior', name: '戰士 Dude', family: 'warrior', hp: 60, atk: 10, range: 40, speed: 1.0, price: 3, desc: '高血量肉盾，吸收傷害。' },
-    { id: 'berserker', name: '狂戰 Dude', family: 'warrior', hp: 45, atk: 15, range: 40, speed: 1.4, price: 4, desc: '高爆發輸出者。' },
-    { id: 'wizard', name: '巫師 Dude', family: 'fantasy', hp: 25, atk: 12, range: 180, speed: 0.8, price: 4, desc: '遠程魔法打擊。' },
-    { id: 'cleric', name: '牧師 Dude', family: 'fantasy', hp: 30, atk: 4, range: 150, speed: 0.9, price: 3, desc: '定期為血量最低的友軍恢復 12 HP。' },
-    { id: 'finance', name: '金融 Dude', family: 'employed', hp: 30, atk: 5, range: 100, speed: 1.0, price: 3, desc: '戰鬥勝利時獲得額外金幣。' },
-    { id: 'cowboy', name: '牛仔 Dude', family: 'employed', hp: 40, atk: 11, range: 140, speed: 1.1, price: 4, desc: '遠程快速射擊。' }
+    { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 45, speed: 1.2, price: 3, desc: '死亡時觸發自爆綠色毒霧，對周圍造成 25 點 AOE 傷害！' },
+    { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '近戰快速骨爪連擊。' },
+    { id: 'warrior', name: '戰士 Dude', family: 'warrior', hp: 65, atk: 10, range: 40, speed: 1.0, price: 3, desc: '高血量前排肉盾。' },
+    { id: 'berserker', name: '狂戰 Dude', family: 'warrior', hp: 45, atk: 16, range: 40, speed: 1.4, price: 4, desc: '高額近戰爆發輸出。' },
+    { id: 'wizard', name: '巫師 Dude', family: 'fantasy', hp: 25, atk: 14, range: 200, speed: 0.8, price: 4, desc: '發射飛行火球，造成範圍爆破。' },
+    { id: 'cleric', name: '牧師 Dude', family: 'fantasy', hp: 30, atk: 3, range: 160, speed: 0.9, price: 3, desc: '發射綠色治癒光線，修復傷勢最重的友軍 15 HP。' },
+    { id: 'finance', name: '金融 Dude', family: 'employed', hp: 30, atk: 5, range: 110, speed: 1.0, price: 3, desc: '發射金幣投射物，通關獲得獎金。' },
+    { id: 'cowboy', name: '牛仔 Dude', family: 'employed', hp: 40, atk: 12, range: 150, speed: 1.1, price: 4, desc: '發射黃色高速子彈連擊。' }
 ];
 
 // Enemy Waves Config
@@ -299,18 +303,26 @@ const ENEMY_WAVES = [
     { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 1800, atk: 50, speed: 0.9, size: 40, color: '#ef4444' }
 ];
 
-// Canvas Setup
+// Canvas & Animation Setup
 const canvas = document.getElementById('battleCanvas');
 const ctx = canvas.getContext('2d');
 
 let combatEntities = [];
+let combatProjectiles = [];
 let combatParticles = [];
 let battleAnimationId = null;
+let screenShake = 0;
 
 function init() {
     rerollShop();
     updateUI();
     drawIdleArena();
+}
+
+function toggleSpeed() {
+    state.speed = state.speed === 1 ? 2 : 1;
+    document.getElementById('btn-speed').innerText = `⏩ 倍速: ${state.speed}x`;
+    log(`戰鬥速度已調整為 ${state.speed}x 倍速。`);
 }
 
 function log(msg) {
@@ -533,25 +545,42 @@ function startBattle() {
         });
     }
 
+    combatProjectiles = [];
     combatParticles = [];
+    screenShake = 0;
     battleLoop();
 }
 
 function battleLoop() {
+    ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Apply Screen Shake
+    if (screenShake > 0) {
+        const rx = (Math.random() - 0.5) * screenShake;
+        const ry = (Math.random() - 0.5) * screenShake;
+        ctx.translate(rx, ry);
+        screenShake *= 0.85;
+        if (screenShake < 0.5) screenShake = 0;
+    }
+
+    const gameSpeed = state.speed;
 
     const dudes = combatEntities.filter(e => e.isDude && e.hp > 0);
     const enemies = combatEntities.filter(e => !e.isDude && e.hp > 0);
 
     if (enemies.length === 0) {
+        ctx.restore();
         endBattle(true);
         return;
     }
     if (dudes.length === 0) {
+        ctx.restore();
         endBattle(false);
         return;
     }
 
+    // Update Entities
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
 
@@ -569,33 +598,108 @@ function battleLoop() {
 
         if (nearest) {
             if (minDist <= e.range) {
+                // Trigger Attack / Projectile Spawning
                 if (e.cooldown <= 0) {
-                    nearest.hp -= e.atk;
-                    e.cooldown = 60 / e.speed;
+                    e.cooldown = (50 / e.speed) / gameSpeed;
 
-                    if (e.id === 'cleric' && e.isDude) {
+                    if (e.id === 'wizard' && e.isDude) {
+                        // Spawn Fireball Projectile
+                        combatProjectiles.push({
+                            x: e.x, y: e.y, target: nearest, damage: e.atk,
+                            speed: 5 * gameSpeed, radius: 6, color: '#f97316', type: 'fireball'
+                        });
+                    } else if (e.id === 'cowboy' && e.isDude) {
+                        // Spawn Bullet Beam
+                        combatProjectiles.push({
+                            x: e.x, y: e.y, target: nearest, damage: e.atk,
+                            speed: 10 * gameSpeed, radius: 3, color: '#facc15', type: 'bullet'
+                        });
+                    } else if (e.id === 'cleric' && e.isDude) {
+                        // Heal Beam to lowest HP ally
                         let lowestDude = dudes.sort((a, b) => a.hp - b.hp)[0];
                         if (lowestDude) {
-                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 12);
+                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 15);
+                            combatParticles.push({
+                                x: lowestDude.x, y: lowestDude.y, text: '+15 HP', color: '#4ade80', life: 25
+                            });
+                            // Heal beam line
+                            combatParticles.push({
+                                type: 'beam', x1: e.x, y1: e.y, x2: lowestDude.x, y2: lowestDude.y, color: '#22c55e', life: 10
+                            });
+                        }
+                    } else {
+                        // Direct Melee Hit
+                        nearest.hp -= e.atk;
+                        combatParticles.push({
+                            x: nearest.x, y: nearest.y, text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
+                        });
+
+                        // Check Zombie Explode on Death
+                        if (nearest.hp <= 0 && nearest.id === 'zombie' && nearest.isDude) {
+                            screenShake = 12;
+                            // Poison explosion particles
+                            combatParticles.push({
+                                type: 'ring', x: nearest.x, y: nearest.y, radius: 10, maxRadius: 40, color: '#a855f7', life: 15
+                            });
+                            // AOE Damage
+                            enemies.forEach(en => {
+                                if (Math.hypot(en.x - nearest.x, en.y - nearest.y) <= 60) {
+                                    en.hp -= 25;
+                                    combatParticles.push({
+                                        x: en.x, y: en.y, text: '-25自爆', color: '#c084fc', life: 30
+                                    });
+                                }
+                            });
                         }
                     }
-
-                    combatParticles.push({
-                        x: nearest.x, y: nearest.y,
-                        text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8',
-                        life: 30
-                    });
                 }
             } else {
+                // Movement
                 const angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
-                e.x += Math.cos(angle) * (e.speed * 1.5);
-                e.y += Math.sin(angle) * (e.speed * 1.5);
+                e.x += Math.cos(angle) * (e.speed * 1.5 * gameSpeed);
+                e.y += Math.sin(angle) * (e.speed * 1.5 * gameSpeed);
             }
         }
 
         if (e.cooldown > 0) e.cooldown--;
     });
 
+    // Update & Render Projectiles
+    combatProjectiles.forEach((p, idx) => {
+        if (!p.target || p.target.hp <= 0) {
+            combatProjectiles.splice(idx, 1);
+            return;
+        }
+
+        const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+        p.x += Math.cos(angle) * p.speed;
+        p.y += Math.sin(angle) * p.speed;
+
+        // Draw Projectile
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hit Target
+        if (Math.hypot(p.target.x - p.x, p.target.y - p.y) <= p.target.radius + p.radius) {
+            p.target.hp -= p.damage;
+            combatParticles.push({
+                x: p.target.x, y: p.target.y, text: `-${p.damage}`, color: '#fb923c', life: 25
+            });
+
+            if (p.type === 'fireball') {
+                screenShake = 6;
+                combatParticles.push({
+                    type: 'ring', x: p.x, y: p.y, radius: 5, maxRadius: 25, color: '#f97316', life: 12
+                });
+            }
+
+            combatProjectiles.splice(idx, 1);
+        }
+    });
+
+    // Render Entities
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
 
@@ -604,6 +708,7 @@ function battleLoop() {
         ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
         ctx.fill();
 
+        // Health Bar
         const barW = e.radius * 2;
         const barH = 4;
         const hpPct = Math.max(0, e.hp / e.maxHp);
@@ -613,15 +718,34 @@ function battleLoop() {
         ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
     });
 
+    // Update & Render Particles
     combatParticles.forEach((p, index) => {
-        ctx.fillStyle = p.color;
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText(p.text, p.x, p.y);
-        p.y -= 0.5;
+        if (p.type === 'ring') {
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.stroke();
+            p.radius += (p.maxRadius - p.radius) * 0.2;
+        } else if (p.type === 'beam') {
+            ctx.strokeStyle = p.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(p.x1, p.y1);
+            ctx.lineTo(p.x2, p.y2);
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = p.color;
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(p.text, p.x, p.y);
+            p.y -= 0.5;
+        }
+
         p.life--;
         if (p.life <= 0) combatParticles.splice(index, 1);
     });
 
+    ctx.restore();
     battleAnimationId = requestAnimationFrame(battleLoop);
 }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Lite (v5.0 組合B + 4x/8x 超高速版)</title>
+    <title>How Many Dudes? Lite (v6.0 終極旗艦版：組合C+D/12單位/販賣/BOSS二階段)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -31,7 +31,7 @@
             font-size: 14px;
         }
         #game-container {
-            width: 900px;
+            width: 920px;
             background-color: #16213e;
             border: 3px solid #0f3460;
             border-radius: 12px;
@@ -99,7 +99,7 @@
             margin-bottom: 8px;
             font-weight: bold;
         }
-        .synergy-tag, .relic-tag {
+        .synergy-tag, .relic-tag, .trinket-tag {
             display: inline-block;
             background: #334155;
             padding: 4px 8px;
@@ -117,8 +117,13 @@
             color: #fff;
             font-weight: bold;
         }
+        .trinket-tag {
+            background: #ec4899;
+            color: #fff;
+            font-weight: bold;
+        }
 
-        /* Modal Overlay for Relic Choice & Stats */
+        /* Modal Overlays */
         .modal-overlay {
             display: none;
             position: absolute;
@@ -140,13 +145,13 @@
             margin-bottom: 15px;
             font-weight: bold;
         }
-        .relic-choices {
+        .card-choices {
             display: flex;
             gap: 15px;
             width: 100%;
             justify-content: center;
         }
-        .relic-card {
+        .choice-card {
             background: #1e293b;
             border: 2px solid #8b5cf6;
             border-radius: 10px;
@@ -156,14 +161,14 @@
             text-align: center;
             transition: all 0.2s;
         }
-        .relic-card:hover {
+        .choice-card:hover {
             transform: translateY(-4px);
             border-color: #a855f7;
             box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
         }
-        .relic-icon { font-size: 32px; margin-bottom: 8px; }
-        .relic-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #e9d5ff; }
-        .relic-desc { font-size: 12px; color: #cbd5e1; }
+        .card-icon { font-size: 32px; margin-bottom: 8px; }
+        .card-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #e9d5ff; }
+        .card-desc { font-size: 12px; color: #cbd5e1; }
 
         /* Stats Modal Meter Bar */
         .stats-list {
@@ -226,6 +231,8 @@
         .btn-speed:hover { background: #059669; }
         .btn-audio { background: #6366f1; }
         .btn-audio:hover { background: #4f46e5; }
+        .btn-sell { background: #e11d48; }
+        .btn-sell:hover { background: #be123c; }
         .btn-battle { background: #ef4444; font-size: 16px; padding: 10px 24px; }
         .btn-battle:hover { background: #dc2626; }
         .btn-reroll { background: #8b5cf6; }
@@ -304,15 +311,22 @@
 </head>
 <body>
 
-    <h1>How Many Dudes? Lite (v5.0 組合B + 1x/2x/4x/8x 高速版)</h1>
-    <div class="subtitle">新增：Web Audio 即時合成打擊音效 + 戰後傷害統計/MVP 面板 + 4x/8x 極速戰鬥選項！</div>
+    <h1>How Many Dudes? Lite (v6.0 終極旗艦版)</h1>
+    <div class="subtitle">整合：12單位擴充 + 販賣單位 + BOSS狂暴二階段 + 浪人事件 + 個體飾品裝備！</div>
 
     <div id="game-container">
         <!-- Relic Choice Modal -->
         <div id="relic-modal" class="modal-overlay">
             <div class="modal-title">🔮 獲得強大遺物 (Relic Choice)</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:20px;">選擇一項遺物以大幅改寫你的戰鬥規則：</div>
-            <div class="relic-choices" id="relic-choices-container"></div>
+            <div class="card-choices" id="relic-choices-container"></div>
+        </div>
+
+        <!-- Wandering Event Modal -->
+        <div id="event-modal" class="modal-overlay">
+            <div class="modal-title" id="event-modal-title">🎲 浪人隨機事件 (Wandering Event)</div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:20px;">在地圖探索中遇見了隨機事件，請做出你的決策：</div>
+            <div class="card-choices" id="event-choices-container"></div>
         </div>
 
         <!-- Damage Meter Modal -->
@@ -332,7 +346,7 @@
 
         <!-- Battle Canvas -->
         <div id="arena-container">
-            <canvas id="battleCanvas" width="870" height="320"></canvas>
+            <canvas id="battleCanvas" width="890" height="320"></canvas>
         </div>
 
         <!-- Synergy & Relic Panels -->
@@ -342,7 +356,7 @@
                 <div id="synergy-list">尚未啟動協同</div>
             </div>
             <div class="panel-box">
-                <div class="panel-title">🔮 已持有遺物 (Relics)</div>
+                <div class="panel-title">🔮 持有遺物與飾品 (Relics & Trinkets)</div>
                 <div id="relic-list">尚無遺物</div>
             </div>
         </div>
@@ -351,8 +365,8 @@
         <div class="shop-section">
             <div class="shop-controls">
                 <div>
-                    <span>🛒 Dude 商店 (上限 9 格陣型)</span>
-                    <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/9</span>
+                    <span>🛒 Dude 商店 (上限 12 格陣型)</span>
+                    <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/12</span>
                 </div>
                 <div style="display:flex; gap:8px;">
                     <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效: 開</button>
@@ -367,7 +381,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到 Dude 牧場！點擊右上角可切換音效與 1x/2x/4x/8x 極速倍速！每波戰鬥後提供完整輸出/治療 MVP 結算！
+            [系統] 歡迎來到 Dude 牧場！點擊已招募 Dude 可選擇販賣變現！戰場擴充至 12 格 4x3 陣型！第 2, 4, 7 波將觸發浪人事件！
         </div>
     </div>
 
@@ -379,12 +393,14 @@ const state = {
     wave: 1,
     maxWave: 10,
     inBattle: false,
-    speed: 1, // 1, 2, 4, 8
+    speed: 1,
     audioEnabled: true,
     dudes: [],
     shop: [],
     relics: [],
-    maxDudes: 9
+    trinkets: [],
+    maxDudes: 12,
+    selectedDude: null
 };
 
 // Web Audio Synthesizer Engine
@@ -472,17 +488,20 @@ function toggleAudio() {
     log(`音效已切換為：${state.audioEnabled ? '開啟' : '關閉'}`);
 }
 
-// 3x3 Grid Slot Layout
+// Expanded 4x3 Grid Slot Layout (12 slots)
 const GRID_SLOTS = [
-    { id: 0, row: 0, col: 0, label: '前排上', x: 80, y: 60 },
-    { id: 1, row: 1, col: 0, label: '前排中', x: 80, y: 160 },
-    { id: 2, row: 2, col: 0, label: '前排下', x: 80, y: 260 },
-    { id: 3, row: 0, col: 1, label: '中排上', x: 200, y: 60 },
-    { id: 4, row: 1, col: 1, label: '中排中', x: 200, y: 160 },
-    { id: 5, row: 2, col: 1, label: '中排下', x: 200, y: 260 },
-    { id: 6, row: 0, col: 2, label: '後排上', x: 320, y: 60 },
-    { id: 7, row: 1, col: 2, label: '後排中', x: 320, y: 160 },
-    { id: 8, row: 2, col: 2, label: '後排下', x: 320, y: 260 }
+    { id: 0, row: 0, col: 0, label: '前排 1', x: 70, y: 60 },
+    { id: 1, row: 1, col: 0, label: '前排 2', x: 70, y: 160 },
+    { id: 2, row: 2, col: 0, label: '前排 3', x: 70, y: 260 },
+    { id: 3, row: 0, col: 1, label: '中一 1', x: 170, y: 60 },
+    { id: 4, row: 1, col: 1, label: '中一 2', x: 170, y: 160 },
+    { id: 5, row: 2, col: 1, label: '中一 3', x: 170, y: 260 },
+    { id: 6, row: 0, col: 2, label: '中二 1', x: 270, y: 60 },
+    { id: 7, row: 1, col: 2, label: '中二 2', x: 270, y: 160 },
+    { id: 8, row: 2, col: 2, label: '中二 3', x: 270, y: 260 },
+    { id: 9, row: 0, col: 3, label: '後排 1', x: 370, y: 60 },
+    { id: 10, row: 1, col: 3, label: '後排 2', x: 370, y: 160 },
+    { id: 11, row: 2, col: 3, label: '後排 3', x: 370, y: 260 }
 ];
 
 // Relics Database
@@ -493,6 +512,13 @@ const RELICS_DATABASE = [
     { id: 'golden_touch', icon: '🪙', name: '點金之觸', desc: '敵人被擊殺時，金幣掉落量 +$1。' },
     { id: 'blood_shield', icon: '🛡️', name: '吸血護盾', desc: '戰士與近戰單位每次攻擊恢復 3 點生命。' },
     { id: 'magic_overload', icon: '⚡', name: '魔力超載', desc: '奇幻族與遠程單位的攻擊射程與速度 +20%。' }
+];
+
+// Single-Unit Trinkets
+const TRINKETS_DATABASE = [
+    { id: 'taser', icon: '⚡', name: '電擊槍', desc: '攻擊時有 25% 機率使目標暈眩 1 秒。' },
+    { id: 'vampire_cape', icon: '🩸', name: '吸血披風', desc: '傷害的 20% 轉化為自身生命恢復。' },
+    { id: 'dual_pistols', icon: '🔫', name: '雙槍', desc: '攻擊速度提升 50%。' }
 ];
 
 // Dude Database
@@ -513,12 +539,12 @@ const ENEMY_WAVES = [
     { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6', bounty: 1 },
     { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8', bounty: 2 },
     { name: '第 4 波：8 隻野狼群 (Pack of Wolves)', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8', bounty: 2 },
-    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 500, atk: 30, speed: 1.1, size: 30, color: '#facc15', bounty: 10 },
+    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 550, atk: 32, speed: 1.1, size: 30, color: '#facc15', bounty: 10, isBoss: true, bossId: 'duck' },
     { name: '第 6 波：20 個狂暴幼童 (Enraged Toddlers)', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185', bounty: 1 },
     { name: '第 7 波：3 隻大猩猩 (Gorillas)', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569', bounty: 5 },
     { name: '第 8 波：5 隻大猩猩隊 (Gorilla Squad)', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155', bounty: 5 },
     { name: '第 9 波：大猩猩與野狼混合軍', count: 10, hp: 200, atk: 22, speed: 1.4, size: 18, color: '#a855f7', bounty: 3 },
-    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 1800, atk: 50, speed: 0.9, size: 40, color: '#ef4444', bounty: 50 }
+    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 2000, atk: 55, speed: 0.9, size: 40, color: '#ef4444', bounty: 50, isBoss: true, bossId: 'god' }
 ];
 
 // Canvas & Animation Setup
@@ -530,6 +556,7 @@ let combatProjectiles = [];
 let combatParticles = [];
 let battleAnimationId = null;
 let screenShake = 0;
+let godShockwaveTimer = 0;
 
 // Drag & Drop State
 let draggedDude = null;
@@ -614,8 +641,8 @@ function updateRelicsUI() {
     const list = document.getElementById('relic-list');
     list.innerHTML = '';
 
-    if (state.relics.length === 0) {
-        list.innerHTML = '<span style="color:#64748b; font-size:12px;">尚無遺物（將在指定關卡通關後獲得）</span>';
+    if (state.relics.length === 0 && state.trinkets.length === 0) {
+        list.innerHTML = '<span style="color:#64748b; font-size:12px;">尚無遺物/飾品（將在關卡通關或事件中獲得）</span>';
         return;
     }
 
@@ -626,8 +653,17 @@ function updateRelicsUI() {
         tag.title = r.desc;
         list.appendChild(tag);
     });
+
+    state.trinkets.forEach(t => {
+        const tag = document.createElement('span');
+        tag.className = 'trinket-tag';
+        tag.innerText = `${t.icon} ${t.name}`;
+        tag.title = t.desc;
+        list.appendChild(tag);
+    });
 }
 
+// Show Relic Choice Modal
 function showRelicModal() {
     const available = RELICS_DATABASE.filter(r => !state.relics.some(owned => owned.id === r.id));
     if (available.length === 0) return;
@@ -638,12 +674,12 @@ function showRelicModal() {
 
     choices.forEach(r => {
         const card = document.createElement('div');
-        card.className = 'relic-card';
+        card.className = 'choice-card';
         card.onclick = () => selectRelic(r);
         card.innerHTML = `
-            <div class="relic-icon">${r.icon}</div>
-            <div class="relic-name">${r.name}</div>
-            <div class="relic-desc">${r.desc}</div>
+            <div class="card-icon">${r.icon}</div>
+            <div class="card-name">${r.name}</div>
+            <div class="card-desc">${r.desc}</div>
         `;
         container.appendChild(card);
     });
@@ -656,6 +692,88 @@ function selectRelic(relic) {
     document.getElementById('relic-modal').classList.remove('show');
     log(`🔮 成功選擇遺物【${relic.name}】！${relic.desc}`);
     updateUI();
+}
+
+// Wandering Events System (Waves 2, 4, 7)
+function showWanderingEventModal() {
+    const container = document.getElementById('event-choices-container');
+    container.innerHTML = '';
+
+    const choices = [
+        {
+            icon: '😈', name: '黑市交易', desc: '扣除 1 點生命，直接獲得 1 位強大的 2 星戰士 Dude！',
+            action: () => {
+                if (state.lives <= 1) {
+                    alert('生命不足，無法進行黑市交易！');
+                    return false;
+                }
+                state.lives--;
+                const occupiedSlots = state.dudes.map(d => d.slotIndex);
+                let freeSlot = 0;
+                for (let i = 0; i < 12; i++) {
+                    if (!occupiedSlots.includes(i)) { freeSlot = i; break; }
+                }
+                state.dudes.push({ ...DUDE_TYPES[2], slotIndex: freeSlot, tier: 2, hp: 143, atk: 22 });
+                log('😈【黑市交易】扣除 1 生命，獲得了 ★★ 2星戰士 Dude！');
+                return true;
+            }
+        },
+        {
+            icon: '🎲', name: '地下賭場', desc: '下注 $5 金幣（50% 機率獲得 $10 獎幣，50% 歸零）！',
+            action: () => {
+                if (state.gold < 5) {
+                    alert('金幣不足 $5，無法下注！');
+                    return false;
+                }
+                state.gold -= 5;
+                if (Math.random() < 0.5) {
+                    state.gold += 10;
+                    playSound('gold');
+                    log('🎲【地下賭場】賭贏了！贏得 $10 獎金！');
+                } else {
+                    playSound('defeat');
+                    log('🎲【地下賭場】賭輸了！$5 歸零！');
+                }
+                return true;
+            }
+        },
+        {
+            icon: '🏥', name: 'Dude 補給站', desc: '花費 $3 金幣，為全隊 Dude 永久提升 +15 Max HP！',
+            action: () => {
+                if (state.gold < 3) {
+                    alert('金幣不足 $3，無法購買補給！');
+                    return false;
+                }
+                state.gold -= 3;
+                state.dudes.forEach(d => {
+                    d.hp += 15;
+                });
+                playSound('heal');
+                log('🏥【Dude 補給站】成功補給！全隊最大生命 +15 HP！');
+                return true;
+            }
+        }
+    ];
+
+    choices.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'choice-card';
+        card.onclick = () => {
+            if (c.action()) {
+                document.getElementById('event-modal').classList.remove('show');
+                updateUI();
+                drawIdleArena();
+            }
+        };
+        card.innerHTML = `
+            <div class="card-icon">${c.icon}</div>
+            <div class="card-name">${c.name}</div>
+            <div class="card-desc">${c.desc}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    document.getElementById('event-modal').classList.add('show');
 }
 
 // Show Damage Meter / MVP Stats Modal
@@ -759,6 +877,19 @@ function checkAndMergeDudes() {
     if (merged) checkAndMergeDudes();
 }
 
+// Sell Selected Dude Feature
+function sellDude(dude) {
+    if (state.inBattle) return;
+    const refund = (dude.tier || 1) === 1 ? 2 : ((dude.tier || 1) === 2 ? 5 : 12);
+    state.gold += refund;
+    state.dudes = state.dudes.filter(d => d !== dude);
+    state.selectedDude = null;
+    playSound('gold');
+    log(`🗑️ 成功出售 ${dude.name} (${dude.tier||1}星)！獲得返還金幣 $${refund}。`);
+    updateUI();
+    drawIdleArena();
+}
+
 function rerollShop() {
     if (state.gold < 2 && state.shop.length > 0) {
         log('金幣不足，無法刷新商店！');
@@ -800,7 +931,7 @@ function renderShop() {
 function buyDude(index) {
     if (state.inBattle) return;
     if (state.dudes.length >= state.maxDudes) {
-        log('陣型格已滿（最多 9 格）！');
+        log('陣型格已滿（最多 12 格）！可以使用販賣功能騰出空間。');
         return;
     }
 
@@ -814,7 +945,7 @@ function buyDude(index) {
 
     const occupiedSlots = state.dudes.map(d => d.slotIndex);
     let freeSlot = 0;
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 12; i++) {
         if (!occupiedSlots.includes(i)) {
             freeSlot = i;
             break;
@@ -842,15 +973,22 @@ function setupDragAndDrop() {
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
 
+        if (state.selectedDude && mouseX >= canvas.width - 120 && mouseX <= canvas.width - 20 && mouseY >= canvas.height - 50 && mouseY <= canvas.height - 10) {
+            sellDude(state.selectedDude);
+            return;
+        }
+
         for (let d of state.dudes) {
             const slot = GRID_SLOTS[d.slotIndex];
             const dist = Math.hypot(mouseX - slot.x, mouseY - slot.y);
             if (dist <= 22) {
                 draggedDude = d;
+                state.selectedDude = d;
                 currentMousePos = { x: mouseX, y: mouseY };
                 break;
             }
         }
+        drawIdleArena();
     });
 
     arena.addEventListener('mousemove', (e) => {
@@ -866,6 +1004,12 @@ function setupDragAndDrop() {
         const rect = canvas.getBoundingClientRect();
         const dropX = e.clientX - rect.left;
         const dropY = e.clientY - rect.top;
+
+        if (dropX >= canvas.width - 140 && dropY >= canvas.height - 60) {
+            sellDude(draggedDude);
+            draggedDude = null;
+            return;
+        }
 
         let targetSlot = -1;
         let minDist = 60;
@@ -908,13 +1052,13 @@ function drawIdleArena() {
     ctx.fillStyle = 'rgba(59, 130, 246, 0.08)';
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 2;
-    ctx.fillRect(40, 20, 320, 280);
-    ctx.strokeRect(40, 20, 320, 280);
+    ctx.fillRect(40, 20, 380, 280);
+    ctx.strokeRect(40, 20, 380, 280);
 
     ctx.fillStyle = '#60a5fa';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText('🛡️ 玩家 3x3 戰術陣型區 (可滑鼠拖曳單位)', 50, 40);
+    ctx.fillText('🛡️ 玩家 4x3 戰術陣型區 (容量 12 單位 | 拖曳或點擊選擇)', 50, 40);
 
     GRID_SLOTS.forEach(slot => {
         ctx.strokeStyle = '#475569';
@@ -931,6 +1075,34 @@ function drawIdleArena() {
         ctx.fillText(slot.label, slot.x, slot.y + 32);
     });
 
+    ctx.fillStyle = 'rgba(225, 29, 72, 0.2)';
+    ctx.strokeStyle = '#e11d48';
+    ctx.lineWidth = 2;
+    ctx.fillRect(canvas.width - 140, canvas.height - 60, 120, 50);
+    ctx.strokeRect(canvas.width - 140, canvas.height - 60, 120, 50);
+
+    ctx.fillStyle = '#fda4af';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🗑️ 拖曳至此販賣', canvas.width - 80, canvas.height - 30);
+
+    if (state.selectedDude) {
+        const sel = state.selectedDude;
+        const refund = (sel.tier || 1) === 1 ? 2 : ((sel.tier || 1) === 2 ? 5 : 12);
+
+        ctx.fillStyle = '#f1c40f';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`已選擇: ${sel.name} (${sel.tier||1}星) - 可賣出的金幣: $${refund}`, 450, 40);
+
+        ctx.fillStyle = '#e11d48';
+        ctx.fillRect(canvas.width - 120, canvas.height - 50, 100, 40);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`點擊販賣 (+$${refund})`, canvas.width - 70, canvas.height - 25);
+    }
+
     state.dudes.forEach(d => {
         if (d === draggedDude) return;
         const slot = GRID_SLOTS[d.slotIndex];
@@ -945,7 +1117,7 @@ function drawIdleArena() {
         ctx.fillStyle = '#94a3b8';
         ctx.font = '15px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('點擊下方商店招募 Dude，單位會自動放入 3x3 陣型區！', 200, 160);
+        ctx.fillText('點擊下方商店招募 Dude，單位會自動放入 4x3 陣型區！', 230, 160);
     }
 }
 
@@ -953,11 +1125,19 @@ function drawDudeOnCanvas(d, x, y, isDragging = false) {
     const tier = d.tier || 1;
     const radius = 16 + (tier - 1) * 3;
 
+    if (state.selectedDude === d) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 6, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+
     if (tier >= 2) {
         ctx.strokeStyle = tier === 3 ? '#ef4444' : '#f39c12';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(x, y, radius + 4, 0, Math.PI * 2);
+        ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
         ctx.stroke();
     }
 
@@ -1053,11 +1233,15 @@ function startBattle() {
         lucky.hasInsurance = true;
     }
 
+    godShockwaveTimer = 0;
+
     for (let i = 0; i < waveInfo.count; i++) {
         combatEntities.push({
             isDude: false,
-            name: 'Enemy',
-            x: canvas.width - 80 - (Math.random() * 150),
+            name: waveInfo.isBoss ? (waveInfo.bossId === 'duck' ? '巨型鴨 BOSS' : '破滅之神 BOSS') : 'Enemy',
+            isBoss: waveInfo.isBoss,
+            bossId: waveInfo.bossId,
+            x: canvas.width - 100 - (Math.random() * 120),
             y: 40 + (Math.random() * (canvas.height - 80)),
             hp: waveInfo.hp,
             maxHp: waveInfo.hp,
@@ -1067,7 +1251,8 @@ function startBattle() {
             bounty: waveInfo.bounty || 1,
             cooldown: 0,
             radius: waveInfo.size,
-            color: waveInfo.color
+            color: waveInfo.color,
+            isEnraged: false
         });
     }
 
@@ -1107,6 +1292,47 @@ function battleLoop() {
 
     const counts = {};
     dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+
+    // Boss Enrage Check
+    enemies.forEach(en => {
+        if (en.isBoss && en.hp / en.maxHp <= 0.5 && !en.isEnraged) {
+            en.isEnraged = true;
+            en.color = '#dc2626';
+            en.speed *= 1.5;
+            screenShake = 15;
+            playSound('explosion');
+
+            if (en.bossId === 'duck') {
+                log('🦆【BOSS Phase 2 狂暴】巨型鴨進入狂暴狀態！移動速度 +50%，並召喚小鴨協助！');
+                for (let k = 0; k < 3; k++) {
+                    combatEntities.push({
+                        isDude: false, name: '狂暴小鴨', x: en.x, y: en.y, hp: 35, maxHp: 35, atk: 10, range: 35, speed: 1.4, bounty: 1, cooldown: 0, radius: 10, color: '#f472b6'
+                    });
+                }
+            } else if (en.bossId === 'god') {
+                log('⚡【BOSS Phase 2 狂暴】破滅之神神威發動！將定期釋放神罰衝擊波！');
+            }
+        }
+
+        if (en.isBoss && en.bossId === 'god' && en.isEnraged) {
+            godShockwaveTimer++;
+            if (godShockwaveTimer >= Math.round(300 / gameSpeed)) {
+                godShockwaveTimer = 0;
+                screenShake = 18;
+                playSound('explosion');
+                log('⚡【破滅神罰】全場範圍衝擊波對所有 Dude 造成 25 點直接傷害！');
+
+                combatParticles.push({
+                    type: 'ring', x: en.x, y: en.y, radius: 20, maxRadius: 350, color: '#ef4444', life: 25
+                });
+
+                dudes.forEach(d => {
+                    d.hp -= 25;
+                    combatParticles.push({ x: d.x, y: d.y, text: '-25神罰', color: '#f87171', life: 25 });
+                });
+            }
+        }
+    });
 
     combatEntities.forEach(e => {
         if (e.hp <= 0) return;
@@ -1347,6 +1573,8 @@ function endBattle(victory) {
     if (victory) {
         playSound('victory');
         const counts = {};
+        state.dudes.forEach(d => counts[d.family] =
+        const counts = {};
         state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
 
         let bonusGold = counts['employed'] >= 2 ? 2 : 0;
@@ -1358,6 +1586,10 @@ function endBattle(victory) {
         pendingVictoryCallback = () => {
             if ([3, 6, 9].includes(state.wave)) {
                 setTimeout(showRelicModal, 300);
+            }
+
+            if ([2, 4, 7].includes(state.wave)) {
+                setTimeout(showWanderingEventModal, 300);
             }
 
             if (state.wave >= state.maxWave) {

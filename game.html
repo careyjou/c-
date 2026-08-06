@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Lite (v6.0 終極旗艦版：組合C+D/12單位/販賣/BOSS二階段)</title>
+    <title>How Many Dudes? Lite (v6.1 穩定相容版：組合C+D/12單位/販賣/BOSS二階段)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -311,7 +311,7 @@
 </head>
 <body>
 
-    <h1>How Many Dudes? Lite (v6.0 終極旗艦版)</h1>
+    <h1>How Many Dudes? Lite (v6.1 穩定相容版)</h1>
     <div class="subtitle">整合：12單位擴充 + 販賣單位 + BOSS狂暴二階段 + 浪人事件 + 個體飾品裝備！</div>
 
     <div id="game-container">
@@ -387,7 +387,7 @@
 
 <script>
 // Game State
-const state = {
+var state = {
     gold: 15,
     lives: 3,
     wave: 1,
@@ -404,7 +404,7 @@ const state = {
 };
 
 // Web Audio Synthesizer Engine
-let audioCtx = null;
+var audioCtx = null;
 
 function initAudio() {
     if (!audioCtx) {
@@ -420,12 +420,12 @@ function playSound(type) {
             audioCtx.resume();
         }
 
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
-        const now = audioCtx.currentTime;
+        var now = audioCtx.currentTime;
 
         if (type === 'shoot') {
             osc.type = 'sawtooth';
@@ -485,11 +485,11 @@ function playSound(type) {
 function toggleAudio() {
     state.audioEnabled = !state.audioEnabled;
     document.getElementById('btn-audio').innerText = state.audioEnabled ? '🔊 音效: 開' : '🔇 音效: 關';
-    log(`音效已切換為：${state.audioEnabled ? '開啟' : '關閉'}`);
+    log('音效已切換為：' + (state.audioEnabled ? '開啟' : '關閉'));
 }
 
 // Expanded 4x3 Grid Slot Layout (12 slots)
-const GRID_SLOTS = [
+var GRID_SLOTS = [
     { id: 0, row: 0, col: 0, label: '前排 1', x: 70, y: 60 },
     { id: 1, row: 1, col: 0, label: '前排 2', x: 70, y: 160 },
     { id: 2, row: 2, col: 0, label: '前排 3', x: 70, y: 260 },
@@ -505,7 +505,7 @@ const GRID_SLOTS = [
 ];
 
 // Relics Database
-const RELICS_DATABASE = [
+var RELICS_DATABASE = [
     { id: 'cursed_book', icon: '📜', name: '詛詛之書', desc: '全隊攻擊力 +30%，但最大生命 -10%。' },
     { id: 'compound_interest', icon: '🏦', name: '複利契約', desc: '每波戰鬥開始時，獲取當前未花金幣 10% 的額外利息。' },
     { id: 'explosive_guts', icon: '💣', name: '爆裂內臟', desc: '所有友軍陣亡時觸發爆炸，造成 20 點小範圍 AOE 傷害。' },
@@ -515,14 +515,14 @@ const RELICS_DATABASE = [
 ];
 
 // Single-Unit Trinkets
-const TRINKETS_DATABASE = [
+var TRINKETS_DATABASE = [
     { id: 'taser', icon: '⚡', name: '電擊槍', desc: '攻擊時有 25% 機率使目標暈眩 1 秒。' },
     { id: 'vampire_cape', icon: '🩸', name: '吸血披風', desc: '傷害的 20% 轉化為自身生命恢復。' },
     { id: 'dual_pistols', icon: '🔫', name: '雙槍', desc: '攻擊速度提升 50%。' }
 ];
 
 // Dude Database
-const DUDE_TYPES = [
+var DUDE_TYPES = [
     { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 45, speed: 1.2, price: 3, desc: '死亡時觸發自爆綠色毒霧，對周圍造成 25 點 AOE 傷害！' },
     { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '近戰快速骨爪連擊。' },
     { id: 'warrior', name: '戰士 Dude', family: 'warrior', hp: 65, atk: 10, range: 40, speed: 1.0, price: 3, desc: '高血量前排肉盾。' },
@@ -534,7 +534,7 @@ const DUDE_TYPES = [
 ];
 
 // Enemy Waves Config
-const ENEMY_WAVES = [
+var ENEMY_WAVES = [
     { name: '第 1 波：10 個幼童 (Toddlers)', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6', bounty: 1 },
     { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6', bounty: 1 },
     { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8', bounty: 2 },
@@ -548,19 +548,19 @@ const ENEMY_WAVES = [
 ];
 
 // Canvas & Animation Setup
-const canvas = document.getElementById('battleCanvas');
-const ctx = canvas.getContext('2d');
+var canvas = document.getElementById('battleCanvas');
+var ctx = canvas.getContext('2d');
 
-let combatEntities = [];
-let combatProjectiles = [];
-let combatParticles = [];
-let battleAnimationId = null;
-let screenShake = 0;
-let godShockwaveTimer = 0;
+var combatEntities = [];
+var combatProjectiles = [];
+var combatParticles = [];
+var battleAnimationId = null;
+var screenShake = 0;
+var godShockwaveTimer = 0;
 
 // Drag & Drop State
-let draggedDude = null;
-let currentMousePos = { x: 0, y: 0 };
+var draggedDude = null;
+var currentMousePos = { x: 0, y: 0 };
 
 function init() {
     setupDragAndDrop();
@@ -575,20 +575,20 @@ function toggleSpeed() {
     else if (state.speed === 4) state.speed = 8;
     else state.speed = 1;
 
-    document.getElementById('btn-speed').innerText = `⏩ 倍速: ${state.speed}x`;
-    log(`戰鬥速度已調整為 ${state.speed}x 極速。`);
+    document.getElementById('btn-speed').innerText = '⏩ 倍速: ' + state.speed + 'x';
+    log('戰鬥速度已調整為 ' + state.speed + 'x 極速。');
 }
 
 function log(msg) {
-    const p = document.getElementById('log-panel');
-    p.innerHTML += `<div>[${new Date().toLocaleTimeString().split(' ')[0]}] ${msg}</div>`;
+    var p = document.getElementById('log-panel');
+    p.innerHTML += '<div>[' + new Date().toLocaleTimeString().split(' ')[0] + '] ' + msg + '</div>';
     p.scrollTop = p.scrollHeight;
 }
 
 function updateUI() {
     document.getElementById('ui-gold').innerText = state.gold;
     document.getElementById('ui-lives').innerText = state.lives;
-    document.getElementById('ui-wave').innerText = `${state.wave} / ${state.maxWave}`;
+    document.getElementById('ui-wave').innerText = state.wave + ' / ' + state.maxWave;
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
 
     updateSynergiesUI();
@@ -596,19 +596,19 @@ function updateUI() {
 }
 
 function updateSynergiesUI() {
-    const counts = {};
-    state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+    var counts = {};
+    state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-    const list = document.getElementById('synergy-list');
+    var list = document.getElementById('synergy-list');
     list.innerHTML = '';
 
-    const familyNames = { undead: '不死族', warrior: '戰士族', fantasy: '奇幻族', employed: '上班族' };
-    let hasActive = false;
+    var familyNames = { undead: '不死族', warrior: '戰士族', fantasy: '奇幻族', employed: '上班族' };
+    var hasActive = false;
 
-    for (let fam in counts) {
-        const count = counts[fam];
-        let desc = '';
-        let active = false;
+    for (var fam in counts) {
+        var count = counts[fam];
+        var desc = '';
+        var active = false;
 
         if (count >= 4) {
             active = true; hasActive = true;
@@ -623,11 +623,11 @@ function updateSynergiesUI() {
             if (fam === 'fantasy') desc = '奇幻(2): 射程+20%';
             if (fam === 'employed') desc = '上班族(2): 通關額外+$2';
         } else {
-            desc = `${familyNames[fam]} (${count}/2)`;
+            desc = familyNames[fam] + ' (' + count + '/2)';
         }
 
-        const tag = document.createElement('span');
-        tag.className = `synergy-tag ${active ? 'active' : ''}`;
+        var tag = document.createElement('span');
+        tag.className = 'synergy-tag ' + (active ? 'active' : '');
         tag.innerText = desc;
         list.appendChild(tag);
     }
@@ -638,7 +638,7 @@ function updateSynergiesUI() {
 }
 
 function updateRelicsUI() {
-    const list = document.getElementById('relic-list');
+    var list = document.getElementById('relic-list');
     list.innerHTML = '';
 
     if (state.relics.length === 0 && state.trinkets.length === 0) {
@@ -646,41 +646,36 @@ function updateRelicsUI() {
         return;
     }
 
-    state.relics.forEach(r => {
-        const tag = document.createElement('span');
+    state.relics.forEach(function(r) {
+        var tag = document.createElement('span');
         tag.className = 'relic-tag';
-        tag.innerText = `${r.icon} ${r.name}`;
+        tag.innerText = r.icon + ' ' + r.name;
         tag.title = r.desc;
         list.appendChild(tag);
     });
 
-    state.trinkets.forEach(t => {
-        const tag = document.createElement('span');
+    state.trinkets.forEach(function(t) {
+        var tag = document.createElement('span');
         tag.className = 'trinket-tag';
-        tag.innerText = `${t.icon} ${t.name}`;
+        tag.innerText = t.icon + ' ' + t.name;
         tag.title = t.desc;
         list.appendChild(tag);
     });
 }
 
-// Show Relic Choice Modal
 function showRelicModal() {
-    const available = RELICS_DATABASE.filter(r => !state.relics.some(owned => owned.id === r.id));
+    var available = RELICS_DATABASE.filter(function(r) { return !state.relics.some(function(owned) { return owned.id === r.id; }); });
     if (available.length === 0) return;
 
-    const choices = [...available].sort(() => 0.5 - Math.random()).slice(0, 3);
-    const container = document.getElementById('relic-choices-container');
+    var choices = available.slice().sort(function() { return 0.5 - Math.random(); }).slice(0, 3);
+    var container = document.getElementById('relic-choices-container');
     container.innerHTML = '';
 
-    choices.forEach(r => {
-        const card = document.createElement('div');
+    choices.forEach(function(r) {
+        var card = document.createElement('div');
         card.className = 'choice-card';
-        card.onclick = () => selectRelic(r);
-        card.innerHTML = `
-            <div class="card-icon">${r.icon}</div>
-            <div class="card-name">${r.name}</div>
-            <div class="card-desc">${r.desc}</div>
-        `;
+        card.onclick = function() { selectRelic(r); };
+        card.innerHTML = '<div class="card-icon">' + r.icon + '</div><div class="card-name">' + r.name + '</div><div class="card-desc">' + r.desc + '</div>';
         container.appendChild(card);
     });
 
@@ -690,37 +685,41 @@ function showRelicModal() {
 function selectRelic(relic) {
     state.relics.push(relic);
     document.getElementById('relic-modal').classList.remove('show');
-    log(`🔮 成功選擇遺物【${relic.name}】！${relic.desc}`);
+    log('🔮 成功選擇遺物【' + relic.name + '】！' + relic.desc);
     updateUI();
 }
 
-// Wandering Events System (Waves 2, 4, 7)
 function showWanderingEventModal() {
-    const container = document.getElementById('event-choices-container');
+    var container = document.getElementById('event-choices-container');
     container.innerHTML = '';
 
-    const choices = [
+    var choices = [
         {
             icon: '😈', name: '黑市交易', desc: '扣除 1 點生命，直接獲得 1 位強大的 2 星戰士 Dude！',
-            action: () => {
+            action: function() {
                 if (state.lives <= 1) {
                     alert('生命不足，無法進行黑市交易！');
                     return false;
                 }
                 state.lives--;
-                const occupiedSlots = state.dudes.map(d => d.slotIndex);
-                let freeSlot = 0;
-                for (let i = 0; i < 12; i++) {
+                var occupiedSlots = state.dudes.map(function(d) { return d.slotIndex; });
+                var freeSlot = 0;
+                for (var i = 0; i < 12; i++) {
                     if (!occupiedSlots.includes(i)) { freeSlot = i; break; }
                 }
-                state.dudes.push({ ...DUDE_TYPES[2], slotIndex: freeSlot, tier: 2, hp: 143, atk: 22 });
+                var baseObj = Object.assign({}, DUDE_TYPES[2]);
+                baseObj.slotIndex = freeSlot;
+                baseObj.tier = 2;
+                baseObj.hp = 143;
+                baseObj.atk = 22;
+                state.dudes.push(baseObj);
                 log('😈【黑市交易】扣除 1 生命，獲得了 ★★ 2星戰士 Dude！');
                 return true;
             }
         },
         {
             icon: '🎲', name: '地下賭場', desc: '下注 $5 金幣（50% 機率獲得 $10 獎幣，50% 歸零）！',
-            action: () => {
+            action: function() {
                 if (state.gold < 5) {
                     alert('金幣不足 $5，無法下注！');
                     return false;
@@ -739,15 +738,13 @@ function showWanderingEventModal() {
         },
         {
             icon: '🏥', name: 'Dude 補給站', desc: '花費 $3 金幣，為全隊 Dude 永久提升 +15 Max HP！',
-            action: () => {
+            action: function() {
                 if (state.gold < 3) {
                     alert('金幣不足 $3，無法購買補給！');
                     return false;
                 }
                 state.gold -= 3;
-                state.dudes.forEach(d => {
-                    d.hp += 15;
-                });
+                state.dudes.forEach(function(d) { d.hp += 15; });
                 playSound('heal');
                 log('🏥【Dude 補給站】成功補給！全隊最大生命 +15 HP！');
                 return true;
@@ -755,76 +752,63 @@ function showWanderingEventModal() {
         }
     ];
 
-    choices.forEach(c => {
-        const card = document.createElement('div');
+    choices.forEach(function(c) {
+        var card = document.createElement('div');
         card.className = 'choice-card';
-        card.onclick = () => {
+        card.onclick = function() {
             if (c.action()) {
                 document.getElementById('event-modal').classList.remove('show');
                 updateUI();
                 drawIdleArena();
             }
         };
-        card.innerHTML = `
-            <div class="card-icon">${c.icon}</div>
-            <div class="card-name">${c.name}</div>
-            <div class="card-desc">${c.desc}</div>
-        `;
+        card.innerHTML = '<div class="card-icon">' + c.icon + '</div><div class="card-name">' + c.name + '</div><div class="card-desc">' + c.desc + '</div>';
         container.appendChild(card);
     });
 
     document.getElementById('event-modal').classList.add('show');
 }
 
-// Show Damage Meter / MVP Stats Modal
-let pendingVictoryCallback = null;
+var pendingVictoryCallback = null;
 
 function showStatsModal(victory) {
-    const titleEl = document.getElementById('stats-modal-title');
+    var titleEl = document.getElementById('stats-modal-title');
     titleEl.innerText = victory ? '🎉 戰鬥勝利 - 團隊數據統計' : '💀 戰鬥失敗 - 團隊數據統計';
 
-    let mvpDude = null;
-    let maxTotal = -1;
+    var mvpDude = null;
+    var maxTotal = -1;
 
-    combatEntities.filter(e => e.isDude).forEach(e => {
-        const score = (e.totalDamage || 0) + (e.totalHeal || 0);
+    combatEntities.filter(function(e) { return e.isDude; }).forEach(function(e) {
+        var score = (e.totalDamage || 0) + (e.totalHeal || 0);
         if (score > maxTotal) {
             maxTotal = score;
             mvpDude = e;
         }
     });
 
-    const mvpBanner = document.getElementById('mvp-banner');
+    var mvpBanner = document.getElementById('mvp-banner');
     if (mvpDude && maxTotal > 0) {
-        const starStr = (mvpDude.tier || 1) === 1 ? '1星' : ((mvpDude.tier || 1) === 2 ? '★★ 2星' : '★★★ 3星');
-        mvpBanner.innerText = `👑 本波 MVP：[${mvpDude.name} (${starStr})] - 總貢獻: ${maxTotal} (輸出 ${mvpDude.totalDamage||0} / 治癒 ${mvpDude.totalHeal||0})`;
+        var starStr = (mvpDude.tier || 1) === 1 ? '1星' : ((mvpDude.tier || 1) === 2 ? '★★ 2星' : '★★★ 3星');
+        mvpBanner.innerText = '👑 本波 MVP：[' + mvpDude.name + ' (' + starStr + ')] - 總貢獻: ' + maxTotal + ' (輸出 ' + (mvpDude.totalDamage||0) + ' / 治癒 ' + (mvpDude.totalHeal||0) + ')';
     } else {
         mvpBanner.innerText = '';
     }
 
-    const container = document.getElementById('stats-meter-container');
+    var container = document.getElementById('stats-meter-container');
     container.innerHTML = '';
 
-    const dudes = combatEntities.filter(e => e.isDude);
+    var dudes = combatEntities.filter(function(e) { return e.isDude; });
 
-    dudes.forEach(d => {
-        const dmg = d.totalDamage || 0;
-        const heal = d.totalHeal || 0;
-        const total = dmg + heal;
-        const pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
-        const isMvp = d === mvpDude && maxTotal > 0;
+    dudes.forEach(function(d) {
+        var dmg = d.totalDamage || 0;
+        var heal = d.totalHeal || 0;
+        var total = dmg + heal;
+        var pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+        var isMvp = d === mvpDude && maxTotal > 0;
 
-        const row = document.createElement('div');
+        var row = document.createElement('div');
         row.className = 'stat-bar-container';
-        row.innerHTML = `
-            <div class="stat-bar-header">
-                <span>${isMvp ? '👑 ' : ''}${d.name} (${d.tier||1}星)</span>
-                <span>⚔️ 傷害: ${dmg} | 💚 治療: ${heal}</span>
-            </div>
-            <div class="stat-bar-bg">
-                <div class="stat-bar-fill ${isMvp ? 'mvp' : ''}" style="width: ${pct}%"></div>
-            </div>
-        `;
+        row.innerHTML = '<div class="stat-bar-header"><span>' + (isMvp ? '👑 ' : '') + d.name + ' (' + (d.tier||1) + '星)</span><span>⚔️ 傷害: ' + dmg + ' | 💚 治療: ' + heal + '</span></div><div class="stat-bar-bg"><div class="stat-bar-fill ' + (isMvp ? 'mvp' : '') + '" style="width: ' + pct + '%"></div></div>';
         container.appendChild(row);
     });
 
@@ -839,33 +823,32 @@ function closeStatsModal() {
     }
 }
 
-// 3-in-1 Merging Check
 function checkAndMergeDudes() {
-    let merged = false;
-    for (let tier = 1; tier <= 2; tier++) {
-        const counts = {};
-        state.dudes.forEach(d => {
+    var merged = false;
+    for (var tier = 1; tier <= 2; tier++) {
+        var counts = {};
+        state.dudes.forEach(function(d) {
             if ((d.tier || 1) === tier) {
                 counts[d.id] = (counts[d.id] || 0) + 1;
             }
         });
 
-        for (let dudeId in counts) {
+        for (var dudeId in counts) {
             if (counts[dudeId] >= 3) {
-                const matches = state.dudes.filter(d => d.id === dudeId && (d.tier || 1) === tier);
+                var matches = state.dudes.filter(function(d) { return d.id === dudeId && (d.tier || 1) === tier; });
                 if (matches.length >= 3) {
-                    const keeper = matches[0];
-                    const remove1 = matches[1];
-                    const remove2 = matches[2];
+                    var keeper = matches[0];
+                    var remove1 = matches[1];
+                    var remove2 = matches[2];
 
                     keeper.tier = tier + 1;
                     keeper.hp = Math.round(keeper.hp * 2.2);
                     keeper.atk = Math.round(keeper.atk * 2.2);
 
-                    state.dudes = state.dudes.filter(d => d !== remove1 && d !== remove2);
+                    state.dudes = state.dudes.filter(function(d) { return d !== remove1 && d !== remove2; });
 
-                    const starStr = keeper.tier === 2 ? '★★ 2星' : '★★★ 3星神級';
-                    log(`⭐【3合1 升星爆發】合成本體！${keeper.name} 晉升為 ${starStr} (血量與傷害 x2.2)！`);
+                    var starStr = keeper.tier === 2 ? '★★ 2星' : '★★★ 3星神級';
+                    log('⭐【3合1 升星爆發】合成本體！' + keeper.name + ' 晉升為 ' + starStr + ' (血量與傷害 x2.2)！');
                     merged = true;
                     break;
                 }
@@ -877,15 +860,14 @@ function checkAndMergeDudes() {
     if (merged) checkAndMergeDudes();
 }
 
-// Sell Selected Dude Feature
 function sellDude(dude) {
     if (state.inBattle) return;
-    const refund = (dude.tier || 1) === 1 ? 2 : ((dude.tier || 1) === 2 ? 5 : 12);
+    var refund = (dude.tier || 1) === 1 ? 2 : ((dude.tier || 1) === 2 ? 5 : 12);
     state.gold += refund;
-    state.dudes = state.dudes.filter(d => d !== dude);
+    state.dudes = state.dudes.filter(function(d) { return d !== dude; });
     state.selectedDude = null;
     playSound('gold');
-    log(`🗑️ 成功出售 ${dude.name} (${dude.tier||1}星)！獲得返還金幣 $${refund}。`);
+    log('🗑️ 成功出售 ' + dude.name + ' (' + (dude.tier||1) + '星)！獲得返還金幣 $' + refund + '。');
     updateUI();
     drawIdleArena();
 }
@@ -898,32 +880,26 @@ function rerollShop() {
     if (state.shop.length > 0) state.gold -= 2;
 
     state.shop = [];
-    for (let i = 0; i < 4; i++) {
-        const randomType = DUDE_TYPES[Math.floor(Math.random() * DUDE_TYPES.length)];
-        state.shop.push({ ...randomType, tier: 1 });
+    for (var i = 0; i < 4; i++) {
+        var randomType = DUDE_TYPES[Math.floor(Math.random() * DUDE_TYPES.length)];
+        var baseObj = Object.assign({}, randomType);
+        baseObj.tier = 1;
+        state.shop.push(baseObj);
     }
     renderShop();
     updateUI();
 }
 
 function renderShop() {
-    const grid = document.getElementById('shop-cards');
+    var grid = document.getElementById('shop-cards');
     grid.innerHTML = '';
 
-    state.shop.forEach((item, index) => {
-        const card = document.createElement('div');
+    state.shop.forEach(function(item, index) {
+        var card = document.createElement('div');
         card.className = 'dude-card';
-        card.onclick = () => buyDude(index);
+        card.onclick = function() { buyDude(index); };
 
-        card.innerHTML = `
-            <div>
-                <div class="dude-name">${item.name}</div>
-                <span class="dude-family family-${item.family}">${item.family.toUpperCase()}</span>
-                <div class="dude-stats">❤️ HP: ${item.hp} | ⚔️ ATK: ${item.atk}</div>
-                <div class="dude-desc">${item.desc}</div>
-            </div>
-            <div class="dude-price">💰 $${item.price}</div>
-        `;
+        card.innerHTML = '<div><div class="dude-name">' + item.name + '</div><span class="dude-family family-' + item.family + '">' + item.family.toUpperCase() + '</span><div class="dude-stats">❤️ HP: ' + item.hp + ' | ⚔️ ATK: ' + item.atk + '</div><div class="dude-desc">' + item.desc + '</div></div><div class="dude-price">💰 $' + item.price + '</div>';
         grid.appendChild(card);
     });
 }
@@ -935,17 +911,17 @@ function buyDude(index) {
         return;
     }
 
-    const item = state.shop[index];
+    var item = state.shop[index];
     if (!item) return;
 
     if (state.gold < item.price) {
-        log(`金幣不足！購買 ${item.name} 需要 $${item.price}。`);
+        log('金幣不足！購買 ' + item.name + ' 需要 $' + item.price + '。');
         return;
     }
 
-    const occupiedSlots = state.dudes.map(d => d.slotIndex);
-    let freeSlot = 0;
-    for (let i = 0; i < 12; i++) {
+    var occupiedSlots = state.dudes.map(function(d) { return d.slotIndex; });
+    var freeSlot = 0;
+    for (var i = 0; i < 12; i++) {
         if (!occupiedSlots.includes(i)) {
             freeSlot = i;
             break;
@@ -953,34 +929,37 @@ function buyDude(index) {
     }
 
     state.gold -= item.price;
-    state.dudes.push({ ...item, slotIndex: freeSlot, tier: 1 });
+    var baseObj = Object.assign({}, item);
+    baseObj.slotIndex = freeSlot;
+    baseObj.tier = 1;
+    state.dudes.push(baseObj);
     state.shop.splice(index, 1);
 
-    log(`成功招募 ${item.name}！已放置於 [${GRID_SLOTS[freeSlot].label}]。`);
+    log('成功招募 ' + item.name + '！已放置於 [' + GRID_SLOTS[freeSlot].label + ']。');
     checkAndMergeDudes();
     renderShop();
     updateUI();
     drawIdleArena();
 }
 
-// Drag & Drop Setup
 function setupDragAndDrop() {
-    const arena = document.getElementById('arena-container');
+    var arena = document.getElementById('arena-container');
 
-    arena.addEventListener('mousedown', (e) => {
+    arena.addEventListener('mousedown', function(e) {
         if (state.inBattle) return;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        var rect = canvas.getBoundingClientRect();
+        var mouseX = e.clientX - rect.left;
+        var mouseY = e.clientY - rect.top;
 
         if (state.selectedDude && mouseX >= canvas.width - 120 && mouseX <= canvas.width - 20 && mouseY >= canvas.height - 50 && mouseY <= canvas.height - 10) {
             sellDude(state.selectedDude);
             return;
         }
 
-        for (let d of state.dudes) {
-            const slot = GRID_SLOTS[d.slotIndex];
-            const dist = Math.hypot(mouseX - slot.x, mouseY - slot.y);
+        for (var i = 0; i < state.dudes.length; i++) {
+            var d = state.dudes[i];
+            var slot = GRID_SLOTS[d.slotIndex];
+            var dist = Math.hypot(mouseX - slot.x, mouseY - slot.y);
             if (dist <= 22) {
                 draggedDude = d;
                 state.selectedDude = d;
@@ -991,19 +970,19 @@ function setupDragAndDrop() {
         drawIdleArena();
     });
 
-    arena.addEventListener('mousemove', (e) => {
+    arena.addEventListener('mousemove', function(e) {
         if (state.inBattle || !draggedDude) return;
-        const rect = canvas.getBoundingClientRect();
+        var rect = canvas.getBoundingClientRect();
         currentMousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
         drawIdleArena();
     });
 
-    arena.addEventListener('mouseup', (e) => {
+    arena.addEventListener('mouseup', function(e) {
         if (state.inBattle || !draggedDude) return;
 
-        const rect = canvas.getBoundingClientRect();
-        const dropX = e.clientX - rect.left;
-        const dropY = e.clientY - rect.top;
+        var rect = canvas.getBoundingClientRect();
+        var dropX = e.clientX - rect.left;
+        var dropY = e.clientY - rect.top;
 
         if (dropX >= canvas.width - 140 && dropY >= canvas.height - 60) {
             sellDude(draggedDude);
@@ -1011,11 +990,11 @@ function setupDragAndDrop() {
             return;
         }
 
-        let targetSlot = -1;
-        let minDist = 60;
+        var targetSlot = -1;
+        var minDist = 60;
 
-        GRID_SLOTS.forEach(slot => {
-            const dist = Math.hypot(dropX - slot.x, dropY - slot.y);
+        GRID_SLOTS.forEach(function(slot) {
+            var dist = Math.hypot(dropX - slot.x, dropY - slot.y);
             if (dist < minDist) {
                 minDist = dist;
                 targetSlot = slot.id;
@@ -1023,12 +1002,12 @@ function setupDragAndDrop() {
         });
 
         if (targetSlot !== -1 && targetSlot !== draggedDude.slotIndex) {
-            const existing = state.dudes.find(d => d.slotIndex === targetSlot);
+            var existing = state.dudes.find(function(d) { return d.slotIndex === targetSlot; });
             if (existing) {
                 existing.slotIndex = draggedDude.slotIndex;
             }
             draggedDude.slotIndex = targetSlot;
-            log(`已調整站位：${draggedDude.name} 移動至 [${GRID_SLOTS[targetSlot].label}]！`);
+            log('已調整站位：' + draggedDude.name + ' 移動至 [' + GRID_SLOTS[targetSlot].label + ']！');
         }
 
         draggedDude = null;
@@ -1042,10 +1021,10 @@ function drawIdleArena() {
 
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
+    for (var x = 0; x < canvas.width; x += 40) {
         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += 40) {
+    for (var y = 0; y < canvas.height; y += 40) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
     }
 
@@ -1060,7 +1039,7 @@ function drawIdleArena() {
     ctx.textAlign = 'left';
     ctx.fillText('🛡️ 玩家 4x3 戰術陣型區 (容量 12 單位 | 拖曳或點擊選擇)', 50, 40);
 
-    GRID_SLOTS.forEach(slot => {
+    GRID_SLOTS.forEach(function(slot) {
         ctx.strokeStyle = '#475569';
         ctx.fillStyle = '#0f172a';
         ctx.lineWidth = 1.5;
@@ -1087,25 +1066,25 @@ function drawIdleArena() {
     ctx.fillText('🗑️ 拖曳至此販賣', canvas.width - 80, canvas.height - 30);
 
     if (state.selectedDude) {
-        const sel = state.selectedDude;
-        const refund = (sel.tier || 1) === 1 ? 2 : ((sel.tier || 1) === 2 ? 5 : 12);
+        var sel = state.selectedDude;
+        var refund = (sel.tier || 1) === 1 ? 2 : ((sel.tier || 1) === 2 ? 5 : 12);
 
         ctx.fillStyle = '#f1c40f';
         ctx.font = 'bold 13px sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText(`已選擇: ${sel.name} (${sel.tier||1}星) - 可賣出的金幣: $${refund}`, 450, 40);
+        ctx.fillText('已選擇: ' + sel.name + ' (' + (sel.tier||1) + '星) - 可賣出的金幣: $' + refund, 450, 40);
 
         ctx.fillStyle = '#e11d48';
         ctx.fillRect(canvas.width - 120, canvas.height - 50, 100, 40);
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 12px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`點擊販賣 (+$${refund})`, canvas.width - 70, canvas.height - 25);
+        ctx.fillText('點擊販賣 (+$' + refund + ')', canvas.width - 70, canvas.height - 25);
     }
 
-    state.dudes.forEach(d => {
+    state.dudes.forEach(function(d) {
         if (d === draggedDude) return;
-        const slot = GRID_SLOTS[d.slotIndex];
+        var slot = GRID_SLOTS[d.slotIndex];
         drawDudeOnCanvas(d, slot.x, slot.y);
     });
 
@@ -1121,9 +1100,9 @@ function drawIdleArena() {
     }
 }
 
-function drawDudeOnCanvas(d, x, y, isDragging = false) {
-    const tier = d.tier || 1;
-    const radius = 16 + (tier - 1) * 3;
+function drawDudeOnCanvas(d, x, y, isDragging) {
+    var tier = d.tier || 1;
+    var radius = 16 + (tier - 1) * 3;
 
     if (state.selectedDude === d) {
         ctx.strokeStyle = '#38bdf8';
@@ -1177,35 +1156,35 @@ function startBattle() {
     document.getElementById('btn-battle').disabled = true;
     document.getElementById('btn-reroll').disabled = true;
 
-    if (state.relics.some(r => r.id === 'compound_interest')) {
-        let interest = Math.floor(state.gold * 0.1);
+    if (state.relics.some(function(r) { return r.id === 'compound_interest'; })) {
+        var interest = Math.floor(state.gold * 0.1);
         if (interest > 0) {
             state.gold += interest;
-            log(`🏦【複利契約】獲得 $${interest} 利息！`);
+            log('🏦【複利契約】獲得 $' + interest + ' 利息！');
             updateUI();
         }
     }
 
-    const waveInfo = ENEMY_WAVES[state.wave - 1];
-    log(`⚔️ 開始 ${waveInfo.name}！`);
+    var waveInfo = ENEMY_WAVES[state.wave - 1];
+    log('⚔️ 開始 ' + waveInfo.name + '！');
 
-    const counts = {};
-    state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+    var counts = {};
+    state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-    let atkBuff = counts['undead'] >= 2 ? 1.15 : 1.0;
-    let hpBuff = counts['warrior'] >= 2 ? 1.25 : 1.0;
-    let rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
+    var atkBuff = counts['undead'] >= 2 ? 1.15 : 1.0;
+    var hpBuff = counts['warrior'] >= 2 ? 1.25 : 1.0;
+    var rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
 
-    if (state.relics.some(r => r.id === 'cursed_book')) {
+    if (state.relics.some(function(r) { return r.id === 'cursed_book'; })) {
         atkBuff *= 1.30;
         hpBuff *= 0.90;
     }
 
     combatEntities = [];
-    state.dudes.forEach(d => {
-        const slot = GRID_SLOTS[d.slotIndex];
-        const tier = d.tier || 1;
-        const tierMult = tier === 1 ? 1.0 : (tier === 2 ? 2.2 : 4.5);
+    state.dudes.forEach(function(d) {
+        var slot = GRID_SLOTS[d.slotIndex];
+        var tier = d.tier || 1;
+        var tierMult = tier === 1 ? 1.0 : (tier === 2 ? 2.2 : 4.5);
 
         combatEntities.push({
             isDude: true,
@@ -1218,8 +1197,8 @@ function startBattle() {
             hp: Math.round(d.hp * hpBuff * tierMult),
             maxHp: Math.round(d.hp * hpBuff * tierMult),
             atk: Math.round(d.atk * atkBuff * tierMult),
-            range: d.range * (rangeBuff * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0)),
-            speed: d.speed * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0),
+            range: d.range * (rangeBuff * (state.relics.some(function(r) { return r.id === 'magic_overload'; }) ? 1.2 : 1.0)),
+            speed: d.speed * (state.relics.some(function(r) { return r.id === 'magic_overload'; }) ? 1.2 : 1.0),
             cooldown: 0,
             radius: 14 + (tier - 1) * 3,
             color: getFamilyColor(d.family),
@@ -1229,13 +1208,13 @@ function startBattle() {
     });
 
     if (counts['employed'] >= 4 && combatEntities.length > 0) {
-        let lucky = combatEntities[Math.floor(Math.random() * combatEntities.length)];
+        var lucky = combatEntities[Math.floor(Math.random() * combatEntities.length)];
         lucky.hasInsurance = true;
     }
 
     godShockwaveTimer = 0;
 
-    for (let i = 0; i < waveInfo.count; i++) {
+    for (var i = 0; i < waveInfo.count; i++) {
         combatEntities.push({
             isDude: false,
             name: waveInfo.isBoss ? (waveInfo.bossId === 'duck' ? '巨型鴨 BOSS' : '破滅之神 BOSS') : 'Enemy',
@@ -1267,17 +1246,17 @@ function battleLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (screenShake > 0) {
-        const rx = (Math.random() - 0.5) * screenShake;
-        const ry = (Math.random() - 0.5) * screenShake;
+        var rx = (Math.random() - 0.5) * screenShake;
+        var ry = (Math.random() - 0.5) * screenShake;
         ctx.translate(rx, ry);
         screenShake *= 0.85;
         if (screenShake < 0.5) screenShake = 0;
     }
 
-    const gameSpeed = state.speed;
+    var gameSpeed = state.speed;
 
-    const dudes = combatEntities.filter(e => e.isDude && e.hp > 0);
-    const enemies = combatEntities.filter(e => !e.isDude && e.hp > 0);
+    var dudes = combatEntities.filter(function(e) { return e.isDude && e.hp > 0; });
+    var enemies = combatEntities.filter(function(e) { return !e.isDude && e.hp > 0; });
 
     if (enemies.length === 0) {
         ctx.restore();
@@ -1290,11 +1269,10 @@ function battleLoop() {
         return;
     }
 
-    const counts = {};
-    dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+    var counts = {};
+    dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-    // Boss Enrage Check
-    enemies.forEach(en => {
+    enemies.forEach(function(en) {
         if (en.isBoss && en.hp / en.maxHp <= 0.5 && !en.isEnraged) {
             en.isEnraged = true;
             en.color = '#dc2626';
@@ -1304,7 +1282,7 @@ function battleLoop() {
 
             if (en.bossId === 'duck') {
                 log('🦆【BOSS Phase 2 狂暴】巨型鴨進入狂暴狀態！移動速度 +50%，並召喚小鴨協助！');
-                for (let k = 0; k < 3; k++) {
+                for (var k = 0; k < 3; k++) {
                     combatEntities.push({
                         isDude: false, name: '狂暴小鴨', x: en.x, y: en.y, hp: 35, maxHp: 35, atk: 10, range: 35, speed: 1.4, bounty: 1, cooldown: 0, radius: 10, color: '#f472b6'
                     });
@@ -1326,7 +1304,7 @@ function battleLoop() {
                     type: 'ring', x: en.x, y: en.y, radius: 20, maxRadius: 350, color: '#ef4444', life: 25
                 });
 
-                dudes.forEach(d => {
+                dudes.forEach(function(d) {
                     d.hp -= 25;
                     combatParticles.push({ x: d.x, y: d.y, text: '-25神罰', color: '#f87171', life: 25 });
                 });
@@ -1334,15 +1312,15 @@ function battleLoop() {
         }
     });
 
-    combatEntities.forEach(e => {
+    combatEntities.forEach(function(e) {
         if (e.hp <= 0) return;
 
-        const targets = e.isDude ? enemies : dudes;
-        let nearest = null;
-        let minDist = 999999;
+        var targets = e.isDude ? enemies : dudes;
+        var nearest = null;
+        var minDist = 999999;
 
-        targets.forEach(t => {
-            const dist = Math.hypot(t.x - e.x, t.y - e.y);
+        targets.forEach(function(t) {
+            var dist = Math.hypot(t.x - e.x, t.y - e.y);
             if (dist < minDist) {
                 minDist = dist;
                 nearest = t;
@@ -1367,15 +1345,15 @@ function battleLoop() {
                             speed: 10 * gameSpeed, radius: 3, color: '#facc15', type: 'bullet'
                         });
                     } else if (e.id === 'cleric' && e.isDude) {
-                        let lowestDude = dudes.sort((a, b) => a.hp - b.hp)[0];
+                        var lowestDude = dudes.sort(function(a, b) { return a.hp - b.hp; })[0];
                         if (lowestDude) {
-                            let healAmt = 15 * e.tier;
+                            var healAmt = 15 * e.tier;
                             lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + healAmt);
                             e.totalHeal = (e.totalHeal || 0) + healAmt;
                             playSound('heal');
 
                             combatParticles.push({
-                                x: lowestDude.x, y: lowestDude.y, text: `+${healAmt} HP`, color: '#4ade80', life: 25
+                                x: lowestDude.x, y: lowestDude.y, text: '+' + healAmt + ' HP', color: '#4ade80', life: 25
                             });
                             combatParticles.push({
                                 type: 'beam', x1: e.x, y1: e.y, x2: lowestDude.x, y2: lowestDude.y, color: '#22c55e', life: 10
@@ -1385,20 +1363,20 @@ function battleLoop() {
                         nearest.hp -= e.atk;
                         if (e.isDude) e.totalDamage = (e.totalDamage || 0) + e.atk;
 
-                        if (e.isDude && state.relics.some(r => r.id === 'blood_shield')) {
+                        if (e.isDude && state.relics.some(function(r) { return r.id === 'blood_shield'; })) {
                             e.hp = Math.min(e.maxHp, e.hp + 3);
                             e.totalHeal = (e.totalHeal || 0) + 3;
                         }
 
                         if (!e.isDude && counts['warrior'] >= 4) {
-                            let refl = Math.round(e.atk * 0.2);
+                            var refl = Math.round(e.atk * 0.2);
                             e.hp -= refl;
                         }
 
                         if (e.isDude && counts['fantasy'] >= 4) {
-                            let splashed = enemies.filter(en => en !== nearest && en.hp > 0).slice(0, 2);
-                            splashed.forEach(s => {
-                                let splashDmg = Math.round(e.atk * 0.5);
+                            var splashed = enemies.filter(function(en) { return en !== nearest && en.hp > 0; }).slice(0, 2);
+                            splashed.forEach(function(s) {
+                                var splashDmg = Math.round(e.atk * 0.5);
                                 s.hp -= splashDmg;
                                 e.totalDamage = (e.totalDamage || 0) + splashDmg;
                                 combatParticles.push({
@@ -1408,17 +1386,17 @@ function battleLoop() {
                         }
 
                         combatParticles.push({
-                            x: nearest.x, y: nearest.y, text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
+                            x: nearest.x, y: nearest.y, text: '-' + e.atk, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
                         });
 
                         if (nearest.hp <= 0 && !nearest.isDude) {
                             playSound('gold');
-                            let droppedGold = nearest.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
+                            var droppedGold = nearest.bounty + (state.relics.some(function(r) { return r.id === 'golden_touch'; }) ? 1 : 0);
                             state.gold += droppedGold;
                             updateUI();
 
                             combatParticles.push({
-                                x: nearest.x, y: nearest.y - 10, text: `+$${droppedGold} 金幣`, color: '#f39c12', life: 35
+                                x: nearest.x, y: nearest.y - 10, text: '+$' + droppedGold + ' 金幣', color: '#f39c12', life: 35
                             });
                         }
 
@@ -1439,11 +1417,11 @@ function battleLoop() {
                                 combatParticles.push({ x: nearest.x, y: nearest.y, text: '💀 骷髏降臨', color: '#e9d5ff', life: 25 });
                             }
 
-                            if (nearest.id === 'zombie' || state.relics.some(r => r.id === 'explosive_guts')) {
+                            if (nearest.id === 'zombie' || state.relics.some(function(r) { return r.id === 'explosive_guts'; })) {
                                 playSound('explosion');
                                 screenShake = 10;
                                 combatParticles.push({ type: 'ring', x: nearest.x, y: nearest.y, radius: 10, maxRadius: 40, color: '#a855f7', life: 15 });
-                                enemies.forEach(en => {
+                                enemies.forEach(function(en) {
                                     if (Math.hypot(en.x - nearest.x, en.y - nearest.y) <= 60) {
                                         en.hp -= 20;
                                         if (nearest.isDude) nearest.totalDamage = (nearest.totalDamage || 0) + 20;
@@ -1455,7 +1433,7 @@ function battleLoop() {
                     }
                 }
             } else {
-                const angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
+                var angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
                 e.x += Math.cos(angle) * (e.speed * 1.5 * gameSpeed);
                 e.y += Math.sin(angle) * (e.speed * 1.5 * gameSpeed);
             }
@@ -1464,13 +1442,13 @@ function battleLoop() {
         if (e.cooldown > 0) e.cooldown--;
     });
 
-    combatProjectiles.forEach((p, idx) => {
+    combatProjectiles.forEach(function(p, idx) {
         if (!p.target || p.target.hp <= 0) {
             combatProjectiles.splice(idx, 1);
             return;
         }
 
-        const angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
+        var angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
 
@@ -1484,16 +1462,16 @@ function battleLoop() {
             if (p.owner) p.owner.totalDamage = (p.owner.totalDamage || 0) + p.damage;
 
             combatParticles.push({
-                x: p.target.x, y: p.target.y, text: `-${p.damage}`, color: '#fb923c', life: 25
+                x: p.target.x, y: p.target.y, text: '-' + p.damage, color: '#fb923c', life: 25
             });
 
             if (p.target.hp <= 0 && !p.target.isDude) {
                 playSound('gold');
-                let droppedGold = p.target.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
+                var droppedGold = p.target.bounty + (state.relics.some(function(r) { return r.id === 'golden_touch'; }) ? 1 : 0);
                 state.gold += droppedGold;
                 updateUI();
                 combatParticles.push({
-                    x: p.target.x, y: p.target.y - 10, text: `+$${droppedGold} 金幣`, color: '#f39c12', life: 35
+                    x: p.target.x, y: p.target.y - 10, text: '+$' + droppedGold + ' 金幣', color: '#f39c12', life: 35
                 });
             }
 
@@ -1509,7 +1487,7 @@ function battleLoop() {
         }
     });
 
-    combatEntities.forEach(e => {
+    combatEntities.forEach(function(e) {
         if (e.hp <= 0) return;
 
         if (e.isDude && e.tier >= 2) {
@@ -1525,16 +1503,16 @@ function battleLoop() {
         ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        const barW = e.radius * 2;
-        const barH = 4;
-        const hpPct = Math.max(0, e.hp / e.maxHp);
+        var barW = e.radius * 2;
+        var barH = 4;
+        var hpPct = Math.max(0, e.hp / e.maxHp);
         ctx.fillStyle = '#334155';
         ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW, barH);
         ctx.fillStyle = e.isDude ? '#22c55e' : '#ef4444';
         ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
     });
 
-    combatParticles.forEach((p, index) => {
+    combatParticles.forEach(function(p, index) {
         if (p.type === 'ring') {
             ctx.strokeStyle = p.color;
             ctx.lineWidth = 2;
@@ -1572,18 +1550,16 @@ function endBattle(victory) {
 
     if (victory) {
         playSound('victory');
-        const counts = {};
-        state.dudes.forEach(d => counts[d.family] =
-        const counts = {};
-        state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+        var counts = {};
+        state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-        let bonusGold = counts['employed'] >= 2 ? 2 : 0;
-        let reward = 5 + state.wave * 2 + bonusGold;
+        var bonusGold = counts['employed'] >= 2 ? 2 : 0;
+        var reward = 5 + state.wave * 2 + bonusGold;
         state.gold += reward;
 
-        log(`🎉 勝利！波次結算獲得獎金 $${reward}。`);
+        log('🎉 勝利！波次結算獲得獎金 $' + reward + '。');
 
-        pendingVictoryCallback = () => {
+        pendingVictoryCallback = function() {
             if ([3, 6, 9].includes(state.wave)) {
                 setTimeout(showRelicModal, 300);
             }
@@ -1608,12 +1584,12 @@ function endBattle(victory) {
     } else {
         playSound('defeat');
         state.lives--;
-        log(`💀 戰敗！剩餘生命：${state.lives}。（已為你保留戰鬥中累積的所有 $${state.gold} 金幣！）`);
+        log('💀 戰敗！剩餘生命：' + state.lives + '。（已為你保留戰鬥中累積的所有 $' + state.gold + ' 金幣！）');
 
-        pendingVictoryCallback = () => {
+        pendingVictoryCallback = function() {
             if (state.lives <= 0) {
                 log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
-                alert(`💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$${state.gold}`);
+                alert('💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$' + state.gold);
                 location.reload();
                 return;
             }

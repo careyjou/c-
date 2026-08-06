@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Many Dudes? Lite (多少個 Dude？輕量網頁版)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        body {
+            background-color: #1a1a2e;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1 {
+            margin: 5px 0;
+            color: #f1c40f;
+            text-shadow: 2px 2px 4px #000;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        #game-container {
+            width: 900px;
+            background-color: #16213e;
+            border: 3px solid #0f3460;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f3460;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gold { color: #f39c12; }
+        .lives { color: #e74c3c; }
+        .wave { color: #3498db; }
+
+        /* Battle Arena */
+        #arena-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            background: #0f172a;
+            border: 2px dashed #334155;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Synergy Panel */
+        .info-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .panel-box {
+            flex: 1;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            min-height: 70px;
+        }
+        .panel-title {
+            font-size: 14px;
+            color: #94a3b8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .synergy-tag {
+            display: inline-block;
+            background: #334155;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .synergy-tag.active {
+            background: #22c55e;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Shop Section */
+        .shop-section {
+            background: #1e293b;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .shop-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn:disabled { background: #475569; cursor: not-allowed; transform: none; }
+        .btn-battle { background: #ef4444; font-size: 16px; padding: 10px 24px; }
+        .btn-battle:hover { background: #dc2626; }
+        .btn-reroll { background: #8b5cf6; }
+        .btn-reroll:hover { background: #7c3aed; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .dude-card {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dude-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+        .dude-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .dude-family {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 6px;
+            width: fit-content;
+        }
+        .family-undead { background: #581c87; color: #e9d5ff; }
+        .family-warrior { background: #991b1b; color: #fecaca; }
+        .family-fantasy { background: #1e3a8a; color: #bfdbfe; }
+        .family-employed { background: #854d0e; color: #fef08a; }
+
+        .dude-stats {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+        }
+        .dude-desc {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            height: 32px;
+        }
+        .dude-price {
+            font-weight: bold;
+            color: #f39c12;
+            text-align: right;
+            font-size: 13px;
+        }
+
+        /* Log */
+        #log-panel {
+            margin-top: 15px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            height: 80px;
+            padding: 8px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: monospace;
+            color: #a7f3d0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>How Many Dudes? Lite</h1>
+    <div class="subtitle">招募你的 Dude 大軍，挑戰波次怪物與荒謬 BOSS！</div>
+
+    <div id="game-container">
+        <!-- Top Stats -->
+        <div class="top-bar">
+            <div class="stat-item wave">🌊 波次: <span id="ui-wave">1 / 10</span></div>
+            <div class="stat-item gold">💰 金幣: $<span id="ui-gold">15</span></div>
+            <div class="stat-item lives">❤️ 生命: <span id="ui-lives">3</span></div>
+        </div>
+
+        <!-- Battle Canvas -->
+        <div id="arena-container">
+            <canvas id="battleCanvas" width="870" height="320"></canvas>
+        </div>
+
+        <!-- Synergy Panel -->
+        <div class="info-panel">
+            <div class="panel-box">
+                <div class="panel-title">👥 家族協同加成 (Synergies)</div>
+                <div id="synergy-list">尚未啟動協同</div>
+            </div>
+        </div>
+
+        <!-- Shop Area -->
+        <div class="shop-section">
+            <div class="shop-controls">
+                <div>
+                    <span>🛒 Dude 商店 (上限 8 位)</span>
+                    <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/8</span>
+                </div>
+                <div>
+                    <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">刷新商店 ($2)</button>
+                    <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開始戰鬥！</button>
+                </div>
+            </div>
+
+            <div class="cards-grid" id="shop-cards"></div>
+        </div>
+
+        <!-- Combat Log -->
+        <div id="log-panel">
+            [系統] 歡迎來到 Dude 牧場！點擊商店卡片招募 Dude，準備好後點擊「開始戰鬥」。
+        </div>
+    </div>
+
+<script>
+// Game State
+const state = {
+    gold: 15,
+    lives: 3,
+    wave: 1,
+    maxWave: 10,
+    inBattle: false,
+    dudes: [],
+    shop: [],
+    maxDudes: 8
+};
+
+// Dude Database
+const DUDE_TYPES = [
+    { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 40, speed: 1.2, price: 3, desc: '對近距離敵人造成穩定傷害。' },
+    { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '射速快，消耗低。' },
+    { id: 'warrior', name: '戰士 Dude', family: 'warrior', hp: 60, atk: 10, range: 40, speed: 1.0, price: 3, desc: '高血量肉盾，吸收傷害。' },
+    { id: 'berserker', name: '狂戰 Dude', family: 'warrior', hp: 45, atk: 15, range: 40, speed: 1.4, price: 4, desc: '高爆發輸出者。' },
+    { id: 'wizard', name: '巫師 Dude', family: 'fantasy', hp: 25, atk: 12, range: 180, speed: 0.8, price: 4, desc: '遠程魔法打擊。' },
+    { id: 'cleric', name: '牧師 Dude', family: 'fantasy', hp: 30, atk: 4, range: 150, speed: 0.9, price: 3, desc: '定期為血量最低的友軍恢復 12 HP。' },
+    { id: 'finance', name: '金融 Dude', family: 'employed', hp: 30, atk: 5, range: 100, speed: 1.0, price: 3, desc: '戰鬥勝利時獲得額外金幣。' },
+    { id: 'cowboy', name: '牛仔 Dude', family: 'employed', hp: 40, atk: 11, range: 140, speed: 1.1, price: 4, desc: '遠程快速射擊。' }
+];
+
+// Enemy Waves Config
+const ENEMY_WAVES = [
+    { name: '第 1 波：10 個幼童 (Toddlers)', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6' },
+    { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6' },
+    { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8' },
+    { name: '第 4 波：8 隻野狼群 (Pack of Wolves)', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8' },
+    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 500, atk: 30, speed: 1.1, size: 30, color: '#facc15' },
+    { name: '第 6 波：20 個狂暴幼童 (Enraged Toddlers)', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185' },
+    { name: '第 7 波：3 隻大猩猩 (Gorillas)', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569' },
+    { name: '第 8 波：5 隻大猩猩隊 (Gorilla Squad)', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155' },
+    { name: '第 9 波：大猩猩與野狼混合軍', count: 10, hp: 200, atk: 22, speed: 1.4, size: 18, color: '#a855f7' },
+    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 1800, atk: 50, speed: 0.9, size: 40, color: '#ef4444' }
+];
+
+// Canvas Setup
+const canvas = document.getElementById('battleCanvas');
+const ctx = canvas.getContext('2d');
+
+let combatEntities = [];
+let combatParticles = [];
+let battleAnimationId = null;
+
+function init() {
+    rerollShop();
+    updateUI();
+    drawIdleArena();
+}
+
+function log(msg) {
+    const p = document.getElementById('log-panel');
+    p.innerHTML += `<div>[${new Date().toLocaleTimeString().split(' ')[0]}] ${msg}</div>`;
+    p.scrollTop = p.scrollHeight;
+}
+
+function updateUI() {
+    document.getElementById('ui-gold').innerText = state.gold;
+    document.getElementById('ui-lives').innerText = state.lives;
+    document.getElementById('ui-wave').innerText = `${state.wave} / ${state.maxWave}`;
+    document.getElementById('ui-dude-count').innerText = state.dudes.length;
+
+    updateSynergiesUI();
+}
+
+function updateSynergiesUI() {
+    const counts = {};
+    state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+
+    const list = document.getElementById('synergy-list');
+    list.innerHTML = '';
+
+    const familyNames = { undead: '不死族', warrior: '戰士族', fantasy: '奇幻族', employed: '上班族' };
+    let hasActive = false;
+
+    for (let fam in counts) {
+        const count = counts[fam];
+        let desc = '';
+        let active = false;
+
+        if (count >= 2) {
+            active = true;
+            hasActive = true;
+            if (fam === 'undead') desc = '不死(+2): 攻擊力+15%';
+            if (fam === 'warrior') desc = '戰士(+2): 最大生命+25%';
+            if (fam === 'fantasy') desc = '奇幻(+2): 射程+20%';
+            if (fam === 'employed') desc = '上班族(+2): 通關額外+$2';
+        } else {
+            desc = `${familyNames[fam]} (${count}/2)`;
+        }
+
+        const tag = document.createElement('span');
+        tag.className = `synergy-tag ${active ? 'active' : ''}`;
+        tag.innerText = desc;
+        list.appendChild(tag);
+    }
+
+    if (!hasActive && Object.keys(counts).length === 0) {
+        list.innerHTML = '<span style="color:#64748b; font-size:12px;">招募 2 位同家族 Dude 觸發協同加成！</span>';
+    }
+}
+
+function rerollShop() {
+    if (state.gold < 2 && state.shop.length > 0) {
+        log('金幣不足，無法刷新商店！');
+        return;
+    }
+    if (state.shop.length > 0) state.gold -= 2;
+
+    state.shop = [];
+    for (let i = 0; i < 4; i++) {
+        const randomType = DUDE_TYPES[Math.floor(Math.random() * DUDE_TYPES.length)];
+        state.shop.push({ ...randomType });
+    }
+    renderShop();
+    updateUI();
+}
+
+function renderShop() {
+    const grid = document.getElementById('shop-cards');
+    grid.innerHTML = '';
+
+    state.shop.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'dude-card';
+        card.onclick = () => buyDude(index);
+
+        card.innerHTML = `
+            <div>
+                <div class="dude-name">${item.name}</div>
+                <span class="dude-family family-${item.family}">${item.family.toUpperCase()}</span>
+                <div class="dude-stats">❤️ HP: ${item.hp} | ⚔️ ATK: ${item.atk}</div>
+                <div class="dude-desc">${item.desc}</div>
+            </div>
+            <div class="dude-price">💰 $${item.price}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function buyDude(index) {
+    if (state.inBattle) return;
+    if (state.dudes.length >= state.maxDudes) {
+        log('陣容已滿（最多 8 位 Dude）！');
+        return;
+    }
+
+    const item = state.shop[index];
+    if (!item) return;
+
+    if (state.gold < item.price) {
+        log(`金幣不足！購買 ${item.name} 需要 $${item.price}。`);
+        return;
+    }
+
+    state.gold -= item.price;
+    state.dudes.push({ ...item });
+    state.shop.splice(index, 1);
+
+    log(`成功招募 ${item.name}！`);
+    renderShop();
+    updateUI();
+    drawIdleArena();
+}
+
+function drawIdleArena() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
+    const startX = 80;
+    const startY = 60;
+    state.dudes.forEach((d, i) => {
+        const x = startX + (i % 3) * 60;
+        const y = startY + Math.floor(i / 3) * 70;
+
+        ctx.fillStyle = getFamilyColor(d.family);
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.name.substring(0, 2), x, y + 4);
+    });
+
+    if (state.dudes.length === 0) {
+        ctx.fillStyle = '#475569';
+        ctx.font = '16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('尚無 Dude，請先從下方商店招募單位！', canvas.width / 2, canvas.height / 2);
+    }
+}
+
+function getFamilyColor(family) {
+    if (family === 'undead') return '#a855f7';
+    if (family === 'warrior') return '#ef4444';
+    if (family === 'fantasy') return '#3b82f6';
+    if (family === 'employed') return '#eab308';
+    return '#10b981';
+}
+
+function startBattle() {
+    if (state.inBattle) return;
+    if (state.dudes.length === 0) {
+        log('你至少需要招募 1 位 Dude 才能開啟戰鬥！');
+        return;
+    }
+
+    state.inBattle = true;
+    document.getElementById('btn-battle').disabled = true;
+    document.getElementById('btn-reroll').disabled = true;
+
+    const waveInfo = ENEMY_WAVES[state.wave - 1];
+    log(`⚔️ 開始 ${waveInfo.name}！`);
+
+    const counts = {};
+    state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+
+    let atkBuff = counts['undead'] >= 2 ? 1.15 : 1.0;
+    let hpBuff = counts['warrior'] >= 2 ? 1.25 : 1.0;
+    let rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
+
+    combatEntities = [];
+    state.dudes.forEach((d, i) => {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
+        combatEntities.push({
+            isDude: true,
+            id: d.id,
+            name: d.name,
+            family: d.family,
+            x: 60 + col * 50,
+            y: 50 + row * 65,
+            hp: Math.round(d.hp * hpBuff),
+            maxHp: Math.round(d.hp * hpBuff),
+            atk: Math.round(d.atk * atkBuff),
+            range: d.range * rangeBuff,
+            speed: d.speed,
+            cooldown: 0,
+            radius: 14,
+            color: getFamilyColor(d.family)
+        });
+    });
+
+    for (let i = 0; i < waveInfo.count; i++) {
+        combatEntities.push({
+            isDude: false,
+            name: 'Enemy',
+            x: canvas.width - 80 - (Math.random() * 150),
+            y: 40 + (Math.random() * (canvas.height - 80)),
+            hp: waveInfo.hp,
+            maxHp: waveInfo.hp,
+            atk: waveInfo.atk,
+            range: 35,
+            speed: waveInfo.speed,
+            cooldown: 0,
+            radius: waveInfo.size,
+            color: waveInfo.color
+        });
+    }
+
+    combatParticles = [];
+    battleLoop();
+}
+
+function battleLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const dudes = combatEntities.filter(e => e.isDude && e.hp > 0);
+    const enemies = combatEntities.filter(e => !e.isDude && e.hp > 0);
+
+    if (enemies.length === 0) {
+        endBattle(true);
+        return;
+    }
+    if (dudes.length === 0) {
+        endBattle(false);
+        return;
+    }
+
+    combatEntities.forEach(e => {
+        if (e.hp <= 0) return;
+
+        const targets = e.isDude ? enemies : dudes;
+        let nearest = null;
+        let minDist = 999999;
+
+        targets.forEach(t => {
+            const dist = Math.hypot(t.x - e.x, t.y - e.y);
+            if (dist < minDist) {
+                minDist = dist;
+                nearest = t;
+            }
+        });
+
+        if (nearest) {
+            if (minDist <= e.range) {
+                if (e.cooldown <= 0) {
+                    nearest.hp -= e.atk;
+                    e.cooldown = 60 / e.speed;
+
+                    if (e.id === 'cleric' && e.isDude) {
+                        let lowestDude = dudes.sort((a, b) => a.hp - b.hp)[0];
+                        if (lowestDude) {
+                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + 12);
+                        }
+                    }
+
+                    combatParticles.push({
+                        x: nearest.x, y: nearest.y,
+                        text: `-${e.atk}`, color: e.isDude ? '#f87171' : '#38bdf8',
+                        life: 30
+                    });
+                }
+            } else {
+                const angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
+                e.x += Math.cos(angle) * (e.speed * 1.5);
+                e.y += Math.sin(angle) * (e.speed * 1.5);
+            }
+        }
+
+        if (e.cooldown > 0) e.cooldown--;
+    });
+
+    combatEntities.forEach(e => {
+        if (e.hp <= 0) return;
+
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        const barW = e.radius * 2;
+        const barH = 4;
+        const hpPct = Math.max(0, e.hp / e.maxHp);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW, barH);
+        ctx.fillStyle = e.isDude ? '#22c55e' : '#ef4444';
+        ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
+    });
+
+    combatParticles.forEach((p, index) => {
+        ctx.fillStyle = p.color;
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(p.text, p.x, p.y);
+        p.y -= 0.5;
+        p.life--;
+        if (p.life <= 0) combatParticles.splice(index, 1);
+    });
+
+    battleAnimationId = requestAnimationFrame(battleLoop);
+}
+
+function endBattle(victory) {
+    cancelAnimationFrame(battleAnimationId);
+    state.inBattle = false;
+    document.getElementById('btn-battle').disabled = false;
+    document.getElementById('btn-reroll').disabled = false;
+
+    if (victory) {
+        const counts = {};
+        state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+
+        let bonusGold = counts['employed'] >= 2 ? 2 : 0;
+        let reward = 5 + state.wave * 2 + bonusGold;
+        state.gold += reward;
+
+        log(`🎉 勝利！獲得金幣 $${reward}。`);
+
+        if (state.wave >= state.maxWave) {
+            log('🏆【通關勝利】恭喜你擊敗破滅之神！帶領 Dude 大軍獲得最終勝利！');
+            alert('🏆 恭喜通關《How Many Dudes? Lite》！');
+            return;
+        }
+
+        state.wave++;
+        rerollShop();
+    } else {
+        state.lives--;
+        log(`💀 戰敗！剩餘生命：${state.lives}`);
+
+        if (state.lives <= 0) {
+            log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
+            alert('💥 Game Over！所有生命已耗盡。');
+            location.reload();
+            return;
+        }
+    }
+
+    updateUI();
+    drawIdleArena();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

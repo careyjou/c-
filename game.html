@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Cyberpunk v8.0 (鑽石天賦/無限遺物/5星神級合成)</title>
+    <title>How Many Dudes? Cyberpunk v9.0 (多重難度分級/鑽石倍率系統)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -52,7 +52,7 @@
             padding: 10px 20px;
             border-radius: 8px;
             margin-bottom: 15px;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
         }
@@ -65,6 +65,11 @@
         .diamond { color: #38bdf8; text-shadow: 0 0 5px #38bdf8; }
         .lives { color: #ff0055; text-shadow: 0 0 5px #ff0055; }
         .wave { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
+        .diff-tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .diff-easy { background: #166534; color: #86efac; }
+        .diff-normal { background: #1e40af; color: #93c5fd; }
+        .diff-hard { background: #991b1b; color: #fca5a5; }
+        .diff-nightmare { background: #581c87; color: #f0abfc; box-shadow: 0 0 8px #d8b4fe; }
 
         /* Battle Arena */
         #arena-container {
@@ -185,7 +190,7 @@
         .card-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #38bdf8; }
         .card-desc { font-size: 12px; color: #cbd5e1; }
 
-        /* Permanent Talent Upgrades Container */
+        /* Talent Container */
         .talent-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -354,8 +359,8 @@
 </head>
 <body>
 
-    <h1>HOW MANY DUDES? CYBERPUNK v8.0</h1>
-    <div class="subtitle">通關獲取💎鑽石購買永久寶物天賦 / 無限模式無限獲取全局遺物 / 支援5星神級合成！</div>
+    <h1>HOW MANY DUDES? CYBERPUNK v9.0</h1>
+    <div class="subtitle">4 大難度分級 (簡單/普通/困難/噩夢) / 高難度享超高 💎 鑽石倍率獎勵！</div>
 
     <div id="game-container">
         <!-- Relic Choice Modal -->
@@ -380,6 +385,13 @@
             <button class="btn btn-battle" onclick="closeTalentModal()">關閉天賦商店</button>
         </div>
 
+        <!-- Difficulty Selection Modal -->
+        <div id="difficulty-modal" class="modal-overlay">
+            <div class="modal-title">⚔️ 選擇遊戲難度</div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:20px;">更高的難度帶來更強的敵軍，但也帶來極高的 💎 鑽石獎勵倍率：</div>
+            <div class="card-choices" id="difficulty-choices-container"></div>
+        </div>
+
         <!-- Damage Meter Modal -->
         <div id="stats-modal" class="modal-overlay">
             <div class="modal-title" id="stats-modal-title">📊 戰鬥結算與數據統計</div>
@@ -391,6 +403,7 @@
         <!-- Top Stats -->
         <div class="top-bar">
             <div class="stat-item wave">🌊 波次: <span id="ui-wave">1 / 10</span></div>
+            <div class="stat-item">難度: <span id="ui-difficulty-tag" onclick="showDifficultyModal()">普通 (x1.5💎)</span></div>
             <div class="stat-item gold">💰 金幣: $<span id="ui-gold">15</span></div>
             <div class="stat-item diamond">💎 鑽石: <span id="ui-diamonds">0</span></div>
             <div class="stat-item lives">❤️ 生命: <span id="ui-lives">3</span></div>
@@ -426,7 +439,7 @@
                     <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效: 開</button>
                     <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
                     <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">刷新商店 ($2)</button>
-                    <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開開啟對決！</button>
+                    <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開啟對決！</button>
                 </div>
             </div>
 
@@ -435,7 +448,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到賽博 Dude 戰場！通關獲得 💎 鑽石可解鎖永久寶物天賦！最高支援 5 星神級 Dude 合成！無限模式每 3 波可獲得全新全局遺物！
+            [系統] 歡迎來到賽博 Dude 戰場！點擊頂部「難度」標籤可切換難度，高難度提供高達 4 倍的 💎 鑽石獎勵！
         </div>
     </div>
 
@@ -447,6 +460,7 @@ var state = {
     lives: 3,
     wave: 1,
     maxWave: 10,
+    difficulty: 'normal', // 'easy', 'normal', 'hard', 'nightmare'
     inBattle: false,
     speed: 1,
     audioEnabled: true,
@@ -463,6 +477,14 @@ var state = {
         allAtkLevel: 0,
         bountyBonus: 0
     }
+};
+
+// Difficulty Configurations
+var DIFFICULTY_CONFIGS = {
+    easy: { name: '簡單', tagClass: 'diff-easy', hpMult: 0.8, atkMult: 0.8, diamondMult: 1.0, desc: '敵軍強度 80% | 💎 鑽石獎勵 1.0 倍' },
+    normal: { name: '普通', tagClass: 'diff-normal', hpMult: 1.0, atkMult: 1.0, diamondMult: 1.5, desc: '敵軍強度 100% | 💎 鑽石獎勵 1.5 倍' },
+    hard: { name: '困難', tagClass: 'diff-hard', hpMult: 1.4, atkMult: 1.3, diamondMult: 2.5, desc: '敵軍強度 140% | 💎 鑽石獎勵 2.5 倍' },
+    nightmare: { name: '噩夢', tagClass: 'diff-nightmare', hpMult: 2.0, atkMult: 1.8, diamondMult: 4.0, desc: '敵軍強度 200% | 💎 鑽石獎勵 4.0 倍 (極致挑戰)' }
 };
 
 // Permanent Talents Config
@@ -650,6 +672,31 @@ function init() {
     drawIdleArena();
 }
 
+function showDifficultyModal() {
+    if (state.inBattle) return;
+    var container = document.getElementById('difficulty-choices-container');
+    container.innerHTML = '';
+
+    for (var key in DIFFICULTY_CONFIGS) {
+        (function(diffKey) {
+            var cfg = DIFFICULTY_CONFIGS[diffKey];
+            var card = document.createElement('div');
+            card.className = 'choice-card';
+            card.onclick = function() {
+                state.difficulty = diffKey;
+                document.getElementById('difficulty-modal').classList.remove('show');
+                log('⚔️ 難度已切換為：【' + cfg.name + '】！' + cfg.desc);
+                updateUI();
+                saveGameManual();
+            };
+            card.innerHTML = '<div class="card-name" style="color:#00f0ff;">' + cfg.name + '</div><div class="card-desc">' + cfg.desc + '</div>';
+            container.appendChild(card);
+        })(key);
+    }
+
+    document.getElementById('difficulty-modal').classList.add('show');
+}
+
 function saveGameManual() {
     try {
         var saveData = {
@@ -657,20 +704,21 @@ function saveGameManual() {
             diamonds: state.diamonds,
             lives: state.lives,
             wave: state.wave,
+            difficulty: state.difficulty,
             dudes: state.dudes,
             relics: state.relics,
             trinkets: state.trinkets,
             endlessMode: state.endlessMode,
             talents: state.talents
         };
-        localStorage.setItem('dudes_game_save_v8', JSON.stringify(saveData));
+        localStorage.setItem('dudes_game_save_v9', JSON.stringify(saveData));
         log('💾【存檔成功】進度與天賦已記錄至瀏覽器！');
     } catch (e) {}
 }
 
 function loadGameSave() {
     try {
-        var raw = localStorage.getItem('dudes_game_save_v8');
+        var raw = localStorage.getItem('dudes_game_save_v9');
         if (raw) {
             var data = JSON.parse(raw);
             if (confirm('發現先前的存檔（第 ' + data.wave + ' 波，金幣 $' + data.gold + '，鑽石 💎' + (data.diamonds||0) + '），是否繼續冒險？')) {
@@ -678,6 +726,7 @@ function loadGameSave() {
                 state.diamonds = data.diamonds || 0;
                 state.lives = data.lives;
                 state.wave = data.wave;
+                state.difficulty = data.difficulty || 'normal';
                 state.dudes = data.dudes || [];
                 state.relics = data.relics || [];
                 state.trinkets = data.trinkets || [];
@@ -711,6 +760,11 @@ function updateUI() {
     document.getElementById('ui-lives').innerText = state.lives;
     document.getElementById('ui-wave').innerText = state.wave + ' / ' + (state.endlessMode ? '∞ 無盡' : state.maxWave);
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
+
+    var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
+    var diffTag = document.getElementById('ui-difficulty-tag');
+    diffTag.innerText = diffCfg.name + ' (x' + diffCfg.diamondMult + '💎)';
+    diffTag.className = 'diff-tag ' + diffCfg.tagClass;
 
     updateSynergiesUI();
     updateRelicsUI();
@@ -788,7 +842,6 @@ function updateRelicsUI() {
     });
 }
 
-// Talent Modal Management
 function openTalentModal() {
     document.getElementById('modal-diamonds').innerText = state.diamonds;
     var container = document.getElementById('talent-grid-container');
@@ -1000,7 +1053,6 @@ function closeStatsModal() {
     }
 }
 
-// 3-in-1 Merging Check supporting up to 5 Stars!
 function checkAndMergeDudes() {
     var merged = false;
     for (var tier = 1; tier <= 4; tier++) {
@@ -1357,6 +1409,8 @@ function startBattle() {
     var waveName = state.endlessMode ? ('無盡波次 ' + state.wave + ' (難度極致放大)') : waveInfo.name;
     log('⚔️ 開始 ' + waveName + '！');
 
+    var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
+
     var counts = {};
     state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
@@ -1411,6 +1465,8 @@ function startBattle() {
     godShockwaveTimer = 0;
 
     var endlessMult = state.endlessMode ? Math.pow(1.25, state.wave - 10) : 1.0;
+    var totalEnemyHpMult = diffCfg.hpMult * endlessMult;
+    var totalEnemyAtkMult = diffCfg.atkMult * endlessMult;
 
     var enemyCount = waveInfo.count + (state.endlessMode ? Math.floor((state.wave - 10) * 1.5) : 0);
     for (var i = 0; i < enemyCount; i++) {
@@ -1421,9 +1477,9 @@ function startBattle() {
             bossId: waveInfo.bossId,
             x: canvas.width - 100 - (Math.random() * 120),
             y: 40 + (Math.random() * (canvas.height - 80)),
-            hp: Math.round(waveInfo.hp * endlessMult),
-            maxHp: Math.round(waveInfo.hp * endlessMult),
-            atk: Math.round(waveInfo.atk * endlessMult),
+            hp: Math.round(waveInfo.hp * totalEnemyHpMult),
+            maxHp: Math.round(waveInfo.hp * totalEnemyHpMult),
+            atk: Math.round(waveInfo.atk * totalEnemyAtkMult),
             range: 35,
             speed: waveInfo.speed,
             bounty: (waveInfo.bounty || 1) + (state.talents.bountyBonus || 0),
@@ -1756,6 +1812,8 @@ function endBattle(victory) {
     document.getElementById('btn-battle').disabled = false;
     document.getElementById('btn-reroll').disabled = false;
 
+    var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
+
     if (victory) {
         playSound('victory');
         var counts = {};
@@ -1763,11 +1821,14 @@ function endBattle(victory) {
 
         var bonusGold = counts['employed'] >= 2 ? 2 : 0;
         var reward = 5 + state.wave * 2 + bonusGold;
-        var diamondReward = 2 + Math.floor(state.wave / 2);
+
+        var baseDiamonds = 2 + Math.floor(state.wave / 2);
+        var diamondReward = Math.ceil(baseDiamonds * diffCfg.diamondMult);
+
         state.gold += reward;
         state.diamonds += diamondReward;
 
-        log('🎉 勝利！獲得金幣 $' + reward + ' 及 💎' + diamondReward + ' 鑽石！');
+        log('🎉 勝利！獲得金幣 $' + reward + ' 及 💎' + diamondReward + ' 鑽石（難度倍率 x' + diffCfg.diamondMult + '）！');
 
         pendingVictoryCallback = function() {
             if ([3, 6, 9].includes(state.wave) || (state.endlessMode && state.wave % 3 === 0)) {
@@ -1779,8 +1840,9 @@ function endBattle(victory) {
             }
 
             if (state.wave >= state.maxWave && !state.endlessMode) {
-                log('🏆【通關勝利】恭喜你擊敗破滅之神！獲得 💎10 鑽石通關大獎！');
-                state.diamonds += 10;
+                var grandDiamonds = Math.ceil(10 * diffCfg.diamondMult);
+                log('🏆【通關勝利】恭喜你擊敗破滅之神！獲得 💎' + grandDiamonds + ' 鑽石通關大獎（難度倍率 x' + diffCfg.diamondMult + '）！');
+                state.diamonds += grandDiamonds;
                 if (confirm('🏆 恭喜通關《How Many Dudes? Cyberpunk》！是否開啟「無盡生存模式 (Wave 11+)」繼續獲取全局遺物？')) {
                     state.endlessMode = true;
                     state.wave++;
@@ -1811,7 +1873,7 @@ function endBattle(victory) {
             if (state.lives <= 0) {
                 log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
                 alert('💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$' + state.gold);
-                localStorage.removeItem('dudes_game_save_v8');
+                localStorage.removeItem('dudes_game_save_v9');
                 location.reload();
                 return;
             }

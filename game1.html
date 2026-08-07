@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>土豆大戰 Brotato Metaprogression & Analytics Edition</title>
+    <title>土豆大戰 Brotato Ultra V2</title>
     <style>
         * {
             box-sizing: border-box;
@@ -23,7 +23,7 @@
         }
         #game-container {
             position: relative;
-            width: 1000px;
+            width: 1020px;
             height: 720px;
             box-shadow: 0 0 40px rgba(0,0,0,0.95);
             border-radius: 14px;
@@ -145,7 +145,7 @@
         /* Selection Grids */
         .select-section {
             width: 100%;
-            max-width: 880px;
+            max-width: 900px;
             margin-bottom: 10px;
         }
         .section-title {
@@ -193,20 +193,20 @@
 
         /* Metaprogression / Talent Tree Overlay */
         #talent-modal {
-            width: 820px;
-            height: 560px;
+            width: 860px;
+            height: 580px;
             background: #161622;
             border: 2px solid #00ffcc;
             border-radius: 12px;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
         }
         .talent-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 10px;
             flex: 1;
             overflow-y: auto;
         }
@@ -214,13 +214,13 @@
             background: #222236;
             border: 1px solid #444466;
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .talent-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: #ffcc00;
         }
@@ -232,8 +232,8 @@
 
         /* Analytics & End Game Stats Table */
         .analytics-modal {
-            width: 860px;
-            max-height: 580px;
+            width: 880px;
+            max-height: 600px;
             background: #161622;
             border: 2px solid #ffaa00;
             border-radius: 12px;
@@ -292,8 +292,8 @@
 
         /* Shop UI */
         #shop-modal {
-            width: 940px;
-            height: 640px;
+            width: 960px;
+            height: 650px;
             background: #181824;
             border: 2px solid #ffcc00;
             border-radius: 12px;
@@ -385,8 +385,7 @@
         }
         .shop-card.tier-1 { border-left: 4px solid #ffffff; }
         .shop-card.tier-2 { border-left: 4px solid #3399ff; }
-        .shop-card.tier-3 { border-left: 4px solid #aa33ff; }
-        .shop-card.tier-4 { border-left: 4px solid #ff3333; }
+        .shop-card.tier-3 { border-left: 4px solid #ffcc00; }
         .item-title {
             font-size: 15px;
             font-weight: bold;
@@ -413,8 +412,9 @@
 <body>
 
 <div id="game-container">
-    <canvas id="gameCanvas" width="1000" height="720"></canvas>
+    <canvas id="gameCanvas" width="1020" height="720"></canvas>
 
+    <!-- Top HUD -->
     <div id="hud" class="hidden">
         <div class="hud-box">
             血量:
@@ -426,16 +426,17 @@
             <div class="dash-cd-bg"><div id="dash-fill" class="dash-cd-fill"></div></div>
         </div>
         <div class="hud-box" style="color: #00ffcc;">
-            第 <span id="wave-num">1</span> 波 | <span id="diff-label">Danger 0</span> | 倒數: <span id="wave-timer">30</span> 秒
+            第 <span id="wave-num">1</span> / 10 波 | <span id="diff-label">Danger 0</span> | 倒數: <span id="wave-timer">30</span> 秒
         </div>
         <div class="hud-box" style="color: #ffcc00;">
             材料: <span id="gold-count">0</span> | 晶石: <span id="crystal-count">0</span>
         </div>
     </div>
 
+    <!-- Start / Main Menu Screen -->
     <div id="start-screen" class="overlay">
-        <h1>土豆大戰 Metaprogression & Analytics</h1>
-        <p>WASD 移動 | 空白鍵 (Space) 無敵衝刺 | 自動射擊 | 局外成長永久留存</p>
+        <h1>土豆大戰 Brotato Ultra V2</h1>
+        <p>10大關卡挑戰 | WASD 移動 | Space 無敵衝刺 | 10種武器種類 | 天賦最高10級</p>
         
         <div class="select-section">
             <div class="section-title">1. 選擇遊戲難度 (Difficulty)</div>
@@ -448,18 +449,19 @@
         </div>
 
         <div style="display:flex; gap:16px; align-items:center; margin-top:8px;">
-            <button id="start-btn">開始冒險</button>
-            <button id="talent-btn" class="secondary-btn">天賦研發 / 局外成長</button>
+            <button id="start-btn">開始出征 (10 波次挑戰)</button>
+            <button id="talent-btn" class="secondary-btn">天賦研發 (最高10級)</button>
         </div>
         <div style="font-size:12px; color:#aaa; margin-top:10px;">
             累積記憶晶石: <span id="menu-crystals" style="color:#00ffcc; font-weight:bold;">0</span> 顆 | 歷史最高紀錄: 第 <span id="best-wave">0</span> 波
         </div>
     </div>
 
+    <!-- Metaprogression Talent Tree Screen -->
     <div id="talent-screen" class="overlay hidden">
         <div id="talent-modal">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #33334d; padding-bottom:10px;">
-                <h2>局外永久天賦研究所 (Permanent Talents)</h2>
+                <h2>局外永久天賦研究所 (最高可升至 10 級)</h2>
                 <div style="color:#00ffcc; font-weight:bold;">持有記憶晶石: <span id="talent-crystals">0</span> 顆</div>
             </div>
             <div class="talent-grid" id="talent-grid"></div>
@@ -470,6 +472,7 @@
         </div>
     </div>
 
+    <!-- Game Over Analytics Screen -->
     <div id="gameover-screen" class="overlay hidden">
         <div class="analytics-modal">
             <h1 style="color: #ff4444; text-shadow: 3px 3px 0 #880000; text-align:center;">戰鬥結束 - 戰後數據報告</h1>
@@ -500,14 +503,15 @@
         </div>
     </div>
 
+    <!-- Victory Analytics Screen -->
     <div id="victory-screen" class="overlay hidden">
         <div class="analytics-modal">
-            <h1 style="color: #00ffcc; text-shadow: 3px 3px 0 #008888; text-align:center;">全波次完美通關 - 戰績報告</h1>
-            <p style="text-align:center;">你擊敗了所有波次與狂暴雙階段 Boss！</p>
+            <h1 style="color: #00ffcc; text-shadow: 3px 3px 0 #008888; text-align:center;">10波關卡完美全通關！</h1>
+            <p style="text-align:center;">你順利擊敗了所有 10 波怪群與第 10 波狂暴雙階段 Boss！</p>
             
             <div class="stats-summary-grid">
                 <div class="summary-card">
-                    <div class="summary-val" id="v-sum-waves">5</div>
+                    <div class="summary-val" id="v-sum-waves">10</div>
                     <div class="summary-lbl">堅持波次</div>
                 </div>
                 <div class="summary-card">
@@ -530,10 +534,11 @@
         </div>
     </div>
 
+    <!-- Shop Overlay -->
     <div id="shop-screen" class="overlay hidden">
         <div id="shop-modal">
             <div class="shop-header">
-                <h2>第 <span id="shop-wave-title">1</span> 波完成！進入軍備商店</h2>
+                <h2>第 <span id="shop-wave-title">1</span> / 10 波完成！進入軍備商店 (最高可升至 T3)</h2>
                 <div class="item-price">持有材料: <span id="shop-gold">0</span></div>
             </div>
             <div class="shop-body">
@@ -556,7 +561,7 @@
                 <div class="shop-right">
                     <div class="weapons-bar">
                         <div style="font-size:13px; font-weight:bold; color:#ffcc00;">
-                            目前武器 (<span id="weap-count">1</span>/6) <span style="font-size:11px; color:#888;">(點擊兩把相同武器進行合成升級)</span>
+                            目前武器 (<span id="weap-count">1</span>/6) <span style="font-size:11px; color:#888;">(點擊兩把相同武器與等級進行合成升級，最高 T3)</span>
                         </div>
                         <div class="weapon-slots" id="weapon-slots"></div>
                     </div>
@@ -666,6 +671,7 @@
 
     let gameState = 'START';
     let currentWave = 1;
+    let TOTAL_WAVES = 10;
     let waveTimer = 30;
     let timerInterval = null;
     let spawnTimer = 0;
@@ -683,11 +689,14 @@
     };
 
     const TALENT_DEFS = {
-        MAX_HP: { name: "基因強化 (最大血量)", desc: "每級增加 +10 初始最大血量", maxLv: 5, costBase: 20, costMult: 1.5, stat: (lv) => ({ maxHp: lv * 10 }) },
-        DAMAGE: { name: "戰鬥本能 (傷害加成)", desc: "每級提升 +5% 所有傷害", maxLv: 5, costBase: 25, costMult: 1.5, stat: (lv) => ({ dmgMult: lv * 0.05 }) },
-        SPEED: { name: "敏捷訓練 (移動速度)", desc: "每級提升 +4% 移動速度", maxLv: 5, costBase: 20, costMult: 1.4, stat: (lv) => ({ speedMult: lv * 0.04 }) },
-        CRIT: { name: "精準感官 (暴擊率)", desc: "每級增加 +3% 初始暴擊率", maxLv: 5, costBase: 30, costMult: 1.6, stat: (lv) => ({ critChance: lv * 0.03 }) },
-        START_GOLD: { name: "財富積累 (初始材料)", desc: "每級開局額外獲得 +20 材料", maxLv: 5, costBase: 15, costMult: 1.4, stat: (lv) => ({ startGold: lv * 20 }) }
+        MAX_HP: { name: "基因強化 (最大血量)", desc: "每級 +8 初始最大血量", maxLv: 10, costBase: 15, costMult: 1.35, stat: (lv) => ({ maxHp: lv * 8 }) },
+        DAMAGE: { name: "戰鬥本能 (傷害加成)", desc: "每級 +4% 所有傷害", maxLv: 10, costBase: 20, costMult: 1.35, stat: (lv) => ({ dmgMult: lv * 0.04 }) },
+        SPEED: { name: "敏捷訓練 (移動速度)", desc: "每級 +3% 移動速度", maxLv: 10, costBase: 15, costMult: 1.3, stat: (lv) => ({ speedMult: lv * 0.03 }) },
+        CRIT: { name: "精準感官 (暴擊率)", desc: "每級 +2% 暴擊率", maxLv: 10, costBase: 22, costMult: 1.4, stat: (lv) => ({ critChance: lv * 0.02 }) },
+        START_GOLD: { name: "財富積累 (初始材料)", desc: "每級 +15 初始材料", maxLv: 10, costBase: 12, costMult: 1.3, stat: (lv) => ({ startGold: lv * 15 }) },
+        REGEN: { name: "自我療癒 (生命回復)", desc: "每級 +0.3/秒 生命回復", maxLv: 10, costBase: 18, costMult: 1.35, stat: (lv) => ({ hpRegen: lv * 0.3 }) },
+        ARMOR: { name: "合金裝甲 (護甲防禦)", desc: "每級 +1 基礎護甲", maxLv: 10, costBase: 20, costMult: 1.4, stat: (lv) => ({ armor: lv * 1 }) },
+        ATTACK_SPEED: { name: "急速反射 (攻擊速度)", desc: "每級 +3% 武器攻速", maxLv: 10, costBase: 20, costMult: 1.35, stat: (lv) => ({ attackSpeedMult: lv * 0.03 }) }
     };
 
     function saveMetaprogression() {
@@ -703,27 +712,31 @@
     }
 
     const DIFFICULTIES = {
-        DANGER_0: { name: "Danger 0 (普通)", desc: "標準難度。怪物屬性與刷怪頻率正常。", hpMult: 1.0, dmgMult: 1.0, spawnSpeed: 1.0 },
-        DANGER_1: { name: "Danger 1 (進階)", desc: "挑戰難度。怪物生命值 +25%，傷害 +20%，刷新更頻繁。", hpMult: 1.25, dmgMult: 1.2, spawnSpeed: 1.25 },
-        DANGER_2: { name: "Danger 2 (噩夢)", desc: "極限噩夢。怪物生命值 +60%，傷害 +50%，Boss 觸發第二階段二重彈幕狂暴！", hpMult: 1.6, dmgMult: 1.5, spawnSpeed: 1.5 }
+        DANGER_0: { name: "Danger 0 (普通)", desc: "標準難度。怪物屬性正常。", hpMult: 1.0, dmgMult: 1.0, spawnSpeed: 1.0 },
+        DANGER_1: { name: "Danger 1 (進階)", desc: "挑戰難度。怪物血量+25%，傷害+20%。", hpMult: 1.25, dmgMult: 1.2, spawnSpeed: 1.25 },
+        DANGER_2: { name: "Danger 2 (噩夢)", desc: "極限噩夢。怪物血量+60%，傷害+50%，第10波Boss狂暴！", hpMult: 1.6, dmgMult: 1.5, spawnSpeed: 1.5 }
     };
 
     const CHARACTERS = {
         RANGER: { name: "遊俠 (Ranger)", desc: "遠程專家。傷害 +15%，但最大血量 -10。", startWeapon: 'PISTOL', apply: (p) => { p.dmgMult += 0.15; p.maxHp -= 10; p.hp = p.maxHp; } },
-        BERSERKER: { name: "狂戰士 (Berserker)", desc: "近戰格鬥家。生命偷取 +5%，但護甲 -3。", startWeapon: 'SWORD', apply: (p) => { p.lifeSteal += 0.05; p.armor -= 3; } },
-        ENGINEER: { name: "工程師 (Engineer)", desc: "建造大師。工程學 +10，開局定期搭建射擊炮台。", startWeapon: 'WRENCH', apply: (p) => { p.engineering += 10; } },
-        ENTREPRENEUR: { name: "企業家 (Entrepreneur)", desc: "經濟巨頭。初始持有 50 材料，商店刷新費用優惠。", startWeapon: 'SMG', apply: (p) => { p.gold += 50; } }
+        BERSERKER: { name: "狂戰士 (Berserker)", desc: "近戰格鬥家。巨劍專精，生命偷取 +5%，護甲 -3。", startWeapon: 'SWORD', apply: (p) => { p.lifeSteal += 0.05; p.armor -= 3; } },
+        ENGINEER: { name: "工程師 (Engineer)", desc: "建造大師。工程學 +10，定期搭建射擊炮台。", startWeapon: 'WRENCH', apply: (p) => { p.engineering += 10; } },
+        ENTREPRENEUR: { name: "企業家 (Entrepreneur)", desc: "經濟巨頭。初始持有 50 材料，商店刷新優惠。", startWeapon: 'SMG', apply: (p) => { p.gold += 50; } }
     };
 
-    const TIER_COLORS = ['#ffffff', '#3399ff', '#aa33ff', '#ff3333'];
+    const TIER_COLORS = ['#ffffff', '#3399ff', '#ffcc00'];
 
     const WEAPON_TYPES = {
-        PISTOL: { name: "手槍", tag: "槍械", damage: 16, cooldown: 480, range: 310, bulletSpeed: 9.5, color: "#00ffcc", desc: "平衡遠程槍械" },
-        SHOTGUN: { name: "霰彈槍", tag: "槍械", damage: 11, cooldown: 850, range: 220, bulletSpeed: 8.5, pellets: 5, spread: 0.35, color: "#ffaa00", desc: "一次發射5發散射彈丸" },
-        SMG: { name: "衝鋒槍", tag: "槍械", damage: 7, cooldown: 160, range: 250, bulletSpeed: 10, color: "#ffdd00", desc: "極高射速衝鋒槍" },
-        SWORD: { name: "巨劍", tag: "近戰", damage: 38, cooldown: 700, range: 85, arc: Math.PI * 0.75, color: "#ff3366", desc: "近距離弧形揮砍" },
-        ROCKET: { name: "火箭發射器", tag: "重型", damage: 45, cooldown: 1350, range: 360, bulletSpeed: 7.0, aoeRadius: 65, color: "#ff4400", desc: "範圍爆炸火箭" },
-        WRENCH: { name: "扳手", tag: "工程", damage: 20, cooldown: 650, range: 75, arc: Math.PI * 0.6, color: "#33ccff", desc: "敲擊並定期搭建炮台" }
+        PISTOL: { name: "手槍", tag: "槍械", damage: 18, cooldown: 460, range: 320, bulletSpeed: 9.5, color: "#00ffcc", desc: "平衡遠程槍械" },
+        SHOTGUN: { name: "霰彈槍", tag: "槍械", damage: 12, cooldown: 820, range: 230, bulletSpeed: 8.5, pellets: 5, spread: 0.35, color: "#ffaa00", desc: "一次發射5發散射彈丸" },
+        SMG: { name: "衝鋒槍", tag: "槍械", damage: 8, cooldown: 150, range: 260, bulletSpeed: 10, color: "#ffdd00", desc: "極高射速衝鋒槍" },
+        SWORD: { name: "巨劍", tag: "近戰", damage: 68, cooldown: 580, range: 115, arc: Math.PI * 0.9, color: "#ff3366", desc: "大範圍巨額橫掃揮砍 (巨額加強)" },
+        ROCKET: { name: "火箭發射器", tag: "重型", damage: 50, cooldown: 1300, range: 370, bulletSpeed: 7.2, aoeRadius: 70, color: "#ff4400", desc: "範圍爆炸火箭" },
+        WRENCH: { name: "扳手", tag: "工程", damage: 22, cooldown: 620, range: 80, arc: Math.PI * 0.65, color: "#33ccff", desc: "敲擊並定期搭建炮台" },
+        FIRE_STAFF: { name: "火魔杖", tag: "元素", damage: 28, cooldown: 520, range: 280, bulletSpeed: 8.0, color: "#ff5500", desc: "發射高額火元素魔彈" },
+        LIGHTNING_BOW: { name: "雷電弩", tag: "遠程", damage: 32, cooldown: 680, range: 350, bulletSpeed: 12.0, color: "#ffff33", desc: "超高速貫穿極速箭矢" },
+        LASER_RIFLE: { name: "雷射步槍", tag: "槍械", damage: 14, cooldown: 220, range: 330, bulletSpeed: 14.0, color: "#00ffff", desc: "高頻連續光束射擊" },
+        SHURIKEN: { name: "忍者飛鏢", tag: "近戰", damage: 24, cooldown: 380, range: 250, bulletSpeed: 9.0, color: "#aa88ff", desc: "極快冷卻的手裡劍" }
     };
 
     const SHOP_ITEMS = [
@@ -874,6 +887,9 @@
                 if (stat.speedMult) player.speedMult += stat.speedMult;
                 if (stat.critChance) player.critChance += stat.critChance;
                 if (stat.startGold) player.gold += stat.startGold;
+                if (stat.hpRegen) player.hpRegen += stat.hpRegen;
+                if (stat.armor) player.armor += stat.armor;
+                if (stat.attackSpeedMult) player.attackSpeedMult += stat.attackSpeedMult;
             }
         });
     }
@@ -927,7 +943,7 @@
     }
 
     function addWeapon(template, tier = 1) {
-        if (player.weapons.length < 6) {
+        if (player.weapons.length < 6 && tier <= 3) {
             const id = template.name + "_T" + tier + "_" + Math.random();
             const weap = {
                 ...template,
@@ -944,7 +960,7 @@
 
     function startWave(wave) {
         currentWave = wave;
-        waveTimer = 25 + wave * 5;
+        waveTimer = 25 + wave * 3;
         enemies = [];
         bullets = [];
         gems = [];
@@ -993,7 +1009,7 @@
             saveMetaprogression();
         }
 
-        if (currentWave >= 5) {
+        if (currentWave >= TOTAL_WAVES) {
             gameState = 'VICTORY';
             document.getElementById('hud').classList.add('hidden');
             renderEndAnalytics('victory-stats-table-container', 'v-sum-dps', 'v-sum-kills', 'v-sum-crystals');
@@ -1011,7 +1027,7 @@
         Object.values(weaponStats).forEach(s => totalDmg += s.damage);
 
         const avgDps = totalCombatTime > 0 ? Math.round(totalDmg / totalCombatTime) : 0;
-        const earnedCrystals = Math.round(currentWave * 12 + player.gold * 0.2);
+        const earnedCrystals = Math.round(currentWave * 15 + player.gold * 0.25);
 
         metaprogression.crystals += earnedCrystals;
         saveMetaprogression();
@@ -1069,11 +1085,15 @@
             bonuses.push("槍械x3: 攻速+20%");
         }
         if ((counts['近戰'] || 0) >= 2) {
-            extraDmg += 0.15;
-            bonuses.push("近戰x2: 傷害+15%");
+            extraDmg += 0.18;
+            bonuses.push("近戰x2: 傷害+18%");
         }
         if ((counts['工程'] || 0) >= 2) {
             bonuses.push("工程x2: 建築射速+30%");
+        }
+        if ((counts['元素'] || 0) >= 2) {
+            extraDmg += 0.15;
+            bonuses.push("元素x2: 傷害+15%");
         }
 
         return { bonuses, extraDmg, extraAtSpeed };
@@ -1135,12 +1155,16 @@
             const w1 = player.weapons[selectedCombineIndex];
             const w2 = player.weapons[index];
 
-            if (w1.name === w2.name && w1.tier === w2.tier && w1.tier < 4) {
+            if (w1.name === w2.name && w1.tier === w2.tier && w1.tier < 3) {
                 w1.tier += 1;
                 weaponStats[w1.id].name = `${w1.name} (T${w1.tier})`;
                 player.weapons.splice(index, 1);
                 selectedCombineIndex = null;
-                alert(`合成成功！升級為 Tier ${w1.tier} ${w1.name}！`);
+                alert(`合成成功！升級為 Tier ${w1.tier} ${w1.name} (最高 T3)！`);
+                updateShopStats();
+            } else if (w1.tier >= 3) {
+                alert('該武器已達到最高等級 Tier 3，無法再合成升級！');
+                selectedCombineIndex = null;
                 updateShopStats();
             } else {
                 alert('只能合成兩把名稱相同且品質等級相同的武器！');
@@ -1159,14 +1183,14 @@
             const keys = Object.keys(WEAPON_TYPES);
             const rKey = keys[Math.floor(Math.random() * keys.length)];
             const wTemp = WEAPON_TYPES[rKey];
-            const tier = Math.random() < 0.25 ? 2 : 1;
+            const tier = Math.random() < 0.2 ? 2 : 1;
             choices.push({
                 isWeapon: true,
                 weaponData: wTemp,
                 tier: tier,
                 name: `武器: ${wTemp.name} (T${tier})`,
                 desc: `${wTemp.desc} [${wTemp.tag}]`,
-                price: (28 + currentWave * 5) * tier,
+                price: (26 + currentWave * 4) * tier,
                 tierColor: TIER_COLORS[tier - 1]
             });
         }
@@ -1272,9 +1296,9 @@
         let enemyType = 'NORMAL';
 
         if (currentWave >= 2 && rand < 0.25) enemyType = 'FAST';
-        if (currentWave >= 2 && rand > 0.75) enemyType = 'RANGED';
-        if (currentWave >= 3 && rand > 0.85) enemyType = 'TANK';
-        if (currentWave === 5 && enemies.filter(e => e.type === 'BOSS').length === 0 && Math.random() < 0.15) enemyType = 'BOSS';
+        if (currentWave >= 3 && rand > 0.75) enemyType = 'RANGED';
+        if (currentWave >= 5 && rand > 0.85) enemyType = 'TANK';
+        if (currentWave === 10 && enemies.filter(e => e.type === 'BOSS').length === 0 && Math.random() < 0.15) enemyType = 'BOSS';
 
         let enemy = {
             x, y,
@@ -1311,12 +1335,12 @@
             enemy.exp = 3;
         } else if (enemyType === 'BOSS') {
             enemy.speed = 1.1;
-            enemy.radius = 38;
-            enemy.hp = (500 + currentWave * 300) * diff.hpMult;
+            enemy.radius = 40;
+            enemy.hp = (700 + currentWave * 350) * diff.hpMult;
             enemy.maxHp = enemy.hp;
-            enemy.damage = 22 * diff.dmgMult;
+            enemy.damage = 25 * diff.dmgMult;
             enemy.color = '#c0392b';
-            enemy.exp = 20;
+            enemy.exp = 25;
         }
 
         enemies.push(enemy);
@@ -1369,7 +1393,7 @@
 
         const diff = DIFFICULTIES[selectedDiffKey];
         spawnTimer += dt;
-        const spawnInterval = Math.max(0.2, (1.1 - currentWave * 0.15) / diff.spawnSpeed);
+        const spawnInterval = Math.max(0.18, (1.1 - currentWave * 0.10) / diff.spawnSpeed);
         if (spawnTimer >= spawnInterval) {
             spawnTimer = 0;
             spawnEnemy();
@@ -1382,7 +1406,7 @@
         const nowMs = performance.now();
 
         player.weapons.forEach((weapon) => {
-            const actualCooldown = (weapon.cooldown / Math.pow(1.2, weapon.tier - 1)) / finalAtSpeed;
+            const actualCooldown = (weapon.cooldown / Math.pow(1.25, weapon.tier - 1)) / finalAtSpeed;
             if (nowMs - weapon.lastShot >= actualCooldown && enemies.length > 0) {
                 let nearest = null;
                 let minDist = weapon.range;
@@ -1576,7 +1600,7 @@
     function fireWeapon(weapon, target, dmgMult) {
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
         const isCrit = Math.random() < player.critChance;
-        const tierBonus = 1 + (weapon.tier - 1) * 0.4;
+        const tierBonus = 1 + (weapon.tier - 1) * 0.45;
         const baseDmg = weapon.damage * dmgMult * tierBonus;
         const finalDmg = Math.round(isCrit ? baseDmg * 2 : baseDmg);
 
@@ -1595,14 +1619,14 @@
                     let diff = Math.abs(eAngle - angle);
                     if (diff > Math.PI) diff = Math.PI * 2 - diff;
                     if (diff <= weapon.arc / 2) {
-                        damageEnemy(e, finalDmg, isCrit, Math.cos(angle) * 4, Math.sin(angle) * 4, weapon.id);
+                        damageEnemy(e, finalDmg, isCrit, Math.cos(angle) * 6, Math.sin(angle) * 6, weapon.id);
                     }
                 }
             });
 
             particles.push({
-                x: player.x + Math.cos(angle) * 30,
-                y: player.y + Math.sin(angle) * 30,
+                x: player.x + Math.cos(angle) * 35,
+                y: player.y + Math.sin(angle) * 35,
                 vx: 0, vy: 0,
                 radius: weapon.range,
                 color: weapon.color,

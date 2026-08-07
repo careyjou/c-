@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>土豆大戰 Brotato Ultra Master</title>
+    <title>土豆大戰 Brotato Metaprogression & Analytics Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,7 +12,7 @@
             user-select: none;
         }
         body {
-            background-color: #121218;
+            background-color: #101014;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -23,17 +23,17 @@
         }
         #game-container {
             position: relative;
-            width: 980px;
-            height: 700px;
-            box-shadow: 0 0 35px rgba(0,0,0,0.95);
+            width: 1000px;
+            height: 720px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.95);
             border-radius: 14px;
             overflow: hidden;
-            background: #1c1c28;
+            background: #181824;
             border: 2px solid #33334d;
         }
         canvas {
             display: block;
-            background: #252836;
+            background: #222534;
         }
         .overlay {
             position: absolute;
@@ -41,7 +41,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(12, 12, 18, 0.94);
+            background: rgba(10, 10, 16, 0.94);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -53,7 +53,7 @@
             display: none !important;
         }
         h1 {
-            font-size: 38px;
+            font-size: 36px;
             color: #ffcc00;
             text-shadow: 3px 3px 0 #996600;
             margin-bottom: 6px;
@@ -61,7 +61,7 @@
         p {
             font-size: 14px;
             color: #bbb;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             text-align: center;
             line-height: 1.4;
         }
@@ -84,6 +84,10 @@
         button:active {
             transform: scale(0.98);
         }
+        .secondary-btn {
+            background: linear-gradient(135deg, #3399ff, #0055cc);
+            box-shadow: 0 4px 10px rgba(0, 85, 204, 0.4);
+        }
 
         /* Top HUD */
         #hud {
@@ -99,15 +103,15 @@
         }
         .hud-box {
             background: rgba(0, 0, 0, 0.75);
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.15);
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
         }
         .hp-bar-bg {
-            width: 150px;
-            height: 16px;
+            width: 140px;
+            height: 15px;
             background: #333;
             border-radius: 8px;
             overflow: hidden;
@@ -123,7 +127,7 @@
             transition: width 0.1s ease;
         }
         .dash-cd-bg {
-            width: 80px;
+            width: 70px;
             height: 10px;
             background: #444;
             border-radius: 5px;
@@ -141,45 +145,45 @@
         /* Selection Grids */
         .select-section {
             width: 100%;
-            max-width: 860px;
-            margin-bottom: 12px;
+            max-width: 880px;
+            margin-bottom: 10px;
         }
         .section-title {
-            font-size: 15px;
+            font-size: 14px;
             color: #ffcc00;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-align: left;
         }
         .grid-2col {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
         .grid-3col {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
         .select-card {
-            background: #252538;
+            background: #222233;
             border: 2px solid #444466;
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px 12px;
             cursor: pointer;
             transition: all 0.2s;
             text-align: left;
         }
         .select-card:hover, .select-card.selected {
             border-color: #ffcc00;
-            background: #32324e;
+            background: #2d2d48;
             transform: translateY(-2px);
         }
         .card-name {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             color: #00ffcc;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .card-desc {
             font-size: 12px;
@@ -187,10 +191,109 @@
             line-height: 1.3;
         }
 
+        /* Metaprogression / Talent Tree Overlay */
+        #talent-modal {
+            width: 820px;
+            height: 560px;
+            background: #161622;
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .talent-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .talent-card {
+            background: #222236;
+            border: 1px solid #444466;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .talent-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        .talent-level {
+            font-size: 12px;
+            color: #00ffcc;
+            margin-top: 2px;
+        }
+
+        /* Analytics & End Game Stats Table */
+        .analytics-modal {
+            width: 860px;
+            max-height: 580px;
+            background: #161622;
+            border: 2px solid #ffaa00;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .summary-card {
+            background: #222236;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .summary-val {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00ffcc;
+        }
+        .summary-lbl {
+            font-size: 11px;
+            color: #aaa;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #33334d;
+            padding: 8px 10px;
+            text-align: center;
+        }
+        .stats-table th {
+            background: #222238;
+            color: #ffcc00;
+        }
+        .bar-container {
+            width: 100%;
+            height: 12px;
+            background: #333;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffcc, #ff0055);
+        }
+
         /* Shop UI */
         #shop-modal {
-            width: 920px;
-            height: 620px;
+            width: 940px;
+            height: 640px;
             background: #181824;
             border: 2px solid #ffcc00;
             border-radius: 12px;
@@ -222,18 +325,6 @@
             flex-direction: column;
             gap: 6px;
             overflow-y: auto;
-        }
-        .stats-title {
-            color: #ffcc00;
-            font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 2px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 2px;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
         }
         .shop-right {
             flex: 1;
@@ -317,30 +408,13 @@
             border-top: 2px solid #2d2d42;
             padding-top: 8px;
         }
-        .stats-table {
-            width: 100%;
-            max-width: 600px;
-            border-collapse: collapse;
-            margin: 12px 0;
-            font-size: 13px;
-        }
-        .stats-table th, .stats-table td {
-            border: 1px solid #444;
-            padding: 6px 12px;
-            text-align: center;
-        }
-        .stats-table th {
-            background: #222238;
-            color: #ffcc00;
-        }
     </style>
 </head>
 <body>
 
 <div id="game-container">
-    <canvas id="gameCanvas" width="980" height="700"></canvas>
+    <canvas id="gameCanvas" width="1000" height="720"></canvas>
 
-    <!-- Top HUD -->
     <div id="hud" class="hidden">
         <div class="hud-box">
             血量:
@@ -355,14 +429,13 @@
             第 <span id="wave-num">1</span> 波 | <span id="diff-label">Danger 0</span> | 倒數: <span id="wave-timer">30</span> 秒
         </div>
         <div class="hud-box" style="color: #ffcc00;">
-            材料: <span id="gold-count">0</span>
+            材料: <span id="gold-count">0</span> | 晶石: <span id="crystal-count">0</span>
         </div>
     </div>
 
-    <!-- Start / Selection Screen -->
     <div id="start-screen" class="overlay">
-        <h1>土豆大戰 Brotato Ultra Master</h1>
-        <p>WASD / 方向鍵移動 | 空白鍵 (Space) 觸發無敵衝刺 | 武器自動射擊</p>
+        <h1>土豆大戰 Metaprogression & Analytics</h1>
+        <p>WASD 移動 | 空白鍵 (Space) 無敵衝刺 | 自動射擊 | 局外成長永久留存</p>
         
         <div class="select-section">
             <div class="section-title">1. 選擇遊戲難度 (Difficulty)</div>
@@ -374,29 +447,89 @@
             <div class="grid-2col" id="char-grid"></div>
         </div>
 
-        <div style="display:flex; gap:16px; align-items:center;">
-            <button id="start-btn">開始出征</button>
-            <span style="font-size:12px; color:#888;">歷史最高記錄: 第 <span id="best-wave">0</span> 波</span>
+        <div style="display:flex; gap:16px; align-items:center; margin-top:8px;">
+            <button id="start-btn">開始冒險</button>
+            <button id="talent-btn" class="secondary-btn">天賦研發 / 局外成長</button>
+        </div>
+        <div style="font-size:12px; color:#aaa; margin-top:10px;">
+            累積記憶晶石: <span id="menu-crystals" style="color:#00ffcc; font-weight:bold;">0</span> 顆 | 歷史最高紀錄: 第 <span id="best-wave">0</span> 波
         </div>
     </div>
 
-    <!-- Game Over Overlay -->
+    <div id="talent-screen" class="overlay hidden">
+        <div id="talent-modal">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #33334d; padding-bottom:10px;">
+                <h2>局外永久天賦研究所 (Permanent Talents)</h2>
+                <div style="color:#00ffcc; font-weight:bold;">持有記憶晶石: <span id="talent-crystals">0</span> 顆</div>
+            </div>
+            <div class="talent-grid" id="talent-grid"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top:2px solid #33334d; padding-top:10px;">
+                <button id="reset-talents-btn" style="background:#555577; font-size:13px;">重置所有天賦 (返還晶石)</button>
+                <button id="close-talent-btn">返回主選單</button>
+            </div>
+        </div>
+    </div>
+
     <div id="gameover-screen" class="overlay hidden">
-        <h1 style="color: #ff4444; text-shadow: 3px 3px 0 #880000;">遊戲結束</h1>
-        <p id="gameover-reason">你堅持到了第 1 波！</p>
-        <div id="end-stats-container" style="width:100%; display:flex; justify-content:center;"></div>
-        <button id="restart-btn">重新開始</button>
+        <div class="analytics-modal">
+            <h1 style="color: #ff4444; text-shadow: 3px 3px 0 #880000; text-align:center;">戰鬥結束 - 戰後數據報告</h1>
+            <p id="gameover-reason" style="text-align:center;">你堅持到了第 1 波！</p>
+            
+            <div class="stats-summary-grid">
+                <div class="summary-card">
+                    <div class="summary-val" id="sum-waves">0</div>
+                    <div class="summary-lbl">堅持波次</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="sum-dps">0</div>
+                    <div class="summary-lbl">平均 DPS</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="sum-kills">0</div>
+                    <div class="summary-lbl">總殺敵數</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="sum-crystals" style="color:#ffcc00;">+0</div>
+                    <div class="summary-lbl">獲得記憶晶石</div>
+                </div>
+            </div>
+
+            <div id="end-stats-table-container"></div>
+
+            <button id="restart-btn" style="align-self:center; margin-top:10px;">重新開始</button>
+        </div>
     </div>
 
-    <!-- Victory Screen -->
     <div id="victory-screen" class="overlay hidden">
-        <h1 style="color: #00ffcc; text-shadow: 3px 3px 0 #008888;">全波次完美通關！</h1>
-        <p>你順利擊敗了最終波次的雙階段狂暴 Boss！</p>
-        <div id="victory-stats-container" style="width:100%; display:flex; justify-content:center;"></div>
-        <button id="victory-restart-btn">再玩一次</button>
+        <div class="analytics-modal">
+            <h1 style="color: #00ffcc; text-shadow: 3px 3px 0 #008888; text-align:center;">全波次完美通關 - 戰績報告</h1>
+            <p style="text-align:center;">你擊敗了所有波次與狂暴雙階段 Boss！</p>
+            
+            <div class="stats-summary-grid">
+                <div class="summary-card">
+                    <div class="summary-val" id="v-sum-waves">5</div>
+                    <div class="summary-lbl">堅持波次</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="v-sum-dps">0</div>
+                    <div class="summary-lbl">平均 DPS</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="v-sum-kills">0</div>
+                    <div class="summary-lbl">總殺敵數</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-val" id="v-sum-crystals" style="color:#ffcc00;">+0</div>
+                    <div class="summary-lbl">獲得記憶晶石</div>
+                </div>
+            </div>
+
+            <div id="victory-stats-table-container"></div>
+
+            <button id="victory-restart-btn" style="align-self:center; margin-top:10px;">再玩一次</button>
+        </div>
     </div>
 
-    <!-- Shop Overlay -->
     <div id="shop-screen" class="overlay hidden">
         <div id="shop-modal">
             <div class="shop-header">
@@ -405,7 +538,7 @@
             </div>
             <div class="shop-body">
                 <div class="stats-panel">
-                    <div class="stats-title">玩家屬性</div>
+                    <div class="stats-title">玩家屬性 (局內 + 天賦)</div>
                     <div class="stat-row"><span>最大血量:</span><span id="st-maxhp">100</span></div>
                     <div class="stat-row"><span>生命回復/秒:</span><span id="st-regen">0</span></div>
                     <div class="stat-row"><span>生命偷取:</span><span id="st-lifesteal">0%</span></div>
@@ -538,53 +671,48 @@
     let spawnTimer = 0;
     let rerollCost = 10;
     let screenShake = 0;
+    let totalCombatTime = 0;
 
     let selectedCharKey = 'RANGER';
     let selectedDiffKey = 'DANGER_0';
 
+    let metaprogression = {
+        crystals: parseInt(localStorage.getItem('brotato_crystals') || '0'),
+        bestWave: parseInt(localStorage.getItem('brotato_best_wave') || '0'),
+        talents: JSON.parse(localStorage.getItem('brotato_talents') || '{}')
+    };
+
+    const TALENT_DEFS = {
+        MAX_HP: { name: "基因強化 (最大血量)", desc: "每級增加 +10 初始最大血量", maxLv: 5, costBase: 20, costMult: 1.5, stat: (lv) => ({ maxHp: lv * 10 }) },
+        DAMAGE: { name: "戰鬥本能 (傷害加成)", desc: "每級提升 +5% 所有傷害", maxLv: 5, costBase: 25, costMult: 1.5, stat: (lv) => ({ dmgMult: lv * 0.05 }) },
+        SPEED: { name: "敏捷訓練 (移動速度)", desc: "每級提升 +4% 移動速度", maxLv: 5, costBase: 20, costMult: 1.4, stat: (lv) => ({ speedMult: lv * 0.04 }) },
+        CRIT: { name: "精準感官 (暴擊率)", desc: "每級增加 +3% 初始暴擊率", maxLv: 5, costBase: 30, costMult: 1.6, stat: (lv) => ({ critChance: lv * 0.03 }) },
+        START_GOLD: { name: "財富積累 (初始材料)", desc: "每級開局額外獲得 +20 材料", maxLv: 5, costBase: 15, costMult: 1.4, stat: (lv) => ({ startGold: lv * 20 }) }
+    };
+
+    function saveMetaprogression() {
+        localStorage.setItem('brotato_crystals', metaprogression.crystals);
+        localStorage.setItem('brotato_best_wave', metaprogression.bestWave);
+        localStorage.setItem('brotato_talents', JSON.stringify(metaprogression.talents));
+        updateMenuMetaprogressionUI();
+    }
+
+    function updateMenuMetaprogressionUI() {
+        document.getElementById('menu-crystals').innerText = metaprogression.crystals;
+        document.getElementById('best-wave').innerText = metaprogression.bestWave;
+    }
+
     const DIFFICULTIES = {
-        DANGER_0: {
-            name: "Danger 0 (普通)",
-            desc: "標準難度。怪物屬性與刷怪頻率正常。",
-            hpMult: 1.0, dmgMult: 1.0, spawnSpeed: 1.0
-        },
-        DANGER_1: {
-            name: "Danger 1 (進階)",
-            desc: "挑戰難度。怪物生命值 +25%，傷害 +20%，刷新更頻繁。",
-            hpMult: 1.25, dmgMult: 1.2, spawnSpeed: 1.25
-        },
-        DANGER_2: {
-            name: "Danger 2 (噩夢)",
-            desc: "極限噩夢。怪物生命值 +60%，傷害 +50%，Boss 將觸發第二階段二重彈幕狂暴！",
-            hpMult: 1.6, dmgMult: 1.5, spawnSpeed: 1.5
-        }
+        DANGER_0: { name: "Danger 0 (普通)", desc: "標準難度。怪物屬性與刷怪頻率正常。", hpMult: 1.0, dmgMult: 1.0, spawnSpeed: 1.0 },
+        DANGER_1: { name: "Danger 1 (進階)", desc: "挑戰難度。怪物生命值 +25%，傷害 +20%，刷新更頻繁。", hpMult: 1.25, dmgMult: 1.2, spawnSpeed: 1.25 },
+        DANGER_2: { name: "Danger 2 (噩夢)", desc: "極限噩夢。怪物生命值 +60%，傷害 +50%，Boss 觸發第二階段二重彈幕狂暴！", hpMult: 1.6, dmgMult: 1.5, spawnSpeed: 1.5 }
     };
 
     const CHARACTERS = {
-        RANGER: {
-            name: "遊俠 (Ranger)",
-            desc: "遠程專家。傷害 +15%，但最大血量 -10。",
-            startWeapon: 'PISTOL',
-            apply: (p) => { p.dmgMult += 0.15; p.maxHp -= 10; p.hp = p.maxHp; }
-        },
-        BERSERKER: {
-            name: "狂戰士 (Berserker)",
-            desc: "近戰格鬥家。生命偷取 +5%，但護甲 -3。",
-            startWeapon: 'SWORD',
-            apply: (p) => { p.lifeSteal += 0.05; p.armor -= 3; }
-        },
-        ENGINEER: {
-            name: "工程師 (Engineer)",
-            desc: "建造大師。工程學 +10，開局定期搭建射擊炮台。",
-            startWeapon: 'WRENCH',
-            apply: (p) => { p.engineering += 10; }
-        },
-        ENTREPRENEUR: {
-            name: "企業家 (Entrepreneur)",
-            desc: "經濟巨頭。初始持有 50 材料，商店刷新費用優惠。",
-            startWeapon: 'SMG',
-            apply: (p) => { p.gold += 50; }
-        }
+        RANGER: { name: "遊俠 (Ranger)", desc: "遠程專家。傷害 +15%，但最大血量 -10。", startWeapon: 'PISTOL', apply: (p) => { p.dmgMult += 0.15; p.maxHp -= 10; p.hp = p.maxHp; } },
+        BERSERKER: { name: "狂戰士 (Berserker)", desc: "近戰格鬥家。生命偷取 +5%，但護甲 -3。", startWeapon: 'SWORD', apply: (p) => { p.lifeSteal += 0.05; p.armor -= 3; } },
+        ENGINEER: { name: "工程師 (Engineer)", desc: "建造大師。工程學 +10，開局定期搭建射擊炮台。", startWeapon: 'WRENCH', apply: (p) => { p.engineering += 10; } },
+        ENTREPRENEUR: { name: "企業家 (Entrepreneur)", desc: "經濟巨頭。初始持有 50 材料，商店刷新費用優惠。", startWeapon: 'SMG', apply: (p) => { p.gold += 50; } }
     };
 
     const TIER_COLORS = ['#ffffff', '#3399ff', '#aa33ff', '#ff3333'];
@@ -641,10 +769,8 @@
     let turrets = [];
 
     let weaponStats = {};
+    let totalKills = 0;
     let selectedCombineIndex = null;
-
-    const savedBest = localStorage.getItem('brotato_best_wave') || 0;
-    document.getElementById('best-wave').innerText = savedBest;
 
     function renderDiffGrid() {
         const grid = document.getElementById('diff-grid');
@@ -657,10 +783,7 @@
                 <div class="card-name">${d.name}</div>
                 <div class="card-desc">${d.desc}</div>
             `;
-            card.onclick = () => {
-                selectedDiffKey = key;
-                renderDiffGrid();
-            };
+            card.onclick = () => { selectedDiffKey = key; renderDiffGrid(); };
             grid.appendChild(card);
         });
     }
@@ -676,11 +799,82 @@
                 <div class="card-name">${c.name}</div>
                 <div class="card-desc">${c.desc}</div>
             `;
-            card.onclick = () => {
-                selectedCharKey = key;
-                renderCharGrid();
-            };
+            card.onclick = () => { selectedCharKey = key; renderCharGrid(); };
             grid.appendChild(card);
+        });
+    }
+
+    function renderTalentTree() {
+        const grid = document.getElementById('talent-grid');
+        grid.innerHTML = '';
+        document.getElementById('talent-crystals').innerText = metaprogression.crystals;
+
+        Object.keys(TALENT_DEFS).forEach(key => {
+            const t = TALENT_DEFS[key];
+            const curLv = metaprogression.talents[key] || 0;
+            const isMax = curLv >= t.maxLv;
+            const cost = Math.round(t.costBase * Math.pow(t.costMult, curLv));
+
+            const card = document.createElement('div');
+            card.className = 'talent-card';
+            card.innerHTML = `
+                <div>
+                    <div class="talent-title">${t.name}</div>
+                    <div style="font-size:12px; color:#aaa; margin-top:2px;">${t.desc}</div>
+                    <div class="talent-level">等級: ${curLv} / ${t.maxLv}</div>
+                </div>
+                <div>
+                    <button class="upgrade-btn" style="padding:6px 14px; font-size:12px;" ${isMax ? 'disabled' : ''}>
+                        ${isMax ? '已滿級' : `升級 (${cost} 晶石)`}
+                    </button>
+                </div>
+            `;
+
+            const btn = card.querySelector('.upgrade-btn');
+            if (!isMax) {
+                btn.onclick = () => {
+                    if (metaprogression.crystals >= cost) {
+                        metaprogression.crystals -= cost;
+                        metaprogression.talents[key] = curLv + 1;
+                        saveMetaprogression();
+                        renderTalentTree();
+                    } else {
+                        alert('記憶晶石不足！');
+                    }
+                };
+            }
+
+            grid.appendChild(card);
+        });
+    }
+
+    document.getElementById('reset-talents-btn').onclick = () => {
+        let refunded = 0;
+        Object.keys(TALENT_DEFS).forEach(key => {
+            const t = TALENT_DEFS[key];
+            const curLv = metaprogression.talents[key] || 0;
+            for (let l = 0; l < curLv; l++) {
+                refunded += Math.round(t.costBase * Math.pow(t.costMult, l));
+            }
+        });
+        metaprogression.crystals += refunded;
+        metaprogression.talents = {};
+        saveMetaprogression();
+        renderTalentTree();
+        alert(`已成功重置天賦，返還了 ${refunded} 顆記憶晶石！`);
+    };
+
+    function applyTalentsToPlayer() {
+        Object.keys(metaprogression.talents).forEach(key => {
+            const lv = metaprogression.talents[key];
+            if (lv > 0 && TALENT_DEFS[key]) {
+                const stat = TALENT_DEFS[key].stat(lv);
+                if (stat.maxHp) { player.maxHp += stat.maxHp; player.hp += stat.maxHp; }
+                if (stat.dmgMult) player.dmgMult += stat.dmgMult;
+                if (stat.speedMult) player.speedMult += stat.speedMult;
+                if (stat.critChance) player.critChance += stat.critChance;
+                if (stat.startGold) player.gold += stat.startGold;
+            }
         });
     }
 
@@ -703,6 +897,8 @@
 
     function initGame() {
         currentWave = 1;
+        totalCombatTime = 0;
+        totalKills = 0;
         player.hp = 100;
         player.maxHp = 100;
         player.hpRegen = 0.2;
@@ -718,6 +914,8 @@
         player.weapons = [];
         turrets = [];
         weaponStats = {};
+
+        applyTalentsToPlayer();
 
         const charDef = CHARACTERS[selectedCharKey];
         addWeapon(WEAPON_TYPES[charDef.startWeapon], 1);
@@ -757,6 +955,7 @@
         gameState = 'PLAYING';
 
         document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('talent-screen').classList.add('hidden');
         document.getElementById('shop-screen').classList.add('hidden');
         document.getElementById('gameover-screen').classList.add('hidden');
         document.getElementById('victory-screen').classList.add('hidden');
@@ -769,6 +968,7 @@
         timerInterval = setInterval(() => {
             if (gameState === 'PLAYING') {
                 waveTimer--;
+                totalCombatTime += 1;
                 document.getElementById('wave-timer').innerText = waveTimer;
                 
                 if (player.engineering > 0 && waveTimer % 10 === 0) {
@@ -788,15 +988,15 @@
     }
 
     function completeWave() {
-        if (currentWave > savedBest) {
-            localStorage.setItem('brotato_best_wave', currentWave);
-            document.getElementById('best-wave').innerText = currentWave;
+        if (currentWave > metaprogression.bestWave) {
+            metaprogression.bestWave = currentWave;
+            saveMetaprogression();
         }
 
         if (currentWave >= 5) {
             gameState = 'VICTORY';
             document.getElementById('hud').classList.add('hidden');
-            renderEndStats('victory-stats-container');
+            renderEndAnalytics('victory-stats-table-container', 'v-sum-dps', 'v-sum-kills', 'v-sum-crystals');
             document.getElementById('victory-screen').classList.remove('hidden');
             return;
         }
@@ -806,10 +1006,19 @@
         openShop();
     }
 
-    function renderEndStats(containerId) {
-        const container = document.getElementById(containerId);
+    function renderEndAnalytics(tableContainerId, dpsElId, killsElId, crystalsElId) {
         let totalDmg = 0;
         Object.values(weaponStats).forEach(s => totalDmg += s.damage);
+
+        const avgDps = totalCombatTime > 0 ? Math.round(totalDmg / totalCombatTime) : 0;
+        const earnedCrystals = Math.round(currentWave * 12 + player.gold * 0.2);
+
+        metaprogression.crystals += earnedCrystals;
+        saveMetaprogression();
+
+        document.getElementById(dpsElId).innerText = avgDps;
+        document.getElementById(killsElId).innerText = totalKills;
+        document.getElementById(crystalsElId).innerText = `+${earnedCrystals}`;
 
         let html = `
             <table class="stats-table">
@@ -817,7 +1026,7 @@
                     <tr>
                         <th>武器名稱</th>
                         <th>累積總傷害</th>
-                        <th>傷害占比</th>
+                        <th>傷害占比分析</th>
                         <th>擊殺個數</th>
                     </tr>
                 </thead>
@@ -830,14 +1039,19 @@
                 <tr>
                     <td>${s.name}</td>
                     <td>${s.damage}</td>
-                    <td>${pct}%</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="bar-container"><div class="bar-fill" style="width:${pct}%"></div></div>
+                            <span style="font-size:11px; width:30px;">${pct}%</span>
+                        </div>
+                    </td>
                     <td>${s.kills}</td>
                 </tr>
             `;
         });
 
         html += `</tbody></table>`;
-        container.innerHTML = html;
+        document.getElementById(tableContainerId).innerHTML = html;
     }
 
     function getSynergies() {
@@ -1020,10 +1234,29 @@
         }
     };
 
+    document.getElementById('talent-btn').onclick = () => {
+        renderTalentTree();
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('talent-screen').classList.remove('hidden');
+    };
+
+    document.getElementById('close-talent-btn').onclick = () => {
+        document.getElementById('talent-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+    };
+
     document.getElementById('next-wave-btn').onclick = () => startWave(currentWave + 1);
     document.getElementById('start-btn').onclick = () => initGame();
-    document.getElementById('restart-btn').onclick = () => initGame();
-    document.getElementById('victory-restart-btn').onclick = () => initGame();
+    document.getElementById('restart-btn').onclick = () => {
+        document.getElementById('gameover-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        updateMenuMetaprogressionUI();
+    };
+    document.getElementById('victory-restart-btn').onclick = () => {
+        document.getElementById('victory-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        updateMenuMetaprogressionUI();
+    };
 
     function spawnEnemy() {
         const side = Math.floor(Math.random() * 4);
@@ -1291,7 +1524,8 @@
                         gameState = 'GAMEOVER';
                         document.getElementById('gameover-reason').innerText = `你堅持到了第 ${currentWave} 波！`;
                         document.getElementById('hud').classList.add('hidden');
-                        renderEndStats('end-stats-container');
+                        renderEndAnalytics('end-stats-table-container', 'sum-dps', 'sum-kills', 'sum-crystals');
+                        document.getElementById('sum-waves').innerText = currentWave;
                         document.getElementById('gameover-screen').classList.remove('hidden');
                     }
                 }
@@ -1333,6 +1567,7 @@
         document.getElementById('hp-fill').style.width = hpPct + '%';
         document.getElementById('hp-text').innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
         document.getElementById('gold-count').innerText = player.gold;
+        document.getElementById('crystal-count').innerText = metaprogression.crystals;
 
         const dashPct = Math.min(100, ((player.dashMaxCd - Math.max(0, player.dashCooldown)) / player.dashMaxCd) * 100);
         document.getElementById('dash-fill').style.width = dashPct + '%';
@@ -1427,6 +1662,7 @@
 
         if (enemy.hp <= 0) {
             AudioEngine.playHit();
+            totalKills += 1;
             if (sourceId && weaponStats[sourceId]) {
                 weaponStats[sourceId].kills += 1;
             }
@@ -1460,10 +1696,10 @@
     }
 
     function renderBackground() {
-        ctx.fillStyle = '#1c1c28';
+        ctx.fillStyle = '#181824';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = '#252538';
+        ctx.strokeStyle = '#222238';
         ctx.lineWidth = 1;
         for (let x = 0; x < canvas.width; x += 40) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -1592,6 +1828,7 @@
 
     renderDiffGrid();
     renderCharGrid();
+    updateMenuMetaprogressionUI();
     requestAnimationFrame(gameLoop);
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Cyberpunk v9.0 (多重難度分級/鑽石倍率系統)</title>
+    <title>How Many Dudes? Cyberpunk v9.2 (天賦/鑽石跨局永久保存修復版)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -275,6 +275,8 @@
         .btn-audio:hover { background: #4338ca; }
         .btn-save { background: #0891b2; }
         .btn-save:hover { background: #0e7490; }
+        .btn-reset { background: #d97706; }
+        .btn-reset:hover { background: #b45309; }
         .btn-talent { background: #0284c7; }
         .btn-talent:hover { background: #0369a1; }
         .btn-battle { background: #dc2626; font-size: 16px; padding: 10px 24px; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
@@ -359,8 +361,8 @@
 </head>
 <body>
 
-    <h1>HOW MANY DUDES? CYBERPUNK v9.0</h1>
-    <div class="subtitle">4 大難度分級 (簡單/普通/困難/噩夢) / 高難度享超高 💎 鑽石倍率獎勵！</div>
+    <h1>HOW MANY DUDES? CYBERPUNK v9.2</h1>
+    <div class="subtitle">💎 鑽石與天賦寶物獨立永久保存！點擊「重新開局」只會重置單局冒險，天賦永遠留存！</div>
 
     <div id="game-container">
         <!-- Relic Choice Modal -->
@@ -379,7 +381,7 @@
 
         <!-- Talent Upgrade Modal -->
         <div id="talent-modal" class="modal-overlay">
-            <div class="modal-title">💎 永久寶物天賦商店</div>
+            <div class="modal-title">💎 永久寶物天賦商店 (跨局永久保留)</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:15px;">消耗過關獲得的鑽石（目前擁有 💎<span id="modal-diamonds">0</span>），購買永久帳號屬性加成：</div>
             <div class="talent-grid" id="talent-grid-container"></div>
             <button class="btn btn-battle" onclick="closeTalentModal()">關閉天賦商店</button>
@@ -435,6 +437,7 @@
                 </div>
                 <div style="display:flex; gap:6px;">
                     <button class="btn btn-talent" onclick="openTalentModal()">💎 天賦寶物</button>
+                    <button class="btn btn-reset" onclick="confirmStartNewRun()">🔄 重新開局</button>
                     <button class="btn btn-save" onclick="saveGameManual()">💾 手動存檔</button>
                     <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效: 開</button>
                     <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
@@ -448,19 +451,34 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到賽博 Dude 戰場！點擊頂部「難度」標籤可切換難度，高難度提供高達 4 倍的 💎 鑽石獎勵！
+            [系統] 歡迎來到賽博 Dude 戰場！鑽石與天賦屬於全域帳號資產，重新開局時只會重置當前冒險，天賦永遠留存！
         </div>
     </div>
 
 <script>
-// Game State
+// Independent Permanent Account Data Key
+var ACCOUNT_STORAGE_KEY = 'dudes_permanent_account_v92';
+var RUN_STORAGE_KEY = 'dudes_current_run_v92';
+
+// Global Account State (Never reset)
+var accountState = {
+    diamonds: 0,
+    talents: {
+        startGoldLevel: 0,
+        allHpLevel: 0,
+        allAtkLevel: 0,
+        bountyBonus: 0
+    }
+};
+
+// Single-Run Session State
 var state = {
     gold: 15,
     diamonds: 0,
     lives: 3,
     wave: 1,
     maxWave: 10,
-    difficulty: 'normal', // 'easy', 'normal', 'hard', 'nightmare'
+    difficulty: 'normal',
     inBattle: false,
     speed: 1,
     audioEnabled: true,
@@ -666,10 +684,111 @@ var currentMousePos = { x: 0, y: 0 };
 
 function init() {
     setupDragAndDrop();
-    loadGameSave();
+    loadAccountData();
+    loadRunSession();
     rerollShop();
     updateUI();
     drawIdleArena();
+}
+
+// 1. Save Permanent Account Data (Diamonds & Talents only)
+function saveAccountData() {
+    try {
+        var acc = {
+            diamonds: accountState.diamonds,
+            talents: accountState.talents
+        };
+        localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(acc));
+    } catch (e) {}
+}
+
+function loadAccountData() {
+    try {
+        var rawAcc = localStorage.getItem(ACCOUNT_STORAGE_KEY);
+        if (rawAcc) {
+            var acc = JSON.parse(rawAcc);
+            accountState.diamonds = acc.diamonds || 0;
+            accountState.talents = acc.talents || accountState.talents;
+        }
+        // Sync to active state
+        state.diamonds = accountState.diamonds;
+        state.talents = accountState.talents;
+        log('💎【全域帳號載入】成功載入 💎' + state.diamonds + ' 鑽石與永久寶物天賦！');
+    } catch (e) {}
+}
+
+// 2. Save Current Single-Run Session Data
+function saveRunSession() {
+    saveAccountData(); // Always keep account data synced
+    try {
+        var runData = {
+            gold: state.gold,
+            lives: state.lives,
+            wave: state.wave,
+            difficulty: state.difficulty,
+            dudes: state.dudes,
+            relics: state.relics,
+            trinkets: state.trinkets,
+            endlessMode: state.endlessMode
+        };
+        localStorage.setItem(RUN_STORAGE_KEY, JSON.stringify(runData));
+    } catch (e) {}
+}
+
+function saveGameManual() {
+    saveRunSession();
+    log('💾【手動存檔成功】冒險進度與全域天賦已即時存檔！');
+}
+
+function loadRunSession() {
+    try {
+        var raw = localStorage.getItem(RUN_STORAGE_KEY);
+        if (raw) {
+            var data = JSON.parse(raw);
+            if (confirm('發現先前未完成的關卡（第 ' + data.wave + ' 波，金幣 $' + data.gold + '），是否繼續冒險？')) {
+                state.gold = data.gold;
+                state.lives = data.lives;
+                state.wave = data.wave;
+                state.difficulty = data.difficulty || 'normal';
+                state.dudes = data.dudes || [];
+                state.relics = data.relics || [];
+                state.trinkets = data.trinkets || [];
+                state.endlessMode = data.endlessMode || false;
+                log('💾【續局成功】已恢復當前單局戰鬥進度！');
+            } else {
+                startNewRun();
+            }
+        } else {
+            startNewRun();
+        }
+    } catch (e) {
+        startNewRun();
+    }
+}
+
+function confirmStartNewRun() {
+    if (confirm('是否要開啟新的冒險？（當前單局進度將被重置，但 💎鑽石 與 永久天賦 100% 完整保留！）')) {
+        startNewRun();
+        rerollShop();
+        updateUI();
+        drawIdleArena();
+    }
+}
+
+function startNewRun() {
+    var startGoldBonus = (accountState.talents.startGoldLevel || 0) * 3;
+    state.gold = 15 + startGoldBonus;
+    state.lives = 3;
+    state.wave = 1;
+    state.dudes = [];
+    state.relics = [];
+    state.trinkets = [];
+    state.endlessMode = false;
+    state.diamonds = accountState.diamonds;
+    state.talents = accountState.talents;
+
+    log('🎮【新局開啟】已為您載入永久天賦加成！初始開局金幣 $' + state.gold + '。');
+    saveRunSession();
 }
 
 function showDifficultyModal() {
@@ -687,7 +806,7 @@ function showDifficultyModal() {
                 document.getElementById('difficulty-modal').classList.remove('show');
                 log('⚔️ 難度已切換為：【' + cfg.name + '】！' + cfg.desc);
                 updateUI();
-                saveGameManual();
+                saveRunSession();
             };
             card.innerHTML = '<div class="card-name" style="color:#00f0ff;">' + cfg.name + '</div><div class="card-desc">' + cfg.desc + '</div>';
             container.appendChild(card);
@@ -695,47 +814,6 @@ function showDifficultyModal() {
     }
 
     document.getElementById('difficulty-modal').classList.add('show');
-}
-
-function saveGameManual() {
-    try {
-        var saveData = {
-            gold: state.gold,
-            diamonds: state.diamonds,
-            lives: state.lives,
-            wave: state.wave,
-            difficulty: state.difficulty,
-            dudes: state.dudes,
-            relics: state.relics,
-            trinkets: state.trinkets,
-            endlessMode: state.endlessMode,
-            talents: state.talents
-        };
-        localStorage.setItem('dudes_game_save_v9', JSON.stringify(saveData));
-        log('💾【存檔成功】進度與天賦已記錄至瀏覽器！');
-    } catch (e) {}
-}
-
-function loadGameSave() {
-    try {
-        var raw = localStorage.getItem('dudes_game_save_v9');
-        if (raw) {
-            var data = JSON.parse(raw);
-            if (confirm('發現先前的存檔（第 ' + data.wave + ' 波，金幣 $' + data.gold + '，鑽石 💎' + (data.diamonds||0) + '），是否繼續冒險？')) {
-                state.gold = data.gold;
-                state.diamonds = data.diamonds || 0;
-                state.lives = data.lives;
-                state.wave = data.wave;
-                state.difficulty = data.difficulty || 'normal';
-                state.dudes = data.dudes || [];
-                state.relics = data.relics || [];
-                state.trinkets = data.trinkets || [];
-                state.endlessMode = data.endlessMode || false;
-                state.talents = data.talents || state.talents;
-                log('💾【讀取存檔】成功載入之前的冒險進度！');
-            }
-        }
-    } catch (e) {}
 }
 
 function toggleSpeed() {
@@ -756,7 +834,7 @@ function log(msg) {
 
 function updateUI() {
     document.getElementById('ui-gold').innerText = state.gold;
-    document.getElementById('ui-diamonds').innerText = state.diamonds;
+    document.getElementById('ui-diamonds').innerText = accountState.diamonds;
     document.getElementById('ui-lives').innerText = state.lives;
     document.getElementById('ui-wave').innerText = state.wave + ' / ' + (state.endlessMode ? '∞ 無盡' : state.maxWave);
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
@@ -843,12 +921,12 @@ function updateRelicsUI() {
 }
 
 function openTalentModal() {
-    document.getElementById('modal-diamonds').innerText = state.diamonds;
+    document.getElementById('modal-diamonds').innerText = accountState.diamonds;
     var container = document.getElementById('talent-grid-container');
     container.innerHTML = '';
 
     TALENTS_CONFIG.forEach(function(t) {
-        var lvl = state.talents[t.id] || 0;
+        var lvl = accountState.talents[t.id] || 0;
         var cost = t.costBase + lvl * 10;
         var card = document.createElement('div');
         card.className = 'talent-card';
@@ -878,15 +956,20 @@ function openTalentModal() {
 }
 
 function upgradeTalent(talentId, cost, maxLvl) {
-    if (state.diamonds < cost) {
+    if (accountState.diamonds < cost) {
         alert('鑽石不足！需要 💎' + cost + ' 鑽石。');
         return;
     }
-    state.diamonds -= cost;
-    state.talents[talentId] = (state.talents[talentId] || 0) + 1;
+    accountState.diamonds -= cost;
+    accountState.talents[talentId] = (accountState.talents[talentId] || 0) + 1;
+
+    state.diamonds = accountState.diamonds;
+    state.talents = accountState.talents;
+
     playSound('gold');
-    log('💎【天賦升級】成功解鎖天賦！' + talentId + ' 提升至 Lv ' + state.talents[talentId]);
-    saveGameManual();
+    log('💎【天賦升級成功】' + talentId + ' 提升至 Lv ' + accountState.talents[talentId] + '！跨局永久生效！');
+    saveAccountData();
+    saveRunSession();
     updateUI();
     openTalentModal();
 }
@@ -918,7 +1001,7 @@ function selectRelic(relic) {
     state.relics.push(relic);
     document.getElementById('relic-modal').classList.remove('show');
     log('🔮 成功選擇遺物【' + relic.name + '】！' + relic.desc);
-    saveGameManual();
+    saveRunSession();
     updateUI();
 }
 
@@ -986,7 +1069,7 @@ function showWanderingEventModal() {
         card.onclick = function() {
             if (c.action()) {
                 document.getElementById('event-modal').classList.remove('show');
-                saveGameManual();
+                saveRunSession();
                 updateUI();
                 drawIdleArena();
             }
@@ -1100,7 +1183,7 @@ function sellDude(dude) {
     state.selectedDude = null;
     playSound('gold');
     log('🗑️ 成功出售 ' + dude.name + ' (' + t + '星)！獲得返還金幣 $' + refund + '。');
-    saveGameManual();
+    saveRunSession();
     updateUI();
     drawIdleArena();
 }
@@ -1170,7 +1253,7 @@ function buyDude(index) {
 
     log('成功招募 ' + item.name + '！已放置於 [' + GRID_SLOTS[freeSlot].label + ']。');
     checkAndMergeDudes();
-    saveGameManual();
+    saveRunSession();
     renderShop();
     updateUI();
     drawIdleArena();
@@ -1242,7 +1325,7 @@ function setupDragAndDrop() {
             }
             draggedDude.slotIndex = targetSlot;
             log('已調整站位：' + draggedDude.name + ' 移動至 [' + GRID_SLOTS[targetSlot].label + ']！');
-            saveGameManual();
+            saveRunSession();
         }
 
         draggedDude = null;
@@ -1414,8 +1497,8 @@ function startBattle() {
     var counts = {};
     state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-    var talentHpMult = 1.0 + (state.talents.allHpLevel || 0) * 0.10;
-    var talentAtkMult = 1.0 + (state.talents.allAtkLevel || 0) * 0.10;
+    var talentHpMult = 1.0 + (accountState.talents.allHpLevel || 0) * 0.10;
+    var talentAtkMult = 1.0 + (accountState.talents.allAtkLevel || 0) * 0.10;
 
     var atkBuff = (counts['undead'] >= 2 ? 1.15 : 1.0) * talentAtkMult;
     var hpBuff = (counts['warrior'] >= 2 ? 1.25 : 1.0) * talentHpMult;
@@ -1482,7 +1565,7 @@ function startBattle() {
             atk: Math.round(waveInfo.atk * totalEnemyAtkMult),
             range: 35,
             speed: waveInfo.speed,
-            bounty: (waveInfo.bounty || 1) + (state.talents.bountyBonus || 0),
+            bounty: (waveInfo.bounty || 1) + (accountState.talents.bountyBonus || 0),
             cooldown: 0,
             radius: waveInfo.size,
             color: waveInfo.color,
@@ -1826,7 +1909,11 @@ function endBattle(victory) {
         var diamondReward = Math.ceil(baseDiamonds * diffCfg.diamondMult);
 
         state.gold += reward;
-        state.diamonds += diamondReward;
+        account Math.ceil(baseDiamonds * diffCfg.diamondMult);
+
+        state.gold += reward;
+        accountState.diamonds += diamondReward;
+        state.diamonds = accountState.diamonds;
 
         log('🎉 勝利！獲得金幣 $' + reward + ' 及 💎' + diamondReward + ' 鑽石（難度倍率 x' + diffCfg.diamondMult + '）！');
 
@@ -1842,11 +1929,13 @@ function endBattle(victory) {
             if (state.wave >= state.maxWave && !state.endlessMode) {
                 var grandDiamonds = Math.ceil(10 * diffCfg.diamondMult);
                 log('🏆【通關勝利】恭喜你擊敗破滅之神！獲得 💎' + grandDiamonds + ' 鑽石通關大獎（難度倍率 x' + diffCfg.diamondMult + '）！');
-                state.diamonds += grandDiamonds;
+                accountState.diamonds += grandDiamonds;
+                state.diamonds = accountState.diamonds;
+
                 if (confirm('🏆 恭喜通關《How Many Dudes? Cyberpunk》！是否開啟「無盡生存模式 (Wave 11+)」繼續獲取全局遺物？')) {
                     state.endlessMode = true;
                     state.wave++;
-                    saveGameManual();
+                    saveRunSession();
                     rerollShop();
                     updateUI();
                     drawIdleArena();
@@ -1857,7 +1946,7 @@ function endBattle(victory) {
             }
 
             state.wave++;
-            saveGameManual();
+            saveRunSession();
             rerollShop();
             updateUI();
             drawIdleArena();
@@ -1871,22 +1960,5 @@ function endBattle(victory) {
 
         pendingVictoryCallback = function() {
             if (state.lives <= 0) {
-                log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
-                alert('💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$' + state.gold);
-                localStorage.removeItem('dudes_game_save_v9');
-                location.reload();
-                return;
-            }
-            saveGameManual();
-            updateUI();
-            drawIdleArena();
-        };
-
-        showStatsModal(false);
-    }
-}
-
-window.onload = init;
-</script>
-</body>
-</html>
+                log('💥【GAME OVER】你的 Dude 大軍覆滅了！重新開啟新局，鑽石與天賦已永久為你保留！');
+                alert('💥 Game Over！所有生命已耗盡。已為你完整保存 💎' + account

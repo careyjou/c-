@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Cyberpunk Ultimate (v7.0 賽博科技版)</title>
+    <title>How Many Dudes? Cyberpunk v8.0 (鑽石天賦/無限遺物/5星神級合成)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -52,7 +52,7 @@
             padding: 10px 20px;
             border-radius: 8px;
             margin-bottom: 15px;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
         }
@@ -62,6 +62,7 @@
             gap: 8px;
         }
         .gold { color: #facc15; text-shadow: 0 0 5px #facc15; }
+        .diamond { color: #38bdf8; text-shadow: 0 0 5px #38bdf8; }
         .lives { color: #ff0055; text-shadow: 0 0 5px #ff0055; }
         .wave { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
 
@@ -184,10 +185,28 @@
         .card-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #38bdf8; }
         .card-desc { font-size: 12px; color: #cbd5e1; }
 
+        /* Permanent Talent Upgrades Container */
+        .talent-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 90%;
+            margin-bottom: 15px;
+        }
+        .talent-card {
+            background: #0f172a;
+            border: 1.5px solid #0284c7;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .talent-name { font-weight: bold; font-size: 14px; color: #38bdf8; margin-bottom: 4px; }
+        .talent-desc { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+
         /* Stats Modal Meter Bar */
         .stats-list {
             width: 80%;
-            max-height: 200px;
+            max-height: 180px;
             overflow-y: auto;
             margin-bottom: 15px;
         }
@@ -251,6 +270,8 @@
         .btn-audio:hover { background: #4338ca; }
         .btn-save { background: #0891b2; }
         .btn-save:hover { background: #0e7490; }
+        .btn-talent { background: #0284c7; }
+        .btn-talent:hover { background: #0369a1; }
         .btn-battle { background: #dc2626; font-size: 16px; padding: 10px 24px; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
         .btn-battle:hover { background: #b91c1c; }
         .btn-reroll { background: #7c3aed; }
@@ -333,8 +354,8 @@
 </head>
 <body>
 
-    <h1>HOW MANY DUDES? CYBERPUNK</h1>
-    <div class="subtitle">v7.0 賽博霓虹旗艦版：6 大家族 / 12 單位陣型 / 存檔 / 無盡模式 / 個體飾品裝備</div>
+    <h1>HOW MANY DUDES? CYBERPUNK v8.0</h1>
+    <div class="subtitle">通關獲取💎鑽石購買永久寶物天賦 / 無限模式無限獲取全局遺物 / 支援5星神級合成！</div>
 
     <div id="game-container">
         <!-- Relic Choice Modal -->
@@ -351,6 +372,14 @@
             <div class="card-choices" id="event-choices-container"></div>
         </div>
 
+        <!-- Talent Upgrade Modal -->
+        <div id="talent-modal" class="modal-overlay">
+            <div class="modal-title">💎 永久寶物天賦商店</div>
+            <div style="color:#aaa; font-size:14px; margin-bottom:15px;">消耗過關獲得的鑽石（目前擁有 💎<span id="modal-diamonds">0</span>），購買永久帳號屬性加成：</div>
+            <div class="talent-grid" id="talent-grid-container"></div>
+            <button class="btn btn-battle" onclick="closeTalentModal()">關閉天賦商店</button>
+        </div>
+
         <!-- Damage Meter Modal -->
         <div id="stats-modal" class="modal-overlay">
             <div class="modal-title" id="stats-modal-title">📊 戰鬥結算與數據統計</div>
@@ -363,6 +392,7 @@
         <div class="top-bar">
             <div class="stat-item wave">🌊 波次: <span id="ui-wave">1 / 10</span></div>
             <div class="stat-item gold">💰 金幣: $<span id="ui-gold">15</span></div>
+            <div class="stat-item diamond">💎 鑽石: <span id="ui-diamonds">0</span></div>
             <div class="stat-item lives">❤️ 生命: <span id="ui-lives">3</span></div>
         </div>
 
@@ -390,12 +420,13 @@
                     <span>🛒 賽博商店 (容量 12 格)</span>
                     <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/12</span>
                 </div>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:6px;">
+                    <button class="btn btn-talent" onclick="openTalentModal()">💎 天賦寶物</button>
                     <button class="btn btn-save" onclick="saveGameManual()">💾 手動存檔</button>
                     <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效: 開</button>
                     <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
                     <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">刷新商店 ($2)</button>
-                    <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開啟對決！</button>
+                    <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開開啟對決！</button>
                 </div>
             </div>
 
@@ -404,7 +435,7 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到賽博 Dude 戰場！具備 6 大家族（包含科幻族與動作族）、12 位單位容量、拖曳裝備與自動存檔！
+            [系統] 歡迎來到賽博 Dude 戰場！通關獲得 💎 鑽石可解鎖永久寶物天賦！最高支援 5 星神級 Dude 合成！無限模式每 3 波可獲得全新全局遺物！
         </div>
     </div>
 
@@ -412,6 +443,7 @@
 // Game State
 var state = {
     gold: 15,
+    diamonds: 0,
     lives: 3,
     wave: 1,
     maxWave: 10,
@@ -424,8 +456,22 @@ var state = {
     relics: [],
     trinkets: [],
     maxDudes: 12,
-    selectedDude: null
+    selectedDude: null,
+    talents: {
+        startGoldLevel: 0,
+        allHpLevel: 0,
+        allAtkLevel: 0,
+        bountyBonus: 0
+    }
 };
+
+// Permanent Talents Config
+var TALENTS_CONFIG = [
+    { id: 'startGoldLevel', name: '首富基因', maxLevel: 5, costBase: 10, desc: '每級提升初始開局金幣 +$3' },
+    { id: 'allHpLevel', name: '鋼鐵意志', maxLevel: 5, costBase: 15, desc: '每級提升全隊 Dude 最大生命 +10%' },
+    { id: 'allAtkLevel', name: '過載模組', maxLevel: 5, costBase: 15, desc: '每級提升全隊 Dude 攻擊力 +10%' },
+    { id: 'bountyBonus', name: '點金神術', maxLevel: 3, costBase: 25, desc: '每級提升敵人擊殺掉落金幣 +$1' }
+];
 
 // Web Audio Synthesizer Engine
 var audioCtx = null;
@@ -553,7 +599,7 @@ var TRINKETS_DATABASE = [
     { id: 'dual_pistols', icon: '🔫', name: '雙槍', desc: '裝備單位攻擊速度提升 +60%。' }
 ];
 
-// 6 Families Dude Database (Including Sci-Fi & Action)
+// 6 Families Dude Database
 var DUDE_TYPES = [
     { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 45, speed: 1.2, price: 3, desc: '死亡時觸發自爆綠色毒霧，對周圍造成 25 點 AOE 傷害！' },
     { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '近戰快速骨爪連擊。' },
@@ -608,31 +654,35 @@ function saveGameManual() {
     try {
         var saveData = {
             gold: state.gold,
+            diamonds: state.diamonds,
             lives: state.lives,
             wave: state.wave,
             dudes: state.dudes,
             relics: state.relics,
             trinkets: state.trinkets,
-            endlessMode: state.endlessMode
+            endlessMode: state.endlessMode,
+            talents: state.talents
         };
-        localStorage.setItem('dudes_game_save', JSON.stringify(saveData));
-        log('💾【存檔成功】進度已自動記錄至本地瀏覽器！');
+        localStorage.setItem('dudes_game_save_v8', JSON.stringify(saveData));
+        log('💾【存檔成功】進度與天賦已記錄至瀏覽器！');
     } catch (e) {}
 }
 
 function loadGameSave() {
     try {
-        var raw = localStorage.getItem('dudes_game_save');
+        var raw = localStorage.getItem('dudes_game_save_v8');
         if (raw) {
             var data = JSON.parse(raw);
-            if (confirm('發現先前的存檔（第 ' + data.wave + ' 波，金幣 $' + data.gold + '），是否繼續冒險？')) {
+            if (confirm('發現先前的存檔（第 ' + data.wave + ' 波，金幣 $' + data.gold + '，鑽石 💎' + (data.diamonds||0) + '），是否繼續冒險？')) {
                 state.gold = data.gold;
+                state.diamonds = data.diamonds || 0;
                 state.lives = data.lives;
                 state.wave = data.wave;
                 state.dudes = data.dudes || [];
                 state.relics = data.relics || [];
                 state.trinkets = data.trinkets || [];
                 state.endlessMode = data.endlessMode || false;
+                state.talents = data.talents || state.talents;
                 log('💾【讀取存檔】成功載入之前的冒險進度！');
             }
         }
@@ -657,6 +707,7 @@ function log(msg) {
 
 function updateUI() {
     document.getElementById('ui-gold').innerText = state.gold;
+    document.getElementById('ui-diamonds').innerText = state.diamonds;
     document.getElementById('ui-lives').innerText = state.lives;
     document.getElementById('ui-wave').innerText = state.wave + ' / ' + (state.endlessMode ? '∞ 無盡' : state.maxWave);
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
@@ -735,6 +786,60 @@ function updateRelicsUI() {
         tag.title = t.desc;
         list.appendChild(tag);
     });
+}
+
+// Talent Modal Management
+function openTalentModal() {
+    document.getElementById('modal-diamonds').innerText = state.diamonds;
+    var container = document.getElementById('talent-grid-container');
+    container.innerHTML = '';
+
+    TALENTS_CONFIG.forEach(function(t) {
+        var lvl = state.talents[t.id] || 0;
+        var cost = t.costBase + lvl * 10;
+        var card = document.createElement('div');
+        card.className = 'talent-card';
+        card.innerHTML = '<div class="talent-name">' + t.name + ' (Lv ' + lvl + '/' + t.maxLevel + ')</div><div class="talent-desc">' + t.desc + '</div>';
+
+        if (lvl < t.maxLevel) {
+            var btn = document.createElement('button');
+            btn.className = 'btn btn-talent';
+            btn.style.fontSize = '11px';
+            btn.style.padding = '4px 10px';
+            btn.innerText = '升級 (💎' + cost + ')';
+            btn.onclick = function() { upgradeTalent(t.id, cost, t.maxLevel); };
+            card.appendChild(btn);
+        } else {
+            var maxTag = document.createElement('div');
+            maxTag.style.color = '#facc15';
+            maxTag.style.fontSize = '12px';
+            maxTag.style.fontWeight = 'bold';
+            maxTag.innerText = '已滿級 (MAX)';
+            card.appendChild(maxTag);
+        }
+
+        container.appendChild(card);
+    });
+
+    document.getElementById('talent-modal').classList.add('show');
+}
+
+function upgradeTalent(talentId, cost, maxLvl) {
+    if (state.diamonds < cost) {
+        alert('鑽石不足！需要 💎' + cost + ' 鑽石。');
+        return;
+    }
+    state.diamonds -= cost;
+    state.talents[talentId] = (state.talents[talentId] || 0) + 1;
+    playSound('gold');
+    log('💎【天賦升級】成功解鎖天賦！' + talentId + ' 提升至 Lv ' + state.talents[talentId]);
+    saveGameManual();
+    updateUI();
+    openTalentModal();
+}
+
+function closeTalentModal() {
+    document.getElementById('talent-modal').classList.remove('show');
 }
 
 function showRelicModal() {
@@ -859,7 +964,8 @@ function showStatsModal(victory) {
 
     var mvpBanner = document.getElementById('mvp-banner');
     if (mvpDude && maxTotal > 0) {
-        var starStr = (mvpDude.tier || 1) === 1 ? '1星' : ((mvpDude.tier || 1) === 2 ? '★★ 2星' : '★★★ 3星');
+        var tier = mvpDude.tier || 1;
+        var starStr = tier === 1 ? '1星' : (tier === 2 ? '★★ 2星' : (tier === 3 ? '★★★ 3星' : (tier === 4 ? '★★★★ 4星' : '★★★★★ 5星神級')));
         mvpBanner.innerText = '👑 本波 MVP：[' + mvpDude.name + ' (' + starStr + ')] - 總貢獻: ' + maxTotal + ' (輸出 ' + (mvpDude.totalDamage||0) + ' / 治癒 ' + (mvpDude.totalHeal||0) + ')';
     } else {
         mvpBanner.innerText = '';
@@ -894,9 +1000,10 @@ function closeStatsModal() {
     }
 }
 
+// 3-in-1 Merging Check supporting up to 5 Stars!
 function checkAndMergeDudes() {
     var merged = false;
-    for (var tier = 1; tier <= 2; tier++) {
+    for (var tier = 1; tier <= 4; tier++) {
         var counts = {};
         state.dudes.forEach(function(d) {
             if ((d.tier || 1) === tier) {
@@ -918,8 +1025,9 @@ function checkAndMergeDudes() {
 
                     state.dudes = state.dudes.filter(function(d) { return d !== remove1 && d !== remove2; });
 
-                    var starStr = keeper.tier === 2 ? '★★ 2星' : '★★★ 3星神級';
-                    log('⭐【3合1 升星爆發】合成本體！' + keeper.name + ' 晉升為 ' + starStr + ' (血量與傷害 x2.2)！');
+                    var starNames = ['1星', '★★ 2星', '★★★ 3星', '★★★★ 4星史詩', '★★★★★ 5星宇宙神級'];
+                    var starStr = starNames[keeper.tier - 1] || '神級';
+                    log('⭐【5星極限合成爆發】合成本體！' + keeper.name + ' 晉升為 ' + starStr + ' (體質 x2.2)！');
                     merged = true;
                     break;
                 }
@@ -933,12 +1041,13 @@ function checkAndMergeDudes() {
 
 function sellDude(dude) {
     if (state.inBattle) return;
-    var refund = (dude.tier || 1) === 1 ? 2 : ((dude.tier || 1) === 2 ? 5 : 12);
+    var t = dude.tier || 1;
+    var refund = t === 1 ? 2 : (t === 2 ? 5 : (t === 3 ? 12 : (t === 4 ? 30 : 75)));
     state.gold += refund;
     state.dudes = state.dudes.filter(function(d) { return d !== dude; });
     state.selectedDude = null;
     playSound('gold');
-    log('🗑️ 成功出售 ' + dude.name + ' (' + (dude.tier||1) + '星)！獲得返還金幣 $' + refund + '。');
+    log('🗑️ 成功出售 ' + dude.name + ' (' + t + '星)！獲得返還金幣 $' + refund + '。');
     saveGameManual();
     updateUI();
     drawIdleArena();
@@ -1141,12 +1250,13 @@ function drawIdleArena() {
 
     if (state.selectedDude) {
         var sel = state.selectedDude;
-        var refund = (sel.tier || 1) === 1 ? 2 : ((sel.tier || 1) === 2 ? 5 : 12);
+        var t = sel.tier || 1;
+        var refund = t === 1 ? 2 : (t === 2 ? 5 : (t === 3 ? 12 : (t === 4 ? 30 : 75)));
 
         ctx.fillStyle = '#facc15';
         ctx.font = 'bold 13px sans-serif';
         ctx.textAlign = 'left';
-        ctx.fillText('已選擇: ' + sel.name + ' (' + (sel.tier||1) + '星) - 可賣出金幣: $' + refund, 450, 40);
+        ctx.fillText('已選擇: ' + sel.name + ' (' + t + '星) - 可賣出金幣: $' + refund, 450, 40);
 
         ctx.fillStyle = '#e11d48';
         ctx.fillRect(canvas.width - 120, canvas.height - 50, 100, 40);
@@ -1187,8 +1297,9 @@ function drawDudeOnCanvas(d, x, y, isDragging) {
     }
 
     if (tier >= 2) {
-        ctx.strokeStyle = tier === 3 ? '#ef4444' : '#f39c12';
-        ctx.lineWidth = 2.5;
+        var colors = ['#f39c12', '#f39c12', '#a855f7', '#ec4899', '#00f0ff'];
+        ctx.strokeStyle = colors[tier - 1] || '#00f0ff';
+        ctx.lineWidth = 2.5 + (tier - 2) * 0.5;
         ctx.beginPath();
         ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
         ctx.stroke();
@@ -1206,8 +1317,9 @@ function drawDudeOnCanvas(d, x, y, isDragging) {
 
     if (tier >= 2) {
         ctx.fillStyle = '#facc15';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.fillText(tier === 2 ? '★★' : '★★★', x, y - radius - 3);
+        ctx.font = 'bold 10px sans-serif';
+        var stars = ['★', '★★', '★★★', '★★★★', '★★★★★'];
+        ctx.fillText(stars[tier - 1] || '★', x, y - radius - 3);
     }
 }
 
@@ -1248,8 +1360,11 @@ function startBattle() {
     var counts = {};
     state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
 
-    var atkBuff = counts['undead'] >= 2 ? 1.15 : 1.0;
-    var hpBuff = counts['warrior'] >= 2 ? 1.25 : 1.0;
+    var talentHpMult = 1.0 + (state.talents.allHpLevel || 0) * 0.10;
+    var talentAtkMult = 1.0 + (state.talents.allAtkLevel || 0) * 0.10;
+
+    var atkBuff = (counts['undead'] >= 2 ? 1.15 : 1.0) * talentAtkMult;
+    var hpBuff = (counts['warrior'] >= 2 ? 1.25 : 1.0) * talentHpMult;
     var rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
 
     if (counts['scifi'] >= 2) atkBuff *= 1.15;
@@ -1264,7 +1379,8 @@ function startBattle() {
     state.dudes.forEach(function(d) {
         var slot = GRID_SLOTS[d.slotIndex];
         var tier = d.tier || 1;
-        var tierMult = tier === 1 ? 1.0 : (tier === 2 ? 2.2 : 4.5);
+        var tierMults = [1.0, 2.2, 4.5, 9.0, 20.0];
+        var tierMult = tierMults[tier - 1] || 1.0;
 
         combatEntities.push({
             isDude: true,
@@ -1310,7 +1426,7 @@ function startBattle() {
             atk: Math.round(waveInfo.atk * endlessMult),
             range: 35,
             speed: waveInfo.speed,
-            bounty: waveInfo.bounty || 1,
+            bounty: (waveInfo.bounty || 1) + (state.talents.bountyBonus || 0),
             cooldown: 0,
             radius: waveInfo.size,
             color: waveInfo.color,
@@ -1582,8 +1698,9 @@ function battleLoop() {
         if (e.hp <= 0) return;
 
         if (e.isDude && e.tier >= 2) {
-            ctx.strokeStyle = e.tier === 3 ? '#ef4444' : '#f39c12';
-            ctx.lineWidth = 2.5;
+            var colors = ['#f39c12', '#f39c12', '#a855f7', '#ec4899', '#00f0ff'];
+            ctx.strokeStyle = colors[e.tier - 1] || '#00f0ff';
+            ctx.lineWidth = 2.5 + (e.tier - 2) * 0.5;
             ctx.beginPath();
             ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI * 2);
             ctx.stroke();
@@ -1646,12 +1763,14 @@ function endBattle(victory) {
 
         var bonusGold = counts['employed'] >= 2 ? 2 : 0;
         var reward = 5 + state.wave * 2 + bonusGold;
+        var diamondReward = 2 + Math.floor(state.wave / 2);
         state.gold += reward;
+        state.diamonds += diamondReward;
 
-        log('🎉 勝利！波次結算獲得獎金 $' + reward + '。');
+        log('🎉 勝利！獲得金幣 $' + reward + ' 及 💎' + diamondReward + ' 鑽石！');
 
         pendingVictoryCallback = function() {
-            if ([3, 6, 9].includes(state.wave)) {
+            if ([3, 6, 9].includes(state.wave) || (state.endlessMode && state.wave % 3 === 0)) {
                 setTimeout(showRelicModal, 300);
             }
 
@@ -1660,8 +1779,9 @@ function endBattle(victory) {
             }
 
             if (state.wave >= state.maxWave && !state.endlessMode) {
-                log('🏆【通關勝利】恭喜你擊敗破滅之神！帶領 Dude 大軍獲得最終勝利！');
-                if (confirm('🏆 恭喜通關《How Many Dudes? Cyberpunk》！是否開啟「無盡生存模式 (Wave 11+)」挑戰極限？')) {
+                log('🏆【通關勝利】恭喜你擊敗破滅之神！獲得 💎10 鑽石通關大獎！');
+                state.diamonds += 10;
+                if (confirm('🏆 恭喜通關《How Many Dudes? Cyberpunk》！是否開啟「無盡生存模式 (Wave 11+)」繼續獲取全局遺物？')) {
                     state.endlessMode = true;
                     state.wave++;
                     saveGameManual();
@@ -1691,7 +1811,7 @@ function endBattle(victory) {
             if (state.lives <= 0) {
                 log('💥【GAME OVER】你的 Dude 大軍覆滅了！點擊頁面重新整理即可再試一次。');
                 alert('💥 Game Over！所有生命已耗盡。本次最終獲得金幣：$' + state.gold);
-                localStorage.removeItem('dudes_game_save');
+                localStorage.removeItem('dudes_game_save_v8');
                 location.reload();
                 return;
             }

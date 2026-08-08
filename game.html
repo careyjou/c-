@@ -1909,9 +1909,6 @@ function endBattle(victory) {
         var diamondReward = Math.ceil(baseDiamonds * diffCfg.diamondMult);
 
         state.gold += reward;
-        account Math.ceil(baseDiamonds * diffCfg.diamondMult);
-
-        state.gold += reward;
         accountState.diamonds += diamondReward;
         state.diamonds = accountState.diamonds;
 
@@ -1961,4 +1958,23 @@ function endBattle(victory) {
         pendingVictoryCallback = function() {
             if (state.lives <= 0) {
                 log('💥【GAME OVER】你的 Dude 大軍覆滅了！重新開啟新局，鑽石與天賦已永久為你保留！');
-                alert('💥 Game Over！所有生命已耗盡。已為你完整保存 💎' + account
+                alert('💥 Game Over！所有生命已耗盡。已為你完整保存 💎' + accountState.diamonds + ' 鑽石與天賦！');
+                localStorage.removeItem(RUN_STORAGE_KEY);
+                startNewRun();
+                updateUI();
+                drawIdleArena();
+                return;
+            }
+            saveRunSession();
+            updateUI();
+            drawIdleArena();
+        };
+
+        showStatsModal(false);
+    }
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

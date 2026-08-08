@@ -2,19 +2,28 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>How Many Dudes? Cyberpunk v9.2 (天賦/鑽石跨局永久保存修復版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>How Many Dudes? Cyberpunk v9.3 (終極進化版)</title>
     <style>
+        :root {
+            --neon-cyan: #00f0ff;
+            --neon-pink: #ff007f;
+            --neon-gold: #facc15;
+            --neon-purple: #a855f7;
+            --bg-dark: #060913;
+            --panel-bg: #0f172a;
+        }
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         body {
-            background-color: #060913;
-            color: #00f0ff;
+            background-color: var(--bg-dark);
+            color: var(--neon-cyan);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -24,20 +33,23 @@
         }
         h1 {
             margin: 5px 0;
-            color: #00f0ff;
-            text-shadow: 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
             letter-spacing: 2px;
+            font-size: 24px;
         }
         .subtitle {
-            color: #ff007f;
+            color: var(--neon-pink);
             margin-bottom: 15px;
-            font-size: 14px;
-            text-shadow: 0 0 5px #ff007f;
+            font-size: 12px;
+            text-shadow: 0 0 5px var(--neon-pink);
+            text-align: center;
         }
         #game-container {
-            width: 940px;
+            width: 100%;
+            max-width: 940px;
             background-color: #0a0e1a;
-            border: 2px solid #00f0ff;
+            border: 2px solid var(--neon-cyan);
             border-radius: 12px;
             padding: 15px;
             box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(0, 240, 255, 0.1);
@@ -45,102 +57,70 @@
         }
         .top-bar {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            background: #0f172a;
+            background: var(--panel-bg);
             border: 1px solid #1e293b;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 8px;
             margin-bottom: 15px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+            gap: 10px;
         }
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .gold { color: #facc15; text-shadow: 0 0 5px #facc15; }
+        .stat-item { display: flex; align-items: center; gap: 5px; }
+        .gold { color: var(--neon-gold); text-shadow: 0 0 5px var(--neon-gold); }
         .diamond { color: #38bdf8; text-shadow: 0 0 5px #38bdf8; }
         .lives { color: #ff0055; text-shadow: 0 0 5px #ff0055; }
-        .wave { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
-        .diff-tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .wave { color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan); }
+        .diff-tag { padding: 3px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .diff-tag:hover { border-color: #fff; }
         .diff-easy { background: #166534; color: #86efac; }
         .diff-normal { background: #1e40af; color: #93c5fd; }
         .diff-hard { background: #991b1b; color: #fca5a5; }
         .diff-nightmare { background: #581c87; color: #f0abfc; box-shadow: 0 0 8px #d8b4fe; }
 
-        /* Battle Arena */
         #arena-container {
             position: relative;
             width: 100%;
-            height: 320px;
+            aspect-ratio: 910 / 320;
             background: #030712;
             border: 2px solid #3b82f6;
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 15px;
             cursor: pointer;
-            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.3);
+            touch-action: none; /* 防止手機拖曳時滾動頁面 */
+            box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.4);
         }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
+        canvas { display: block; width: 100%; height: 100%; }
 
-        /* Synergy & Relic Panels */
-        .info-panel {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+        .info-panel { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .panel-box {
             flex: 1;
-            background: #0f172a;
+            min-width: 250px;
+            background: var(--panel-bg);
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #1e293b;
             min-height: 75px;
         }
-        .panel-title {
-            font-size: 14px;
-            color: #38bdf8;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 4px;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
+        .panel-title { font-size: 13px; color: #38bdf8; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 8px; font-weight: bold; }
         .synergy-tag, .relic-tag, .trinket-tag {
             display: inline-block;
             background: #1e293b;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 11px;
             margin: 2px;
             border: 1px solid #334155;
+            cursor: help;
         }
-        .synergy-tag.active {
-            background: #059669;
-            color: #fff;
-            font-weight: bold;
-            box-shadow: 0 0 8px #10b981;
-        }
-        .relic-tag {
-            background: #6d28d9;
-            color: #fff;
-            font-weight: bold;
-            box-shadow: 0 0 8px #8b5cf6;
-        }
-        .trinket-tag {
-            background: #be185d;
-            color: #fff;
-            font-weight: bold;
-            box-shadow: 0 0 8px #ec4899;
-        }
+        .synergy-tag.active { background: #059669; color: #fff; font-weight: bold; box-shadow: 0 0 8px #10b981; border-color: #10b981; }
+        .relic-tag { background: #6d28d9; color: #fff; font-weight: bold; box-shadow: 0 0 8px #8b5cf6; border-color: #8b5cf6; }
+        .trinket-tag { background: #be185d; color: #fff; font-weight: bold; box-shadow: 0 0 8px #ec4899; border-color: #ec4899; }
 
-        /* Modal Overlays */
         .modal-overlay {
             display: none;
             position: absolute;
@@ -152,252 +132,137 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            border: 2px solid #00f0ff;
+            border: 2px solid var(--neon-cyan);
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+            animation: glitchIn 0.3s ease-out;
         }
-        .modal-overlay.show {
-            display: flex;
+        @keyframes glitchIn {
+            0% { opacity: 0; transform: scale(0.9) skewX(5deg); }
+            50% { opacity: 1; transform: scale(1.05) skewX(-2deg); }
+            100% { opacity: 1; transform: scale(1) skewX(0); }
         }
-        .modal-title {
-            font-size: 22px;
-            color: #facc15;
-            margin-bottom: 15px;
-            font-weight: bold;
-            text-shadow: 0 0 10px #facc15;
-        }
-        .card-choices {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            justify-content: center;
-        }
+        .modal-overlay.show { display: flex; }
+        .modal-title { font-size: 22px; color: var(--neon-gold); margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px var(--neon-gold); }
+        .card-choices { display: flex; gap: 15px; width: 100%; justify-content: center; flex-wrap: wrap; }
         .choice-card {
-            background: #0f172a;
+            background: var(--panel-bg);
             border: 2px solid #8b5cf6;
             border-radius: 10px;
             padding: 15px;
-            width: 240px;
+            width: 220px;
             cursor: pointer;
             text-align: center;
             transition: all 0.2s;
         }
-        .choice-card:hover {
-            transform: translateY(-4px);
-            border-color: #00f0ff;
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
-        }
+        .choice-card:hover { transform: translateY(-4px); border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 240, 255, 0.6); }
         .card-icon { font-size: 32px; margin-bottom: 8px; }
         .card-name { font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #38bdf8; }
         .card-desc { font-size: 12px; color: #cbd5e1; }
 
-        /* Talent Container */
-        .talent-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            width: 90%;
-            margin-bottom: 15px;
-        }
-        .talent-card {
-            background: #0f172a;
-            border: 1.5px solid #0284c7;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }
+        .talent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; width: 90%; margin-bottom: 15px; }
+        .talent-card { background: var(--panel-bg); border: 1.5px solid #0284c7; border-radius: 8px; padding: 12px; text-align: center; }
         .talent-name { font-weight: bold; font-size: 14px; color: #38bdf8; margin-bottom: 4px; }
         .talent-desc { font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
 
-        /* Stats Modal Meter Bar */
-        .stats-list {
-            width: 80%;
-            max-height: 180px;
-            overflow-y: auto;
-            margin-bottom: 15px;
-        }
-        .stat-bar-container {
-            margin-bottom: 8px;
-        }
-        .stat-bar-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 2px;
-            color: #e2e8f0;
-        }
-        .stat-bar-bg {
-            background: #1e293b;
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid #334155;
-        }
-        .stat-bar-fill {
-            background: #0284c7;
-            height: 100%;
-            width: 0%;
-            transition: width 0.4s ease-out;
-        }
-        .stat-bar-fill.mvp {
-            background: #eab308;
-            box-shadow: 0 0 10px #facc15;
-        }
+        .stats-list { width: 90%; max-height: 200px; overflow-y: auto; margin-bottom: 15px; }
+        .stat-bar-container { margin-bottom: 8px; }
+        .stat-bar-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px; color: #e2e8f0; }
+        .stat-bar-bg { background: #1e293b; height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid #334155; }
+        .stat-bar-fill { background: #0284c7; height: 100%; width: 0%; transition: width 0.4s ease-out; }
+        .stat-bar-fill.mvp { background: #eab308; box-shadow: 0 0 10px var(--neon-gold); }
 
-        /* Shop Section */
-        .shop-section {
-            background: #0f172a;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #1e293b;
-        }
-        .shop-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+        .shop-section { background: var(--panel-bg); padding: 12px; border-radius: 8px; border: 1px solid #1e293b; }
+        .shop-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .btn {
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+            background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 6px;
+            cursor: pointer; font-weight: bold; transition: all 0.2s; box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+            font-size: 12px;
         }
-        .btn:hover { background: #1d4ed8; transform: translateY(-1px); }
-        .btn:disabled { background: #334155; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.2); }
+        .btn:disabled { background: #334155; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(0.5); }
         .btn-speed { background: #059669; }
-        .btn-speed:hover { background: #047857; }
         .btn-audio { background: #4f46e5; }
-        .btn-audio:hover { background: #4338ca; }
         .btn-save { background: #0891b2; }
-        .btn-save:hover { background: #0e7490; }
         .btn-reset { background: #d97706; }
-        .btn-reset:hover { background: #b45309; }
         .btn-talent { background: #0284c7; }
-        .btn-talent:hover { background: #0369a1; }
-        .btn-battle { background: #dc2626; font-size: 16px; padding: 10px 24px; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
-        .btn-battle:hover { background: #b91c1c; }
+        .btn-battle { background: #dc2626; font-size: 14px; padding: 10px 20px; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
         .btn-reroll { background: #7c3aed; }
-        .btn-reroll:hover { background: #6d28d9; }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
         .dude-card {
-            background: #030712;
-            border: 1.5px solid #1e293b;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: #030712; border-radius: 8px; padding: 10px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            cursor: pointer; transition: all 0.2s; border: 2px solid #334155;
         }
-        .dude-card:hover {
-            border-color: #00f0ff;
-            transform: translateY(-2px);
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
-        }
-        .dude-name {
-            font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 4px;
-            color: #f8fafc;
-        }
-        .dude-family {
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-bottom: 6px;
-            width: fit-content;
-        }
+        .dude-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .dude-card.tier-1 { border-color: #94a3b8; }
+        .dude-card.tier-2 { border-color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
+        .dude-card.tier-3 { border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+        .dude-card.tier-4 { border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); }
+        .dude-card.tier-5 { border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.8); animation: pulseGold 2s infinite; }
+        @keyframes pulseGold { 0% { box-shadow: 0 0 10px #facc15; } 50% { box-shadow: 0 0 25px #facc15; } 100% { box-shadow: 0 0 10px #facc15; } }
+        
+        .dude-name { font-weight: bold; font-size: 14px; margin-bottom: 4px; color: #f8fafc; }
+        .dude-family { font-size: 10px; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 6px; width: fit-content; }
         .family-undead { background: #581c87; color: #e9d5ff; }
         .family-warrior { background: #991b1b; color: #fecaca; }
         .family-fantasy { background: #1e3a8a; color: #bfdbfe; }
         .family-employed { background: #854d0e; color: #fef08a; }
         .family-scifi { background: #0284c7; color: #bae6fd; }
         .family-action { background: #c2410c; color: #ffedd5; }
+        .family-mutant { background: #15803d; color: #bbf7d0; }
 
-        .dude-stats {
-            font-size: 12px;
-            color: #cbd5e1;
-            margin-bottom: 6px;
-        }
-        .dude-desc {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            height: 32px;
-        }
-        .dude-price {
-            font-weight: bold;
-            color: #facc15;
-            text-align: right;
-            font-size: 13px;
-        }
+        .dude-stats { font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+        .dude-desc { font-size: 11px; color: #94a3b8; margin-bottom: 8px; height: 32px; overflow: hidden; }
+        .dude-price { font-weight: bold; color: var(--neon-gold); text-align: right; font-size: 13px; }
 
-        /* Log */
         #log-panel {
-            margin-top: 15px;
-            background: #030712;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            height: 80px;
-            padding: 8px;
-            overflow-y: auto;
-            font-size: 12px;
-            font-family: monospace;
-            color: #38bdf8;
+            margin-top: 15px; background: #030712; border: 1px solid #1e293b; border-radius: 8px;
+            height: 80px; padding: 8px; overflow-y: auto; font-size: 11px; font-family: monospace; color: #38bdf8;
         }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body>
 
-    <h1>HOW MANY DUDES? CYBERPUNK v9.2</h1>
-    <div class="subtitle">💎 鑽石與天賦寶物獨立永久保存！點擊「重新開局」只會重置單局冒險，天賦永遠留存！</div>
+    <h1>HOW MANY DUDES? CYBERPUNK v9.3</h1>
+    <div class="subtitle">💎 鑽石與天賦獨立永久保存！新增生化族、觸控支援與效能極致優化！</div>
 
     <div id="game-container">
-        <!-- Relic Choice Modal -->
+        <!-- Modals -->
         <div id="relic-modal" class="modal-overlay">
-            <div class="modal-title">🔮 獲得強大遺物 (Relic Choice)</div>
+            <div class="modal-title">🔮 獲得強大遺物</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:20px;">選擇一項遺物以大幅改寫你的戰鬥規則：</div>
             <div class="card-choices" id="relic-choices-container"></div>
         </div>
 
-        <!-- Wandering Event Modal -->
         <div id="event-modal" class="modal-overlay">
-            <div class="modal-title" id="event-modal-title">🎲 浪人隨機事件 (Wandering Event)</div>
+            <div class="modal-title" id="event-modal-title">🎲 浪人隨機事件</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:20px;">在地圖探索中遇見了隨機事件，請做出你的決策：</div>
             <div class="card-choices" id="event-choices-container"></div>
         </div>
 
-        <!-- Talent Upgrade Modal -->
         <div id="talent-modal" class="modal-overlay">
-            <div class="modal-title">💎 永久寶物天賦商店 (跨局永久保留)</div>
+            <div class="modal-title">💎 永久寶物天賦商店</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:15px;">消耗過關獲得的鑽石（目前擁有 💎<span id="modal-diamonds">0</span>），購買永久帳號屬性加成：</div>
             <div class="talent-grid" id="talent-grid-container"></div>
             <button class="btn btn-battle" onclick="closeTalentModal()">關閉天賦商店</button>
         </div>
 
-        <!-- Difficulty Selection Modal -->
         <div id="difficulty-modal" class="modal-overlay">
             <div class="modal-title">⚔️ 選擇遊戲難度</div>
             <div style="color:#aaa; font-size:14px; margin-bottom:20px;">更高的難度帶來更強的敵軍，但也帶來極高的 💎 鑽石獎勵倍率：</div>
             <div class="card-choices" id="difficulty-choices-container"></div>
         </div>
 
-        <!-- Damage Meter Modal -->
         <div id="stats-modal" class="modal-overlay">
             <div class="modal-title" id="stats-modal-title">📊 戰鬥結算與數據統計</div>
-            <div id="mvp-banner" style="color:#facc15; font-size:16px; font-weight:bold; margin-bottom:15px;"></div>
+            <div id="mvp-banner" style="color:#facc15; font-size:16px; font-weight:bold; margin-bottom:15px; text-align:center;"></div>
             <div class="stats-list" id="stats-meter-container"></div>
             <button class="btn btn-battle" onclick="closeStatsModal()">繼續下一波 ➔</button>
         </div>
@@ -419,7 +284,7 @@
         <!-- Synergy & Relic Panels -->
         <div class="info-panel">
             <div class="panel-box">
-                <div class="panel-title">👥 6 族階梯協同 (2/4 Synergies)</div>
+                <div class="panel-title">👥 7 族階梯協同 (2/4 Synergies)</div>
                 <div id="synergy-list">尚未啟動協同</div>
             </div>
             <div class="panel-box">
@@ -435,13 +300,13 @@
                     <span>🛒 賽博商店 (容量 12 格)</span>
                     <span style="font-size:12px; color:#888; margin-left:10px;">目前陣容: <span id="ui-dude-count">0</span>/12</span>
                 </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn btn-talent" onclick="openTalentModal()">💎 天賦寶物</button>
-                    <button class="btn btn-reset" onclick="confirmStartNewRun()">🔄 重新開局</button>
-                    <button class="btn btn-save" onclick="saveGameManual()">💾 手動存檔</button>
-                    <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效: 開</button>
-                    <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 倍速: 1x</button>
-                    <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">刷新商店 ($2)</button>
+                <div style="display:flex; gap:6px; flex-wrap: wrap;">
+                    <button class="btn btn-talent" onclick="openTalentModal()">💎 天賦</button>
+                    <button class="btn btn-reset" onclick="confirmStartNewRun()">🔄 重開</button>
+                    <button class="btn btn-save" onclick="saveGameManual()">💾 存檔</button>
+                    <button class="btn btn-audio" id="btn-audio" onclick="toggleAudio()">🔊 音效</button>
+                    <button class="btn btn-speed" id="btn-speed" onclick="toggleSpeed()">⏩ 1x</button>
+                    <button class="btn btn-reroll" id="btn-reroll" onclick="rerollShop()">🔄 刷新 ($2)</button>
                     <button class="btn btn-battle" id="btn-battle" onclick="startBattle()">⚔️ 開啟對決！</button>
                 </div>
             </div>
@@ -451,61 +316,37 @@
 
         <!-- Combat Log -->
         <div id="log-panel">
-            [系統] 歡迎來到賽博 Dude 戰場！鑽石與天賦屬於全域帳號資產，重新開局時只會重置當前冒險，天賦永遠留存！
+            [系統] 歡迎來到賽博 Dude 戰場 v9.3！觸控/滑鼠雙模支援，盡情享受極致效能的戰鬥吧！
         </div>
     </div>
 
 <script>
-// Independent Permanent Account Data Key
-var ACCOUNT_STORAGE_KEY = 'dudes_permanent_account_v92';
-var RUN_STORAGE_KEY = 'dudes_current_run_v92';
+// ==========================================
+// 1. CORE CONFIG & STATE
+// ==========================================
+var ACCOUNT_STORAGE_KEY = 'dudes_permanent_account_v93';
+var RUN_STORAGE_KEY = 'dudes_current_run_v93';
 
-// Global Account State (Never reset)
 var accountState = {
     diamonds: 0,
-    talents: {
-        startGoldLevel: 0,
-        allHpLevel: 0,
-        allAtkLevel: 0,
-        bountyBonus: 0
-    }
+    talents: { startGoldLevel: 0, allHpLevel: 0, allAtkLevel: 0, bountyBonus: 0 }
 };
 
-// Single-Run Session State
 var state = {
-    gold: 15,
-    diamonds: 0,
-    lives: 3,
-    wave: 1,
-    maxWave: 10,
-    difficulty: 'normal',
-    inBattle: false,
-    speed: 1,
-    audioEnabled: true,
-    endlessMode: false,
-    dudes: [],
-    shop: [],
-    relics: [],
-    trinkets: [],
-    maxDudes: 12,
-    selectedDude: null,
-    talents: {
-        startGoldLevel: 0,
-        allHpLevel: 0,
-        allAtkLevel: 0,
-        bountyBonus: 0
-    }
+    gold: 15, diamonds: 0, lives: 3, wave: 1, maxWave: 10,
+    difficulty: 'normal', inBattle: false, speed: 1, audioEnabled: true, endlessMode: false,
+    dudes: [], shop: [], relics: [], trinkets: [], maxDudes: 12, selectedDude: null,
+    talents: { startGoldLevel: 0, allHpLevel: 0, allAtkLevel: 0, bountyBonus: 0 },
+    rerollCost: 2
 };
 
-// Difficulty Configurations
 var DIFFICULTY_CONFIGS = {
     easy: { name: '簡單', tagClass: 'diff-easy', hpMult: 0.8, atkMult: 0.8, diamondMult: 1.0, desc: '敵軍強度 80% | 💎 鑽石獎勵 1.0 倍' },
     normal: { name: '普通', tagClass: 'diff-normal', hpMult: 1.0, atkMult: 1.0, diamondMult: 1.5, desc: '敵軍強度 100% | 💎 鑽石獎勵 1.5 倍' },
     hard: { name: '困難', tagClass: 'diff-hard', hpMult: 1.4, atkMult: 1.3, diamondMult: 2.5, desc: '敵軍強度 140% | 💎 鑽石獎勵 2.5 倍' },
-    nightmare: { name: '噩夢', tagClass: 'diff-nightmare', hpMult: 2.0, atkMult: 1.8, diamondMult: 4.0, desc: '敵軍強度 200% | 💎 鑽石獎勵 4.0 倍 (極致挑戰)' }
+    nightmare: { name: '噩夢', tagClass: 'diff-nightmare', hpMult: 2.0, atkMult: 1.8, diamondMult: 4.0, desc: '敵軍強度 200% | 💎 鑽石獎勵 4.0 倍' }
 };
 
-// Permanent Talents Config
 var TALENTS_CONFIG = [
     { id: 'startGoldLevel', name: '首富基因', maxLevel: 5, costBase: 10, desc: '每級提升初始開局金幣 +$3' },
     { id: 'allHpLevel', name: '鋼鐵意志', maxLevel: 5, costBase: 15, desc: '每級提升全隊 Dude 最大生命 +10%' },
@@ -513,133 +354,62 @@ var TALENTS_CONFIG = [
     { id: 'bountyBonus', name: '點金神術', maxLevel: 3, costBase: 25, desc: '每級提升敵人擊殺掉落金幣 +$1' }
 ];
 
-// Web Audio Synthesizer Engine
+// ==========================================
+// 2. AUDIO ENGINE (Web Audio API)
+// ==========================================
 var audioCtx = null;
-
 function initAudio() {
-    if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
-
 function playSound(type) {
     if (!state.audioEnabled) return;
     try {
         initAudio();
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
-
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         var osc = audioCtx.createOscillator();
         var gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
+        osc.connect(gain); gain.connect(audioCtx.destination);
         var now = audioCtx.currentTime;
-
-        if (type === 'shoot') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.exponentialRampToValueAtTime(100, now + 0.08);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } else if (type === 'laser') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1200, now);
-            osc.frequency.exponentialRampToValueAtTime(300, now + 0.12);
-            gain.gain.setValueAtTime(0.18, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } else if (type === 'gold') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.setValueAtTime(1200, now + 0.05);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-            osc.start(now);
-            osc.stop(now + 0.12);
-        } else if (type === 'heal') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, now);
-            osc.frequency.setValueAtTime(659.25, now + 0.06);
-            osc.frequency.setValueAtTime(783.99, now + 0.12);
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-            osc.start(now);
-            osc.stop(now + 0.2);
-        } else if (type === 'explosion') {
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(150, now);
-            osc.frequency.exponentialRampToValueAtTime(30, now + 0.25);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-            osc.start(now);
-            osc.stop(now + 0.25);
-        } else if (type === 'victory') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(440, now);
-            osc.frequency.setValueAtTime(554.37, now + 0.1);
-            osc.frequency.setValueAtTime(659.25, now + 0.2);
-            osc.frequency.setValueAtTime(880, now + 0.3);
-            gain.gain.setValueAtTime(0.2, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
-            osc.start(now);
-            osc.stop(now + 0.5);
-        } else if (type === 'defeat') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.4);
-            gain.gain.setValueAtTime(0.25, now);
-            gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-            osc.start(now);
-            osc.stop(now + 0.4);
-        }
+        
+        // Simplified sound synthesis for performance
+        if (type === 'shoot') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.08); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08); }
+        else if (type === 'laser') { osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.exponentialRampToValueAtTime(300, now + 0.12); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12); osc.start(now); osc.stop(now + 0.12); }
+        else if (type === 'gold') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.setValueAtTime(1200, now + 0.05); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12); osc.start(now); osc.stop(now + 0.12); }
+        else if (type === 'explosion') { osc.type = 'square'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.25); gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); }
+        else if (type === 'victory') { osc.type = 'triangle'; osc.frequency.setValueAtTime(440, now); osc.frequency.setValueAtTime(880, now + 0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.5); osc.start(now); osc.stop(now + 0.5); }
     } catch (e) {}
 }
-
 function toggleAudio() {
     state.audioEnabled = !state.audioEnabled;
-    document.getElementById('btn-audio').innerText = state.audioEnabled ? '🔊 音效: 開' : '🔇 音效: 關';
+    document.getElementById('btn-audio').innerText = state.audioEnabled ? '🔊 音效' : '🔇 靜音';
     log('音效已切換為：' + (state.audioEnabled ? '開啟' : '關閉'));
 }
 
-// Expanded 4x3 Grid Slot Layout (12 slots)
+// ==========================================
+// 3. GAME DATA DATABASE
+// ==========================================
 var GRID_SLOTS = [
-    { id: 0, row: 0, col: 0, label: '前排 1', x: 70, y: 60 },
-    { id: 1, row: 1, col: 0, label: '前排 2', x: 70, y: 160 },
-    { id: 2, row: 2, col: 0, label: '前排 3', x: 70, y: 260 },
-    { id: 3, row: 0, col: 1, label: '中一 1', x: 170, y: 60 },
-    { id: 4, row: 1, col: 1, label: '中一 2', x: 170, y: 160 },
-    { id: 5, row: 2, col: 1, label: '中一 3', x: 170, y: 260 },
-    { id: 6, row: 0, col: 2, label: '中二 1', x: 270, y: 60 },
-    { id: 7, row: 1, col: 2, label: '中二 2', x: 270, y: 160 },
-    { id: 8, row: 2, col: 2, label: '中二 3', x: 270, y: 260 },
-    { id: 9, row: 0, col: 3, label: '後排 1', x: 370, y: 60 },
-    { id: 10, row: 1, col: 3, label: '後排 2', x: 370, y: 160 },
-    { id: 11, row: 2, col: 3, label: '後排 3', x: 370, y: 260 }
+    { id: 0, label: '前排 1', x: 70, y: 60 }, { id: 1, label: '前排 2', x: 70, y: 160 }, { id: 2, label: '前排 3', x: 70, y: 260 },
+    { id: 3, label: '中一 1', x: 170, y: 60 }, { id: 4, label: '中一 2', x: 170, y: 160 }, { id: 5, label: '中一 3', x: 170, y: 260 },
+    { id: 6, label: '中二 1', x: 270, y: 60 }, { id: 7, label: '中二 2', x: 270, y: 160 }, { id: 8, label: '中二 3', x: 270, y: 260 },
+    { id: 9, label: '後排 1', x: 370, y: 60 }, { id: 10, label: '後排 2', x: 370, y: 160 }, { id: 11, label: '後排 3', x: 370, y: 260 }
 ];
 
-// Relics Database
 var RELICS_DATABASE = [
     { id: 'cursed_book', icon: '📜', name: '詛詛之書', desc: '全隊攻擊力 +30%，但最大生命 -10%。' },
-    { id: 'compound_interest', icon: '🏦', name: '複利契約', desc: '每波戰鬥開始時，獲取當前未花金幣 10% 的額外利息。' },
+    { id: 'compound_interest', icon: '🏦', name: '複利契約', desc: '每波戰鬥開始時，獲取當前未花金幣 10% 的額外利息(上限$5)。' },
     { id: 'explosive_guts', icon: '💣', name: '爆裂內臟', desc: '所有友軍陣亡時觸發爆炸，造成 20 點小範圍 AOE 傷害。' },
     { id: 'golden_touch', icon: '🪙', name: '點金之觸', desc: '敵人被擊殺時，金幣掉落量 +$1。' },
-    { id: 'blood_shield', icon: '🛡️', name: '吸血護盾', desc: '戰士與近戰單位每次攻擊恢復 3 點生命。' },
+    { id: 'aegis_matrix', icon: '🛡️', name: '神盾矩陣', desc: '戰鬥開始時，所有友軍獲得等於其最大生命 20% 的護盾。' },
     { id: 'magic_overload', icon: '⚡', name: '魔力超載', desc: '奇幻族與遠程單位的攻擊射程與速度 +20%。' }
 ];
 
-// Single-Unit Trinkets
 var TRINKETS_DATABASE = [
     { id: 'taser', icon: '⚡', name: '電擊槍', desc: '裝備單位攻擊時有 25% 機率使目標暈眩 1 秒。' },
     { id: 'vampire_cape', icon: '🩸', name: '吸血披風', desc: '裝備單位傷害的 25% 轉化為自身生命恢復。' },
-    { id: 'dual_pistols', icon: '🔫', name: '雙槍', desc: '裝備單位攻擊速度提升 +60%。' }
+    { id: 'nano_repair', icon: '🔋', name: '奈米修復', desc: '裝備單位每秒恢復 2% 最大生命值。' }
 ];
 
-// 6 Families Dude Database
 var DUDE_TYPES = [
     { id: 'zombie', name: '殭屍 Dude', family: 'undead', hp: 35, atk: 6, range: 45, speed: 1.2, price: 3, desc: '死亡時觸發自爆綠色毒霧，對周圍造成 25 點 AOE 傷害！' },
     { id: 'skeleton', name: '骷髏 Dude', family: 'undead', hp: 20, atk: 8, range: 40, speed: 1.5, price: 2, desc: '近戰快速骨爪連擊。' },
@@ -650,37 +420,62 @@ var DUDE_TYPES = [
     { id: 'finance', name: '金融 Dude', family: 'employed', hp: 30, atk: 5, range: 110, speed: 1.0, price: 3, desc: '發射金幣投射物，通關獲得獎金。' },
     { id: 'cowboy', name: '牛仔 Dude', family: 'employed', hp: 40, atk: 12, range: 150, speed: 1.1, price: 4, desc: '發射黃色高速子彈連擊。' },
     { id: 'laser_dude', name: '雷射 Dude', family: 'scifi', hp: 32, atk: 15, range: 220, speed: 1.0, price: 4, desc: '發射高能青藍色貫穿雷射光束打擊敵陣。' },
-    { id: 'ninja_dude', name: '忍者 Dude', family: 'action', hp: 28, atk: 13, range: 120, speed: 1.6, price: 4, desc: '發射飛鏢，攻擊速度極快且自帶敏捷閃避。' }
+    { id: 'ninja_dude', name: '忍者 Dude', family: 'action', hp: 28, atk: 13, range: 120, speed: 1.6, price: 4, desc: '發射飛鏢，攻擊速度極快且自帶敏捷閃避。' },
+    // NEW MUTANT FAMILY
+    { id: 'mutant_spitter', name: '噴吐者 Dude', family: 'mutant', hp: 25, atk: 10, range: 180, speed: 0.9, price: 4, desc: '射出酸液，降低敵人 20% 防禦力(易傷)。' },
+    { id: 'mutant_brute', name: '生化巨獸 Dude', family: 'mutant', hp: 80, atk: 8, range: 40, speed: 0.8, price: 5, desc: '每次攻擊偷取敵人生命力，永久增加自身最大HP。' }
 ];
 
-// Enemy Waves Config
 var ENEMY_WAVES = [
-    { name: '第 1 波：10 個幼童 (Toddlers)', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6', bounty: 1 },
-    { name: '第 2 波：15 個幼童群 (Baby Horde)', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6', bounty: 1 },
-    { name: '第 3 波：5 隻野狼 (Wolves)', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8', bounty: 2 },
-    { name: '第 4 波：8 隻野狼群 (Pack of Wolves)', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8', bounty: 2 },
-    { name: '第 5 波：中場 BOSS - 巨型鴨 (Horse-sized Duck)', count: 1, hp: 550, atk: 32, speed: 1.1, size: 30, color: '#facc15', bounty: 10, isBoss: true, bossId: 'duck' },
-    { name: '第 6 波：20 個狂暴幼童 (Enraged Toddlers)', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185', bounty: 1 },
-    { name: '第 7 波：3 隻大猩猩 (Gorillas)', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569', bounty: 5 },
-    { name: '第 8 波：5 隻大猩猩隊 (Gorilla Squad)', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155', bounty: 5 },
+    { name: '第 1 波：10 個幼童', count: 10, hp: 20, atk: 4, speed: 0.8, size: 10, color: '#f472b6', bounty: 1 },
+    { name: '第 2 波：15 個幼童群', count: 15, hp: 25, atk: 5, speed: 0.9, size: 10, color: '#f472b6', bounty: 1 },
+    { name: '第 3 波：5 隻野狼', count: 5, hp: 60, atk: 12, speed: 1.6, size: 16, color: '#94a3b8', bounty: 2 },
+    { name: '第 4 波：8 隻野狼群', count: 8, hp: 75, atk: 14, speed: 1.7, size: 16, color: '#94a3b8', bounty: 2 },
+    { name: '第 5 波：中場 BOSS - 巨型鴨', count: 1, hp: 550, atk: 32, speed: 1.1, size: 30, color: '#facc15', bounty: 10, isBoss: true, bossId: 'duck' },
+    { name: '第 6 波：20 個狂暴幼童', count: 20, hp: 40, atk: 8, speed: 1.3, size: 11, color: '#fb7185', bounty: 1 },
+    { name: '第 7 波：3 隻大猩猩', count: 3, hp: 250, atk: 25, speed: 1.0, size: 22, color: '#475569', bounty: 5 },
+    { name: '第 8 波：5 隻大猩猩隊', count: 5, hp: 300, atk: 28, speed: 1.1, size: 22, color: '#334155', bounty: 5 },
     { name: '第 9 波：大猩猩與野狼混合軍', count: 10, hp: 200, atk: 22, speed: 1.4, size: 18, color: '#a855f7', bounty: 3 },
-    { name: '第 10 波：最終 BOSS - 破滅之神 (THE GOD)', count: 1, hp: 2000, atk: 55, speed: 0.9, size: 40, color: '#ef4444', bounty: 50, isBoss: true, bossId: 'god' }
+    { name: '第 10 波：最終 BOSS - 破滅之神', count: 1, hp: 2000, atk: 55, speed: 0.9, size: 40, color: '#ef4444', bounty: 50, isBoss: true, bossId: 'god' }
 ];
 
-// Canvas & Animation Setup
+// ==========================================
+// 4. CANVAS & BATTLE ENGINE
+// ==========================================
 var canvas = document.getElementById('battleCanvas');
 var ctx = canvas.getContext('2d');
-
 var combatEntities = [];
 var combatProjectiles = [];
 var combatParticles = [];
 var battleAnimationId = null;
 var screenShake = 0;
 var godShockwaveTimer = 0;
+var lastFrameTime = 0;
 
-// Drag & Drop State
+// Touch & Mouse Unified Input
 var draggedDude = null;
 var currentMousePos = { x: 0, y: 0 };
+var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+var EVT_DOWN = isTouchDevice ? 'touchstart' : 'mousedown';
+var EVT_MOVE = isTouchDevice ? 'touchmove' : 'mousemove';
+var EVT_UP = isTouchDevice ? 'touchend' : 'mouseup';
+
+function getEventPos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var clientX = e.clientX;
+    var clientY = e.clientY;
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+    }
+    return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+    };
+}
 
 function init() {
     setupDragAndDrop();
@@ -691,17 +486,10 @@ function init() {
     drawIdleArena();
 }
 
-// 1. Save Permanent Account Data (Diamonds & Talents only)
+// Save/Load Logic
 function saveAccountData() {
-    try {
-        var acc = {
-            diamonds: accountState.diamonds,
-            talents: accountState.talents
-        };
-        localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify(acc));
-    } catch (e) {}
+    try { localStorage.setItem(ACCOUNT_STORAGE_KEY, JSON.stringify({ diamonds: accountState.diamonds, talents: accountState.talents })); } catch (e) {}
 }
-
 function loadAccountData() {
     try {
         var rawAcc = localStorage.getItem(ACCOUNT_STORAGE_KEY);
@@ -710,159 +498,73 @@ function loadAccountData() {
             accountState.diamonds = acc.diamonds || 0;
             accountState.talents = acc.talents || accountState.talents;
         }
-        // Sync to active state
         state.diamonds = accountState.diamonds;
         state.talents = accountState.talents;
-        log('💎【全域帳號載入】成功載入 💎' + state.diamonds + ' 鑽石與永久寶物天賦！');
     } catch (e) {}
 }
-
-// 2. Save Current Single-Run Session Data
 function saveRunSession() {
-    saveAccountData(); // Always keep account data synced
+    saveAccountData();
     try {
-        var runData = {
-            gold: state.gold,
-            lives: state.lives,
-            wave: state.wave,
-            difficulty: state.difficulty,
-            dudes: state.dudes,
-            relics: state.relics,
-            trinkets: state.trinkets,
-            endlessMode: state.endlessMode
-        };
+        var runData = { gold: state.gold, lives: state.lives, wave: state.wave, difficulty: state.difficulty, dudes: state.dudes, relics: state.relics, trinkets: state.trinkets, endlessMode: state.endlessMode, rerollCost: state.rerollCost };
         localStorage.setItem(RUN_STORAGE_KEY, JSON.stringify(runData));
     } catch (e) {}
 }
-
-function saveGameManual() {
-    saveRunSession();
-    log('💾【手動存檔成功】冒險進度與全域天賦已即時存檔！');
-}
-
+function saveGameManual() { saveRunSession(); log('💾【手動存檔成功】冒險進度與全域天賦已即時存檔！'); }
 function loadRunSession() {
     try {
         var raw = localStorage.getItem(RUN_STORAGE_KEY);
         if (raw) {
             var data = JSON.parse(raw);
-            if (confirm('發現先前未完成的關卡（第 ' + data.wave + ' 波，金幣 $' + data.gold + '），是否繼續冒險？')) {
-                state.gold = data.gold;
-                state.lives = data.lives;
-                state.wave = data.wave;
-                state.difficulty = data.difficulty || 'normal';
-                state.dudes = data.dudes || [];
-                state.relics = data.relics || [];
-                state.trinkets = data.trinkets || [];
-                state.endlessMode = data.endlessMode || false;
-                log('💾【續局成功】已恢復當前單局戰鬥進度！');
-            } else {
-                startNewRun();
-            }
-        } else {
-            startNewRun();
-        }
-    } catch (e) {
-        startNewRun();
-    }
+            if (confirm('發現先前未完成的關卡（第 ' + data.wave + ' 波），是否繼續冒險？')) {
+                state.gold = data.gold; state.lives = data.lives; state.wave = data.wave;
+                state.difficulty = data.difficulty || 'normal'; state.dudes = data.dudes || [];
+                state.relics = data.relics || []; state.trinkets = data.trinkets || [];
+                state.endlessMode = data.endlessMode || false; state.rerollCost = data.rerollCost || 2;
+            } else { startNewRun(); }
+        } else { startNewRun(); }
+    } catch (e) { startNewRun(); }
 }
-
 function confirmStartNewRun() {
     if (confirm('是否要開啟新的冒險？（當前單局進度將被重置，但 💎鑽石 與 永久天賦 100% 完整保留！）')) {
-        startNewRun();
-        rerollShop();
-        updateUI();
-        drawIdleArena();
+        startNewRun(); rerollShop(); updateUI(); drawIdleArena();
     }
 }
-
 function startNewRun() {
     var startGoldBonus = (accountState.talents.startGoldLevel || 0) * 3;
-    state.gold = 15 + startGoldBonus;
-    state.lives = 3;
-    state.wave = 1;
-    state.dudes = [];
-    state.relics = [];
-    state.trinkets = [];
-    state.endlessMode = false;
-    state.diamonds = accountState.diamonds;
-    state.talents = accountState.talents;
-
-    log('🎮【新局開啟】已為您載入永久天賦加成！初始開局金幣 $' + state.gold + '。');
+    state.gold = 15 + startGoldBonus; state.lives = 3; state.wave = 1;
+    state.dudes = []; state.relics = []; state.trinkets = []; state.endlessMode = false;
+    state.diamonds = accountState.diamonds; state.talents = accountState.talents; state.rerollCost = 2;
     saveRunSession();
 }
 
-function showDifficultyModal() {
-    if (state.inBattle) return;
-    var container = document.getElementById('difficulty-choices-container');
-    container.innerHTML = '';
-
-    for (var key in DIFFICULTY_CONFIGS) {
-        (function(diffKey) {
-            var cfg = DIFFICULTY_CONFIGS[diffKey];
-            var card = document.createElement('div');
-            card.className = 'choice-card';
-            card.onclick = function() {
-                state.difficulty = diffKey;
-                document.getElementById('difficulty-modal').classList.remove('show');
-                log('⚔️ 難度已切換為：【' + cfg.name + '】！' + cfg.desc);
-                updateUI();
-                saveRunSession();
-            };
-            card.innerHTML = '<div class="card-name" style="color:#00f0ff;">' + cfg.name + '</div><div class="card-desc">' + cfg.desc + '</div>';
-            container.appendChild(card);
-        })(key);
-    }
-
-    document.getElementById('difficulty-modal').classList.add('show');
-}
-
-function toggleSpeed() {
-    if (state.speed === 1) state.speed = 2;
-    else if (state.speed === 2) state.speed = 4;
-    else if (state.speed === 4) state.speed = 8;
-    else state.speed = 1;
-
-    document.getElementById('btn-speed').innerText = '⏩ 倍速: ' + state.speed + 'x';
-    log('戰鬥速度已調整為 ' + state.speed + 'x 極速。');
-}
-
+// UI Logic
 function log(msg) {
     var p = document.getElementById('log-panel');
     p.innerHTML += '<div>[' + new Date().toLocaleTimeString().split(' ')[0] + '] ' + msg + '</div>';
     p.scrollTop = p.scrollHeight;
 }
-
 function updateUI() {
     document.getElementById('ui-gold').innerText = state.gold;
     document.getElementById('ui-diamonds').innerText = accountState.diamonds;
     document.getElementById('ui-lives').innerText = state.lives;
-    document.getElementById('ui-wave').innerText = state.wave + ' / ' + (state.endlessMode ? '∞ 無盡' : state.maxWave);
+    document.getElementById('ui-wave').innerText = state.wave + ' / ' + (state.endlessMode ? '∞' : state.maxWave);
     document.getElementById('ui-dude-count').innerText = state.dudes.length;
+    document.getElementById('btn-reroll').innerText = '🔄 刷新 ($' + state.rerollCost + ')';
 
     var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
     var diffTag = document.getElementById('ui-difficulty-tag');
     diffTag.innerText = diffCfg.name + ' (x' + diffCfg.diamondMult + '💎)';
     diffTag.className = 'diff-tag ' + diffCfg.tagClass;
-
-    updateSynergiesUI();
-    updateRelicsUI();
+    updateSynergiesUI(); updateRelicsUI();
 }
-
 function updateSynergiesUI() {
     var counts = {};
     state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
-
-    var list = document.getElementById('synergy-list');
-    list.innerHTML = '';
-
-    var familyNames = { undead: '不死族', warrior: '戰士族', fantasy: '奇幻族', employed: '上班族', scifi: '科幻族', action: '動作族' };
+    var list = document.getElementById('synergy-list'); list.innerHTML = '';
+    var familyNames = { undead: '不死族', warrior: '戰士族', fantasy: '奇幻族', employed: '上班族', scifi: '科幻族', action: '動作族', mutant: '生化族' };
     var hasActive = false;
-
     for (var fam in counts) {
-        var count = counts[fam];
-        var desc = '';
-        var active = false;
-
+        var count = counts[fam]; var desc = ''; var active = false;
         if (count >= 4) {
             active = true; hasActive = true;
             if (fam === 'undead') desc = '不死(4): 死亡 50% 機率召喚骷髏';
@@ -871,6 +573,7 @@ function updateSynergiesUI() {
             if (fam === 'employed') desc = '上班族(4): 開局獲得保險單(死掉+$5)';
             if (fam === 'scifi') desc = '科幻(4): 攻擊射程與速度 +30%';
             if (fam === 'action') desc = '動作(4): 全隊獲得 20% 暴擊閃避率';
+            if (fam === 'mutant') desc = '生化(4): 攻擊附帶「腐蝕」，敵人受傷+20%';
         } else if (count >= 2) {
             active = true; hasActive = true;
             if (fam === 'undead') desc = '不死(2): 攻擊力+15%';
@@ -879,1097 +582,486 @@ function updateSynergiesUI() {
             if (fam === 'employed') desc = '上班族(2): 通關額外+$2';
             if (fam === 'scifi') desc = '科幻(2): 傷害 +15%';
             if (fam === 'action') desc = '動作(2): 攻擊速度 +15%';
-        } else {
-            desc = familyNames[fam] + ' (' + count + '/2)';
-        }
-
+            if (fam === 'mutant') desc = '生化(2): 死亡 50% 機率分裂出 2 個半血變異體';
+        } else { desc = familyNames[fam] + ' (' + count + '/2)'; }
         var tag = document.createElement('span');
         tag.className = 'synergy-tag ' + (active ? 'active' : '');
-        tag.innerText = desc;
-        list.appendChild(tag);
+        tag.innerText = desc; list.appendChild(tag);
     }
-
-    if (!hasActive && Object.keys(counts).length === 0) {
-        list.innerHTML = '<span style="color:#64748b; font-size:12px;">招募 2/4 位同家族 Dude 觸發階梯協同加成！</span>';
-    }
+    if (!hasActive && Object.keys(counts).length === 0) list.innerHTML = '<span style="color:#64748b; font-size:12px;">招募 2/4 位同家族 Dude 觸發協同！</span>';
 }
-
 function updateRelicsUI() {
-    var list = document.getElementById('relic-list');
-    list.innerHTML = '';
-
-    if (state.relics.length === 0 && state.trinkets.length === 0) {
-        list.innerHTML = '<span style="color:#64748b; font-size:12px;">尚無遺物/飾品（將在關卡通關或事件中獲得）</span>';
-        return;
-    }
-
-    state.relics.forEach(function(r) {
-        var tag = document.createElement('span');
-        tag.className = 'relic-tag';
-        tag.innerText = r.icon + ' ' + r.name;
-        tag.title = r.desc;
-        list.appendChild(tag);
-    });
-
-    state.trinkets.forEach(function(t) {
-        var tag = document.createElement('span');
-        tag.className = 'trinket-tag';
-        tag.innerText = t.icon + ' ' + t.name;
-        tag.title = t.desc;
-        list.appendChild(tag);
-    });
+    var list = document.getElementById('relic-list'); list.innerHTML = '';
+    if (state.relics.length === 0 && state.trinkets.length === 0) { list.innerHTML = '<span style="color:#64748b; font-size:12px;">尚無遺物/飾品</span>'; return; }
+    state.relics.forEach(function(r) { var tag = document.createElement('span'); tag.className = 'relic-tag'; tag.innerText = r.icon + ' ' + r.name; tag.title = r.desc; list.appendChild(tag); });
+    state.trinkets.forEach(function(t) { var tag = document.createElement('span'); tag.className = 'trinket-tag'; tag.innerText = t.icon + ' ' + t.name; tag.title = t.desc; list.appendChild(tag); });
 }
 
+// Modals
+function showDifficultyModal() {
+    if (state.inBattle) return;
+    var container = document.getElementById('difficulty-choices-container'); container.innerHTML = '';
+    for (var key in DIFFICULTY_CONFIGS) {
+        (function(diffKey) {
+            var cfg = DIFFICULTY_CONFIGS[diffKey]; var card = document.createElement('div'); card.className = 'choice-card';
+            card.onclick = function() { state.difficulty = diffKey; document.getElementById('difficulty-modal').classList.remove('show'); updateUI(); saveRunSession(); };
+            card.innerHTML = '<div class="card-name" style="color:#00f0ff;">' + cfg.name + '</div><div class="card-desc">' + cfg.desc + '</div>';
+            container.appendChild(card);
+        })(key);
+    }
+    document.getElementById('difficulty-modal').classList.add('show');
+}
 function openTalentModal() {
     document.getElementById('modal-diamonds').innerText = accountState.diamonds;
-    var container = document.getElementById('talent-grid-container');
-    container.innerHTML = '';
-
+    var container = document.getElementById('talent-grid-container'); container.innerHTML = '';
     TALENTS_CONFIG.forEach(function(t) {
-        var lvl = accountState.talents[t.id] || 0;
-        var cost = t.costBase + lvl * 10;
-        var card = document.createElement('div');
-        card.className = 'talent-card';
+        var lvl = accountState.talents[t.id] || 0; var cost = t.costBase + lvl * 10;
+        var card = document.createElement('div'); card.className = 'talent-card';
         card.innerHTML = '<div class="talent-name">' + t.name + ' (Lv ' + lvl + '/' + t.maxLevel + ')</div><div class="talent-desc">' + t.desc + '</div>';
-
         if (lvl < t.maxLevel) {
-            var btn = document.createElement('button');
-            btn.className = 'btn btn-talent';
-            btn.style.fontSize = '11px';
-            btn.style.padding = '4px 10px';
-            btn.innerText = '升級 (💎' + cost + ')';
-            btn.onclick = function() { upgradeTalent(t.id, cost, t.maxLevel); };
-            card.appendChild(btn);
-        } else {
-            var maxTag = document.createElement('div');
-            maxTag.style.color = '#facc15';
-            maxTag.style.fontSize = '12px';
-            maxTag.style.fontWeight = 'bold';
-            maxTag.innerText = '已滿級 (MAX)';
-            card.appendChild(maxTag);
-        }
-
+            var btn = document.createElement('button'); btn.className = 'btn btn-talent'; btn.innerText = '升級 (💎' + cost + ')';
+            btn.onclick = function() { upgradeTalent(t.id, cost, t.maxLevel); }; card.appendChild(btn);
+        } else { card.innerHTML += '<div style="color:#facc15; font-weight:bold;">已滿級 (MAX)</div>'; }
         container.appendChild(card);
     });
-
     document.getElementById('talent-modal').classList.add('show');
 }
-
-function upgradeTalent(talentId, cost, maxLvl) {
-    if (accountState.diamonds < cost) {
-        alert('鑽石不足！需要 💎' + cost + ' 鑽石。');
-        return;
-    }
-    accountState.diamonds -= cost;
-    accountState.talents[talentId] = (accountState.talents[talentId] || 0) + 1;
-
-    state.diamonds = accountState.diamonds;
-    state.talents = accountState.talents;
-
-    playSound('gold');
-    log('💎【天賦升級成功】' + talentId + ' 提升至 Lv ' + accountState.talents[talentId] + '！跨局永久生效！');
-    saveAccountData();
-    saveRunSession();
-    updateUI();
-    openTalentModal();
+function upgradeTalent(talentId, cost) {
+    if (accountState.diamonds < cost) { alert('鑽石不足！'); return; }
+    accountState.diamonds -= cost; accountState.talents[talentId]++;
+    state.diamonds = accountState.diamonds; state.talents = accountState.talents;
+    playSound('gold'); saveAccountData(); updateUI(); openTalentModal();
 }
-
-function closeTalentModal() {
-    document.getElementById('talent-modal').classList.remove('show');
-}
-
+function closeTalentModal() { document.getElementById('talent-modal').classList.remove('show'); }
 function showRelicModal() {
-    var available = RELICS_DATABASE.filter(function(r) { return !state.relics.some(function(owned) { return owned.id === r.id; }); });
+    var available = RELICS_DATABASE.filter(function(r) { return !state.relics.some(function(o) { return o.id === r.id; }); });
     if (available.length === 0) return;
-
-    var choices = available.slice().sort(function() { return 0.5 - Math.random(); }).slice(0, 3);
-    var container = document.getElementById('relic-choices-container');
-    container.innerHTML = '';
-
+    var choices = available.sort(function() { return 0.5 - Math.random(); }).slice(0, 3);
+    var container = document.getElementById('relic-choices-container'); container.innerHTML = '';
     choices.forEach(function(r) {
-        var card = document.createElement('div');
-        card.className = 'choice-card';
-        card.onclick = function() { selectRelic(r); };
+        var card = document.createElement('div'); card.className = 'choice-card';
+        card.onclick = function() { state.relics.push(r); document.getElementById('relic-modal').classList.remove('show'); saveRunSession(); updateUI(); };
         card.innerHTML = '<div class="card-icon">' + r.icon + '</div><div class="card-name">' + r.name + '</div><div class="card-desc">' + r.desc + '</div>';
         container.appendChild(card);
     });
-
     document.getElementById('relic-modal').classList.add('show');
 }
-
-function selectRelic(relic) {
-    state.relics.push(relic);
-    document.getElementById('relic-modal').classList.remove('show');
-    log('🔮 成功選擇遺物【' + relic.name + '】！' + relic.desc);
-    saveRunSession();
-    updateUI();
-}
-
 function showWanderingEventModal() {
-    var container = document.getElementById('event-choices-container');
-    container.innerHTML = '';
-
+    var container = document.getElementById('event-choices-container'); container.innerHTML = '';
     var choices = [
-        {
-            icon: '😈', name: '黑市交易', desc: '扣除 1 點生命，直接獲得 1 位強大的 2 星戰士 Dude！',
-            action: function() {
-                if (state.lives <= 1) {
-                    alert('生命不足，無法進行黑市交易！');
-                    return false;
-                }
-                state.lives--;
-                var occupiedSlots = state.dudes.map(function(d) { return d.slotIndex; });
-                var freeSlot = 0;
-                for (var i = 0; i < 12; i++) {
-                    if (!occupiedSlots.includes(i)) { freeSlot = i; break; }
-                }
-                var baseObj = Object.assign({}, DUDE_TYPES[2]);
-                baseObj.slotIndex = freeSlot;
-                baseObj.tier = 2;
-                baseObj.hp = 143;
-                baseObj.atk = 22;
-                state.dudes.push(baseObj);
-                log('😈【黑市交易】扣除 1 生命，獲得了 ★★ 2星戰士 Dude！');
-                return true;
-            }
-        },
-        {
-            icon: '🎲', name: '地下賭場', desc: '下注 $5 金幣（50% 機率獲得 $10 獎幣，50% 歸零）！',
-            action: function() {
-                if (state.gold < 5) {
-                    alert('金幣不足 $5，無法下注！');
-                    return false;
-                }
-                state.gold -= 5;
-                if (Math.random() < 0.5) {
-                    state.gold += 10;
-                    playSound('gold');
-                    log('🎲【地下賭場】賭贏了！贏得 $10 獎金！');
-                } else {
-                    playSound('defeat');
-                    log('🎲【地下賭場】賭輸了！$5 歸零！');
-                }
-                return true;
-            }
-        },
-        {
-            icon: '⚡', name: '獲得個體飾品【電擊槍】', desc: '取得【電擊槍】飾品，裝備後使 Dude 攻擊有 25% 機率暈眩敵人 1 秒！',
-            action: function() {
-                state.trinkets.push(TRINKETS_DATABASE[0]);
-                playSound('heal');
-                log('⚡【獲得飾品】取得了【電擊槍】！已放入飾品背包！');
-                return true;
-            }
-        }
+        { icon: '😈', name: '黑市交易', desc: '扣除 1 點生命，直接獲得 1 位強大的 2 星戰士 Dude！', action: function() { if(state.lives<=1){alert('生命不足'); return false;} state.lives--; var freeSlot=0; for(var i=0;i<12;i++){if(!state.dudes.some(d=>d.slotIndex===i)){freeSlot=i;break;}} var b=Object.assign({}, DUDE_TYPES[2]); b.slotIndex=freeSlot; b.tier=2; b.hp=143; b.atk=22; state.dudes.push(b); return true; } },
+        { icon: '🎲', name: '地下賭場', desc: '下注 $5 金幣（50% 機率獲得 $12 獎幣）！', action: function() { if(state.gold<5){alert('金幣不足'); return false;} state.gold-=5; if(Math.random()<0.5){state.gold+=12; playSound('gold');} return true; } },
+        { icon: '⚡', name: '獲得飾品【電擊槍】', desc: '取得【電擊槍】飾品，25% 機率暈眩敵人！', action: function() { state.trinkets.push(TRINKETS_DATABASE[0]); playSound('gold'); return true; } }
     ];
-
     choices.forEach(function(c) {
-        var card = document.createElement('div');
-        card.className = 'choice-card';
-        card.onclick = function() {
-            if (c.action()) {
-                document.getElementById('event-modal').classList.remove('show');
-                saveRunSession();
-                updateUI();
-                drawIdleArena();
-            }
-        };
+        var card = document.createElement('div'); card.className = 'choice-card';
+        card.onclick = function() { if(c.action()){ document.getElementById('event-modal').classList.remove('show'); saveRunSession(); updateUI(); drawIdleArena(); } };
         card.innerHTML = '<div class="card-icon">' + c.icon + '</div><div class="card-name">' + c.name + '</div><div class="card-desc">' + c.desc + '</div>';
         container.appendChild(card);
     });
-
     document.getElementById('event-modal').classList.add('show');
 }
 
 var pendingVictoryCallback = null;
-
 function showStatsModal(victory) {
-    var titleEl = document.getElementById('stats-modal-title');
-    titleEl.innerText = victory ? '🎉 戰鬥勝利 - 團隊數據統計' : '💀 戰鬥失敗 - 團隊數據統計';
-
-    var mvpDude = null;
-    var maxTotal = -1;
-
-    combatEntities.filter(function(e) { return e.isDude; }).forEach(function(e) {
-        var score = (e.totalDamage || 0) + (e.totalHeal || 0);
-        if (score > maxTotal) {
-            maxTotal = score;
-            mvpDude = e;
-        }
-    });
-
+    document.getElementById('stats-modal-title').innerText = victory ? '🎉 戰鬥勝利' : '💀 戰鬥失敗';
+    var mvpDude = null, maxTotal = -1;
+    combatEntities.filter(e => e.isDude).forEach(e => { var score = (e.totalDamage||0) + (e.totalHeal||0); if(score>maxTotal){maxTotal=score; mvpDude=e;} });
     var mvpBanner = document.getElementById('mvp-banner');
-    if (mvpDude && maxTotal > 0) {
-        var tier = mvpDude.tier || 1;
-        var starStr = tier === 1 ? '1星' : (tier === 2 ? '★★ 2星' : (tier === 3 ? '★★★ 3星' : (tier === 4 ? '★★★★ 4星' : '★★★★★ 5星神級')));
-        mvpBanner.innerText = '👑 本波 MVP：[' + mvpDude.name + ' (' + starStr + ')] - 總貢獻: ' + maxTotal + ' (輸出 ' + (mvpDude.totalDamage||0) + ' / 治癒 ' + (mvpDude.totalHeal||0) + ')';
-    } else {
-        mvpBanner.innerText = '';
-    }
-
-    var container = document.getElementById('stats-meter-container');
-    container.innerHTML = '';
-
-    var dudes = combatEntities.filter(function(e) { return e.isDude; });
-
-    dudes.forEach(function(d) {
-        var dmg = d.totalDamage || 0;
-        var heal = d.totalHeal || 0;
-        var total = dmg + heal;
-        var pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
-        var isMvp = d === mvpDude && maxTotal > 0;
-
-        var row = document.createElement('div');
-        row.className = 'stat-bar-container';
-        row.innerHTML = '<div class="stat-bar-header"><span>' + (isMvp ? '👑 ' : '') + d.name + ' (' + (d.tier||1) + '星)</span><span>⚔️ 傷害: ' + dmg + ' | 💚 治療: ' + heal + '</span></div><div class="stat-bar-bg"><div class="stat-bar-fill ' + (isMvp ? 'mvp' : '') + '" style="width: ' + pct + '%"></div></div>';
+    if (mvpDude && maxTotal > 0) mvpBanner.innerText = '👑 本波 MVP：[' + mvpDude.name + ' (' + (mvpDude.tier||1) + '星)] - 總貢獻: ' + maxTotal;
+    else mvpBanner.innerText = '';
+    var container = document.getElementById('stats-meter-container'); container.innerHTML = '';
+    combatEntities.filter(e => e.isDude).forEach(d => {
+        var total = (d.totalDamage||0) + (d.totalHeal||0); var pct = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+        var row = document.createElement('div'); row.className = 'stat-bar-container';
+        row.innerHTML = '<div class="stat-bar-header"><span>' + d.name + ' (' + (d.tier||1) + '星)</span><span>⚔️ ' + (d.totalDamage||0) + ' | 💚 ' + (d.totalHeal||0) + '</span></div><div class="stat-bar-bg"><div class="stat-bar-fill ' + (d===mvpDude?'mvp':'') + '" style="width: ' + pct + '%"></div></div>';
         container.appendChild(row);
     });
-
     document.getElementById('stats-modal').classList.add('show');
 }
-
 function closeStatsModal() {
     document.getElementById('stats-modal').classList.remove('show');
-    if (pendingVictoryCallback) {
-        pendingVictoryCallback();
-        pendingVictoryCallback = null;
-    }
+    if (pendingVictoryCallback) { pendingVictoryCallback(); pendingVictoryCallback = null; }
 }
 
+// Shop & Merge Logic
 function checkAndMergeDudes() {
     var merged = false;
     for (var tier = 1; tier <= 4; tier++) {
         var counts = {};
-        state.dudes.forEach(function(d) {
-            if ((d.tier || 1) === tier) {
-                counts[d.id] = (counts[d.id] || 0) + 1;
-            }
-        });
-
+        state.dudes.forEach(d => { if((d.tier||1)===tier) counts[d.id]=(counts[d.id]||0)+1; });
         for (var dudeId in counts) {
             if (counts[dudeId] >= 3) {
-                var matches = state.dudes.filter(function(d) { return d.id === dudeId && (d.tier || 1) === tier; });
+                var matches = state.dudes.filter(d => d.id===dudeId && (d.tier||1)===tier);
                 if (matches.length >= 3) {
                     var keeper = matches[0];
-                    var remove1 = matches[1];
-                    var remove2 = matches[2];
-
                     keeper.tier = tier + 1;
-                    keeper.hp = Math.round(keeper.hp * 2.2);
-                    keeper.atk = Math.round(keeper.atk * 2.2);
-
-                    state.dudes = state.dudes.filter(function(d) { return d !== remove1 && d !== remove2; });
-
-                    var starNames = ['1星', '★★ 2星', '★★★ 3星', '★★★★ 4星史詩', '★★★★★ 5星宇宙神級'];
-                    var starStr = starNames[keeper.tier - 1] || '神級';
-                    log('⭐【5星極限合成爆發】合成本體！' + keeper.name + ' 晉升為 ' + starStr + ' (體質 x2.2)！');
-                    merged = true;
-                    break;
+                    // 5星升級倍率大幅提升至 25 倍基礎 (這裡用 2.5 倍於上一級，總計約 25 倍於 1 星)
+                    keeper.hp = Math.round(keeper.hp * 2.5);
+                    keeper.atk = Math.round(keeper.atk * 2.5);
+                    state.dudes = state.dudes.filter(d => d !== matches[1] && d !== matches[2]);
+                    log('⭐【極限合成】' + keeper.name + ' 晉升為 ' + keeper.tier + '星神級！');
+                    merged = true; break;
                 }
             }
         }
         if (merged) break;
     }
-
     if (merged) checkAndMergeDudes();
 }
-
 function sellDude(dude) {
     if (state.inBattle) return;
     var t = dude.tier || 1;
     var refund = t === 1 ? 2 : (t === 2 ? 5 : (t === 3 ? 12 : (t === 4 ? 30 : 75)));
     state.gold += refund;
-    state.dudes = state.dudes.filter(function(d) { return d !== dude; });
+    state.dudes = state.dudes.filter(d => d !== dude);
     state.selectedDude = null;
     playSound('gold');
-    log('🗑️ 成功出售 ' + dude.name + ' (' + t + '星)！獲得返還金幣 $' + refund + '。');
-    saveRunSession();
-    updateUI();
-    drawIdleArena();
+    saveRunSession(); updateUI(); drawIdleArena();
 }
-
 function rerollShop() {
-    if (state.gold < 2 && state.shop.length > 0) {
-        log('金幣不足，無法刷新商店！');
-        return;
-    }
-    if (state.shop.length > 0) state.gold -= 2;
-
+    if (state.gold < state.rerollCost && state.shop.length > 0) { log('金幣不足，無法刷新！'); return; }
+    if (state.shop.length > 0) state.gold -= state.rerollCost;
     state.shop = [];
     for (var i = 0; i < 4; i++) {
         var randomType = DUDE_TYPES[Math.floor(Math.random() * DUDE_TYPES.length)];
-        var baseObj = Object.assign({}, randomType);
-        baseObj.tier = 1;
-        state.shop.push(baseObj);
+        var baseObj = Object.assign({}, randomType); baseObj.tier = 1; state.shop.push(baseObj);
     }
-    renderShop();
-    updateUI();
+    renderShop(); updateUI();
 }
-
 function renderShop() {
-    var grid = document.getElementById('shop-cards');
-    grid.innerHTML = '';
-
+    var grid = document.getElementById('shop-cards'); grid.innerHTML = '';
     state.shop.forEach(function(item, index) {
         var card = document.createElement('div');
-        card.className = 'dude-card';
+        card.className = 'dude-card tier-' + (item.tier||1);
         card.onclick = function() { buyDude(index); };
-
-        card.innerHTML = '<div><div class="dude-name">' + item.name + '</div><span class="dude-family family-' + item.family + '">' + item.family.toUpperCase() + '</span><div class="dude-stats">❤️ HP: ' + item.hp + ' | ⚔️ ATK: ' + item.atk + '</div><div class="dude-desc">' + item.desc + '</div></div><div class="dude-price">💰 $' + item.price + '</div>';
+        card.innerHTML = '<div><div class="dude-name">' + item.name + '</div><span class="dude-family family-' + item.family + '">' + item.family.toUpperCase() + '</span><div class="dude-stats">❤️ ' + item.hp + ' | ⚔️ ' + item.atk + '</div><div class="dude-desc">' + item.desc + '</div></div><div class="dude-price">💰 $' + item.price + '</div>';
         grid.appendChild(card);
     });
 }
-
 function buyDude(index) {
     if (state.inBattle) return;
-    if (state.dudes.length >= state.maxDudes) {
-        log('陣型格已滿（最多 12 格）！可以使用販賣功能騰出空間。');
-        return;
-    }
-
-    var item = state.shop[index];
-    if (!item) return;
-
-    if (state.gold < item.price) {
-        log('金幣不足！購買 ' + item.name + ' 需要 $' + item.price + '。');
-        return;
-    }
-
-    var occupiedSlots = state.dudes.map(function(d) { return d.slotIndex; });
-    var freeSlot = 0;
-    for (var i = 0; i < 12; i++) {
-        if (!occupiedSlots.includes(i)) {
-            freeSlot = i;
-            break;
-        }
-    }
-
+    if (state.dudes.length >= state.maxDudes) { log('陣型格已滿！'); return; }
+    var item = state.shop[index]; if (!item) return;
+    if (state.gold < item.price) { log('金幣不足！'); return; }
+    var freeSlot = 0; for (var i = 0; i < 12; i++) { if (!state.dudes.some(d=>d.slotIndex===i)) { freeSlot = i; break; } }
     state.gold -= item.price;
-    var baseObj = Object.assign({}, item);
-    baseObj.slotIndex = freeSlot;
-    baseObj.tier = 1;
-    state.dudes.push(baseObj);
-    state.shop.splice(index, 1);
-
-    log('成功招募 ' + item.name + '！已放置於 [' + GRID_SLOTS[freeSlot].label + ']。');
-    checkAndMergeDudes();
-    saveRunSession();
-    renderShop();
-    updateUI();
-    drawIdleArena();
+    var baseObj = Object.assign({}, item); baseObj.slotIndex = freeSlot; baseObj.tier = 1;
+    state.dudes.push(baseObj); state.shop.splice(index, 1);
+    checkAndMergeDudes(); saveRunSession(); renderShop(); updateUI(); drawIdleArena();
+}
+function toggleSpeed() {
+    if (state.speed === 1) state.speed = 2; else if (state.speed === 2) state.speed = 4; else state.speed = 1;
+    document.getElementById('btn-speed').innerText = '⏩ ' + state.speed + 'x';
 }
 
+// Drag & Drop Setup
 function setupDragAndDrop() {
     var arena = document.getElementById('arena-container');
-
-    arena.addEventListener('mousedown', function(e) {
+    arena.addEventListener(EVT_DOWN, function(e) {
         if (state.inBattle) return;
-        var rect = canvas.getBoundingClientRect();
-        var mouseX = e.clientX - rect.left;
-        var mouseY = e.clientY - rect.top;
-
-        if (state.selectedDude && mouseX >= canvas.width - 120 && mouseX <= canvas.width - 20 && mouseY >= canvas.height - 50 && mouseY <= canvas.height - 10) {
-            sellDude(state.selectedDude);
-            return;
-        }
-
+        if (e.cancelable) e.preventDefault();
+        var pos = getEventPos(e);
+        if (state.selectedDude && pos.x >= canvas.width - 120 && pos.x <= canvas.width - 20 && pos.y >= canvas.height - 50 && pos.y <= canvas.height - 10) { sellDude(state.selectedDude); return; }
         for (var i = 0; i < state.dudes.length; i++) {
-            var d = state.dudes[i];
-            var slot = GRID_SLOTS[d.slotIndex];
-            var dist = Math.hypot(mouseX - slot.x, mouseY - slot.y);
-            if (dist <= 22) {
-                draggedDude = d;
-                state.selectedDude = d;
-                currentMousePos = { x: mouseX, y: mouseY };
-                break;
+            var d = state.dudes[i]; var slot = GRID_SLOTS[d.slotIndex];
+            if (Math.hypot(pos.x - slot.x, pos.y - slot.y) <= 22) {
+                draggedDude = d; state.selectedDude = d; currentMousePos = pos; break;
             }
         }
         drawIdleArena();
     });
-
-    arena.addEventListener('mousemove', function(e) {
+    arena.addEventListener(EVT_MOVE, function(e) {
         if (state.inBattle || !draggedDude) return;
-        var rect = canvas.getBoundingClientRect();
-        currentMousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        drawIdleArena();
+        if (e.cancelable) e.preventDefault();
+        currentMousePos = getEventPos(e); drawIdleArena();
     });
-
-    arena.addEventListener('mouseup', function(e) {
+    arena.addEventListener(EVT_UP, function(e) {
         if (state.inBattle || !draggedDude) return;
-
-        var rect = canvas.getBoundingClientRect();
-        var dropX = e.clientX - rect.left;
-        var dropY = e.clientY - rect.top;
-
-        if (dropX >= canvas.width - 140 && dropY >= canvas.height - 60) {
-            sellDude(draggedDude);
-            draggedDude = null;
-            return;
-        }
-
-        var targetSlot = -1;
-        var minDist = 60;
-
-        GRID_SLOTS.forEach(function(slot) {
-            var dist = Math.hypot(dropX - slot.x, dropY - slot.y);
-            if (dist < minDist) {
-                minDist = dist;
-                targetSlot = slot.id;
-            }
-        });
-
+        if (e.cancelable) e.preventDefault();
+        var pos = getEventPos(e);
+        if (pos.x >= canvas.width - 140 && pos.y >= canvas.height - 60) { sellDude(draggedDude); draggedDude = null; return; }
+        var targetSlot = -1, minDist = 60;
+        GRID_SLOTS.forEach(function(slot) { var dist = Math.hypot(pos.x - slot.x, pos.y - slot.y); if (dist < minDist) { minDist = dist; targetSlot = slot.id; } });
         if (targetSlot !== -1 && targetSlot !== draggedDude.slotIndex) {
-            var existing = state.dudes.find(function(d) { return d.slotIndex === targetSlot; });
-            if (existing) {
-                existing.slotIndex = draggedDude.slotIndex;
-            }
-            draggedDude.slotIndex = targetSlot;
-            log('已調整站位：' + draggedDude.name + ' 移動至 [' + GRID_SLOTS[targetSlot].label + ']！');
-            saveRunSession();
+            var existing = state.dudes.find(d => d.slotIndex === targetSlot);
+            if (existing) existing.slotIndex = draggedDude.slotIndex;
+            draggedDude.slotIndex = targetSlot; saveRunSession();
         }
-
-        draggedDude = null;
-        drawIdleArena();
+        draggedDude = null; drawIdleArena();
     });
 }
 
+// Canvas Rendering
 function drawIdleArena() {
     if (state.inBattle) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth = 1;
-    for (var x = 0; x < canvas.width; x += 40) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-    }
-    for (var y = 0; y < canvas.height; y += 40) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-    }
-
-    ctx.fillStyle = 'rgba(0, 240, 255, 0.05)';
-    ctx.strokeStyle = '#00f0ff';
-    ctx.lineWidth = 2;
-    ctx.fillRect(40, 20, 380, 280);
-    ctx.strokeRect(40, 20, 380, 280);
-
-    ctx.fillStyle = '#00f0ff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('🛡️ 玩家 4x3 賽博陣型區 (容量 12 單位 | 拖曳或點擊選擇)', 50, 40);
-
+    ctx.fillStyle = 'rgba(0, 240, 255, 0.05)'; ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 2;
+    ctx.fillRect(40, 20, 380, 280); ctx.strokeRect(40, 20, 380, 280);
+    ctx.fillStyle = '#00f0ff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('🛡️ 玩家 4x3 賽博陣型區 (拖曳調整 / 點擊選擇)', 50, 40);
     GRID_SLOTS.forEach(function(slot) {
-        ctx.strokeStyle = '#1e293b';
-        ctx.fillStyle = '#030712';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(slot.x, slot.y, 22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#64748b';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(slot.label, slot.x, slot.y + 32);
+        ctx.strokeStyle = '#1e293b'; ctx.fillStyle = '#030712'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(slot.x, slot.y, 22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(slot.label, slot.x, slot.y + 32);
     });
-
-    ctx.fillStyle = 'rgba(225, 29, 72, 0.2)';
-    ctx.strokeStyle = '#e11d48';
-    ctx.lineWidth = 2;
-    ctx.fillRect(canvas.width - 140, canvas.height - 60, 120, 50);
-    ctx.strokeRect(canvas.width - 140, canvas.height - 60, 120, 50);
-
-    ctx.fillStyle = '#fda4af';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
+    // Sell Zone Highlight
+    var isOverSell = draggedDude && currentMousePos.x >= canvas.width - 140 && currentMousePos.y >= canvas.height - 60;
+    ctx.fillStyle = isOverSell ? 'rgba(225, 29, 72, 0.6)' : 'rgba(225, 29, 72, 0.2)';
+    ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 2;
+    ctx.fillRect(canvas.width - 140, canvas.height - 60, 120, 50); ctx.strokeRect(canvas.width - 140, canvas.height - 60, 120, 50);
+    ctx.fillStyle = '#fda4af'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('🗑️ 拖曳至此販賣', canvas.width - 80, canvas.height - 30);
-
     if (state.selectedDude) {
-        var sel = state.selectedDude;
-        var t = sel.tier || 1;
+        var sel = state.selectedDude; var t = sel.tier || 1;
         var refund = t === 1 ? 2 : (t === 2 ? 5 : (t === 3 ? 12 : (t === 4 ? 30 : 75)));
-
-        ctx.fillStyle = '#facc15';
-        ctx.font = 'bold 13px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText('已選擇: ' + sel.name + ' (' + t + '星) - 可賣出金幣: $' + refund, 450, 40);
-
-        ctx.fillStyle = '#e11d48';
-        ctx.fillRect(canvas.width - 120, canvas.height - 50, 100, 40);
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('點擊販賣 (+$' + refund + ')', canvas.width - 70, canvas.height - 25);
+        ctx.fillStyle = '#facc15'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('已選擇: ' + sel.name + ' (' + t + '星) - 可賣出: $' + refund, 450, 40);
     }
-
-    state.dudes.forEach(function(d) {
-        if (d === draggedDude) return;
-        var slot = GRID_SLOTS[d.slotIndex];
-        drawDudeOnCanvas(d, slot.x, slot.y);
-    });
-
-    if (draggedDude) {
-        drawDudeOnCanvas(draggedDude, currentMousePos.x, currentMousePos.y, true);
-    }
-
-    if (state.dudes.length === 0) {
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '15px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('點擊下方商店招募 Dude，單位會自動放入 4x3 陣型區！', 230, 160);
-    }
+    state.dudes.forEach(d => { if (d !== draggedDude) drawDudeOnCanvas(d, GRID_SLOTS[d.slotIndex].x, GRID_SLOTS[d.slotIndex].y); });
+    if (draggedDude) drawDudeOnCanvas(draggedDude, currentMousePos.x, currentMousePos.y, true);
+    if (state.dudes.length === 0) { ctx.fillStyle = '#94a3b8'; ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('點擊下方商店招募 Dude！', 230, 160); }
 }
-
-function drawDudeOnCanvas(d, x, y, isDragging) {
-    var tier = d.tier || 1;
-    var radius = 16 + (tier - 1) * 3;
-
-    if (state.selectedDude === d) {
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(x, y, radius + 6, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-
-    if (tier >= 2) {
-        var colors = ['#f39c12', '#f39c12', '#a855f7', '#ec4899', '#00f0ff'];
-        ctx.strokeStyle = colors[tier - 1] || '#00f0ff';
-        ctx.lineWidth = 2.5 + (tier - 2) * 0.5;
-        ctx.beginPath();
-        ctx.arc(x, y, radius + 3, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-
-    ctx.fillStyle = getFamilyColor(d.family);
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 10px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(d.name.substring(0, 2), x, y + 3);
-
-    if (tier >= 2) {
-        ctx.fillStyle = '#facc15';
-        ctx.font = 'bold 10px sans-serif';
-        var stars = ['★', '★★', '★★★', '★★★★', '★★★★★'];
-        ctx.fillText(stars[tier - 1] || '★', x, y - radius - 3);
-    }
+function drawDudeOnCanvas(d, x, y, isDrag) {
+    var tier = d.tier || 1; var radius = 16 + (tier - 1) * 3;
+    if (state.selectedDude === d) { ctx.strokeStyle = '#00f0ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, radius + 6, 0, Math.PI * 2); ctx.stroke(); }
+    if (tier >= 2) { ctx.strokeStyle = ['#f39c12', '#a855f7', '#ec4899', '#00f0ff'][tier - 2] || '#00f0ff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, radius + 3, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.fillStyle = getFamilyColor(d.family); ctx.shadowBlur = tier >= 3 ? 15 : 5; ctx.shadowColor = getFamilyColor(d.family);
+    ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d.name.substring(0, 2), x, y + 3);
+    if (tier >= 2) { ctx.fillStyle = '#facc15'; ctx.font = 'bold 10px sans-serif'; ctx.fillText('★'.repeat(tier), x, y - radius - 3); }
 }
-
 function getFamilyColor(family) {
-    if (family === 'undead') return '#a855f7';
-    if (family === 'warrior') return '#ef4444';
-    if (family === 'fantasy') return '#3b82f6';
-    if (family === 'employed') return '#eab308';
-    if (family === 'scifi') return '#0284c7';
-    if (family === 'action') return '#c2410c';
-    return '#10b981';
+    var colors = { undead: '#a855f7', warrior: '#ef4444', fantasy: '#3b82f6', employed: '#eab308', scifi: '#0284c7', action: '#c2410c', mutant: '#22c55e' };
+    return colors[family] || '#10b981';
 }
 
+// Battle Engine
 function startBattle() {
-    if (state.inBattle) return;
-    if (state.dudes.length === 0) {
-        log('你至少需要招募 1 位 Dude 才能開啟戰鬥！');
-        return;
-    }
-
-    state.inBattle = true;
-    document.getElementById('btn-battle').disabled = true;
-    document.getElementById('btn-reroll').disabled = true;
-
-    if (state.relics.some(function(r) { return r.id === 'compound_interest'; })) {
-        var interest = Math.floor(state.gold * 0.1);
-        if (interest > 0) {
-            state.gold += interest;
-            log('🏦【複利契約】獲得 $' + interest + ' 利息！');
-            updateUI();
-        }
+    if (state.inBattle || state.dudes.length === 0) { log('需要至少 1 位 Dude！'); return; }
+    state.inBattle = true; document.getElementById('btn-battle').disabled = true; document.getElementById('btn-reroll').disabled = true;
+    
+    if (state.relics.some(r => r.id === 'compound_interest')) {
+        var interest = Math.min(5, Math.floor(state.gold * 0.1)); // 利息上限 $5
+        if (interest > 0) { state.gold += interest; log('🏦 獲得 $' + interest + ' 利息！'); updateUI(); }
     }
 
     var waveInfo = ENEMY_WAVES[Math.min(state.wave, 10) - 1];
-    var waveName = state.endlessMode ? ('無盡波次 ' + state.wave + ' (難度極致放大)') : waveInfo.name;
-    log('⚔️ 開始 ' + waveName + '！');
-
     var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
-
-    var counts = {};
-    state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
-
+    var counts = {}; state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
     var talentHpMult = 1.0 + (accountState.talents.allHpLevel || 0) * 0.10;
     var talentAtkMult = 1.0 + (accountState.talents.allAtkLevel || 0) * 0.10;
-
     var atkBuff = (counts['undead'] >= 2 ? 1.15 : 1.0) * talentAtkMult;
     var hpBuff = (counts['warrior'] >= 2 ? 1.25 : 1.0) * talentHpMult;
     var rangeBuff = counts['fantasy'] >= 2 ? 1.2 : 1.0;
-
-    if (counts['scifi'] >= 2) atkBuff *= 1.15;
-    if (counts['scifi'] >= 4) rangeBuff *= 1.30;
-
-    if (state.relics.some(function(r) { return r.id === 'cursed_book'; })) {
-        atkBuff *= 1.30;
-        hpBuff *= 0.90;
-    }
+    if (counts['scifi'] >= 2) atkBuff *= 1.15; if (counts['scifi'] >= 4) rangeBuff *= 1.30;
+    if (state.relics.some(r => r.id === 'cursed_book')) { atkBuff *= 1.30; hpBuff *= 0.90; }
 
     combatEntities = [];
-    state.dudes.forEach(function(d) {
-        var slot = GRID_SLOTS[d.slotIndex];
-        var tier = d.tier || 1;
-        var tierMults = [1.0, 2.2, 4.5, 9.0, 20.0];
-        var tierMult = tierMults[tier - 1] || 1.0;
-
-        combatEntities.push({
-            isDude: true,
-            id: d.id,
-            name: d.name,
-            family: d.family,
-            tier: tier,
-            x: slot.x,
-            y: slot.y,
-            hp: Math.round(d.hp * hpBuff * tierMult),
-            maxHp: Math.round(d.hp * hpBuff * tierMult),
-            atk: Math.round(d.atk * atkBuff * tierMult),
-            range: d.range * (rangeBuff * (state.relics.some(function(r) { return r.id === 'magic_overload'; }) ? 1.2 : 1.0)),
-            speed: d.speed * (state.relics.some(function(r) { return r.id === 'magic_overload'; }) ? 1.2 : 1.0) * (counts['action'] >= 2 ? 1.15 : 1.0),
-            cooldown: 0,
-            radius: 14 + (tier - 1) * 3,
-            color: getFamilyColor(d.family),
-            totalDamage: 0,
-            totalHeal: 0
-        });
+    state.dudes.forEach(d => {
+        var slot = GRID_SLOTS[d.slotIndex]; var tier = d.tier || 1;
+        var tierMult = [1.0, 2.2, 4.8, 10.0, 25.0][tier - 1] || 1.0; // 5星 25 倍
+        var maxHp = Math.round(d.hp * hpBuff * tierMult);
+        var e = {
+            isDude: true, id: d.id, name: d.name, family: d.family, tier: tier, x: slot.x, y: slot.y,
+            hp: maxHp, maxHp: maxHp, atk: Math.round(d.atk * atkBuff * tierMult),
+            range: d.range * (rangeBuff * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0)),
+            speed: d.speed * (state.relics.some(r => r.id === 'magic_overload') ? 1.2 : 1.0) * (counts['action'] >= 2 ? 1.15 : 1.0),
+            cooldown: 0, radius: 14 + (tier - 1) * 3, color: getFamilyColor(d.family), totalDamage: 0, totalHeal: 0, shield: 0, debuffTimer: 0
+        };
+        if (state.relics.some(r => r.id === 'aegis_matrix')) e.shield = Math.round(maxHp * 0.2);
+        combatEntities.push(e);
     });
 
-    if (counts['employed'] >= 4 && combatEntities.length > 0) {
-        var lucky = combatEntities[Math.floor(Math.random() * combatEntities.length)];
-        lucky.hasInsurance = true;
-    }
-
     godShockwaveTimer = 0;
-
     var endlessMult = state.endlessMode ? Math.pow(1.25, state.wave - 10) : 1.0;
-    var totalEnemyHpMult = diffCfg.hpMult * endlessMult;
-    var totalEnemyAtkMult = diffCfg.atkMult * endlessMult;
-
     var enemyCount = waveInfo.count + (state.endlessMode ? Math.floor((state.wave - 10) * 1.5) : 0);
     for (var i = 0; i < enemyCount; i++) {
         combatEntities.push({
-            isDude: false,
-            name: waveInfo.isBoss ? (waveInfo.bossId === 'duck' ? '巨型鴨 BOSS' : '破滅之神 BOSS') : 'Enemy',
-            isBoss: waveInfo.isBoss,
-            bossId: waveInfo.bossId,
-            x: canvas.width - 100 - (Math.random() * 120),
-            y: 40 + (Math.random() * (canvas.height - 80)),
-            hp: Math.round(waveInfo.hp * totalEnemyHpMult),
-            maxHp: Math.round(waveInfo.hp * totalEnemyHpMult),
-            atk: Math.round(waveInfo.atk * totalEnemyAtkMult),
-            range: 35,
-            speed: waveInfo.speed,
-            bounty: (waveInfo.bounty || 1) + (accountState.talents.bountyBonus || 0),
-            cooldown: 0,
-            radius: waveInfo.size,
-            color: waveInfo.color,
-            isEnraged: false
+            isDude: false, name: waveInfo.isBoss ? 'BOSS' : 'Enemy', isBoss: waveInfo.isBoss, bossId: waveInfo.bossId,
+            x: canvas.width - 100 - (Math.random() * 120), y: 40 + (Math.random() * (canvas.height - 80)),
+            hp: Math.round(waveInfo.hp * diffCfg.hpMult * endlessMult), maxHp: Math.round(waveInfo.hp * diffCfg.hpMult * endlessMult),
+            atk: Math.round(waveInfo.atk * diffCfg.atkMult * endlessMult), range: 35, speed: waveInfo.speed,
+            bounty: (waveInfo.bounty || 1) + (accountState.talents.bountyBonus || 0), cooldown: 0, radius: waveInfo.size, color: waveInfo.color, isEnraged: false, debuffTimer: 0
         });
     }
-
-    combatProjectiles = [];
-    combatParticles = [];
-    screenShake = 0;
-    battleLoop();
+    combatProjectiles = []; combatParticles = []; screenShake = 0; lastFrameTime = performance.now(); battleLoop();
 }
 
-function battleLoop() {
-    ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function battleLoop(timestamp) {
+    var dt = (timestamp - lastFrameTime) / 16.66; // Normalize to 60fps
+    if (dt > 3) dt = 3; // Prevent spiral of death
+    lastFrameTime = timestamp;
 
-    if (screenShake > 0) {
-        var rx = (Math.random() - 0.5) * screenShake;
-        var ry = (Math.random() - 0.5) * screenShake;
-        ctx.translate(rx, ry);
-        screenShake *= 0.85;
-        if (screenShake < 0.5) screenShake = 0;
-    }
-
+    ctx.save(); ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (screenShake > 0) { ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake); screenShake *= 0.85; if (screenShake < 0.5) screenShake = 0; }
     var gameSpeed = state.speed;
+    var dudes = combatEntities.filter(e => e.isDude && e.hp > 0);
+    var enemies = combatEntities.filter(e => !e.isDude && e.hp > 0);
+    if (enemies.length === 0) { ctx.restore(); endBattle(true); return; }
+    if (dudes.length === 0) { ctx.restore(); endBattle(false); return; }
+    var counts = {}; dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
 
-    var dudes = combatEntities.filter(function(e) { return e.isDude && e.hp > 0; });
-    var enemies = combatEntities.filter(function(e) { return !e.isDude && e.hp > 0; });
-
-    if (enemies.length === 0) {
-        ctx.restore();
-        endBattle(true);
-        return;
-    }
-    if (dudes.length === 0) {
-        ctx.restore();
-        endBattle(false);
-        return;
-    }
-
-    var counts = {};
-    dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
-
-    enemies.forEach(function(en) {
+    // Boss Logic
+    enemies.forEach(en => {
         if (en.isBoss && en.hp / en.maxHp <= 0.5 && !en.isEnraged) {
-            en.isEnraged = true;
-            en.color = '#dc2626';
-            en.speed *= 1.5;
-            screenShake = 15;
-            playSound('explosion');
-
-            if (en.bossId === 'duck') {
-                log('🦆【BOSS Phase 2 狂暴】巨型鴨進入狂暴狀態！移動速度 +50%，並召喚小鴨協助！');
-                for (var k = 0; k < 3; k++) {
-                    combatEntities.push({
-                        isDude: false, name: '狂暴小鴨', x: en.x, y: en.y, hp: 35, maxHp: 35, atk: 10, range: 35, speed: 1.4, bounty: 1, cooldown: 0, radius: 10, color: '#f472b6'
-                    });
-                }
-            } else if (en.bossId === 'god') {
-                log('⚡【BOSS Phase 2 狂暴】破滅之神神威發動！將定期釋放神罰衝擊波！');
-            }
+            en.isEnraged = true; en.color = '#dc2626'; en.speed *= 1.5; screenShake = 15; playSound('explosion');
+            if (en.bossId === 'duck') { for (var k = 0; k < 3; k++) combatEntities.push({ isDude: false, name: '狂暴小鴨', x: en.x, y: en.y, hp: 35, maxHp: 35, atk: 10, range: 35, speed: 1.4, bounty: 1, cooldown: 0, radius: 10, color: '#f472b6' }); }
         }
-
         if (en.isBoss && en.bossId === 'god' && en.isEnraged) {
-            godShockwaveTimer++;
-            if (godShockwaveTimer >= Math.round(300 / gameSpeed)) {
-                godShockwaveTimer = 0;
-                screenShake = 18;
-                playSound('explosion');
-                log('⚡【破滅神罰】全場範圍衝擊波對所有 Dude 造成 25 點直接傷害！');
-
-                combatParticles.push({
-                    type: 'ring', x: en.x, y: en.y, radius: 20, maxRadius: 350, color: '#ef4444', life: 25
-                });
-
-                dudes.forEach(function(d) {
-                    d.hp -= 25;
-                    combatParticles.push({ x: d.x, y: d.y, text: '-25神罰', color: '#f87171', life: 25 });
-                });
-            }
+            godShockwaveTimer += dt * gameSpeed;
+            if (godShockwaveTimer >= 18) { godShockwaveTimer = 0; screenShake = 18; dudes.forEach(d => { d.hp -= 25; combatParticles.push({ x: d.x, y: d.y, text: '-25神罰', color: '#f87171', life: 25 }); }); }
         }
     });
 
-    combatEntities.forEach(function(e) {
-        if (e.hp <= 0) return;
+    // Entities Update & Combat
+    for (var i = combatEntities.length - 1; i >= 0; i--) {
+        var e = combatEntities[i];
+        if (e.hp <= 0) {
+            // Death Logic
+            if (e.isDude) {
+                if (counts['undead'] >= 4 && Math.random() < 0.5) combatEntities.push({ isDude: true, id: 'skeleton', name: '小骷髏', family: 'undead', tier: 1, x: e.x, y: e.y, hp: 15, maxHp: 15, atk: 6, range: 40, speed: 1.5, cooldown: 0, radius: 10, color: '#e9d5ff', totalDamage: 0, totalHeal: 0 });
+                if (e.id === 'zombie' || state.relics.some(r => r.id === 'explosive_guts')) {
+                    screenShake = 10; enemies.forEach(en => { if (Math.hypot(en.x - e.x, en.y - e.y) <= 60) en.hp -= 20; });
+                }
+                if (counts['mutant'] >= 2 && Math.random() < 0.5) {
+                    for(var m=0; m<2; m++) combatEntities.push({ isDude: true, id: 'mutant_minion', name: '變異體', family: 'mutant', tier: 1, x: e.x, y: e.y, hp: e.maxHp*0.25, maxHp: e.maxHp*0.25, atk: e.atk*0.5, range: 40, speed: 1.2, cooldown: 0, radius: 10, color: '#22c55e', totalDamage: 0, totalHeal: 0 });
+                }
+            }
+            // O(1) Removal
+            combatEntities[i] = combatEntities[combatEntities.length - 1];
+            combatEntities.pop();
+            continue;
+        }
+
+        // Nano Repair Trinket
+        if (e.isDude && state.trinkets.some(t => t.id === 'nano_repair')) {
+            e.hp = Math.min(e.maxHp, e.hp + (e.maxHp * 0.02 * dt * gameSpeed / 60));
+        }
 
         var targets = e.isDude ? enemies : dudes;
-        var nearest = null;
-        var minDist = 999999;
-
-        targets.forEach(function(t) {
-            var dist = Math.hypot(t.x - e.x, t.y - e.y);
-            if (dist < minDist) {
-                minDist = dist;
-                nearest = t;
-            }
-        });
+        var nearest = null, minDist = 999999;
+        targets.forEach(t => { var dist = Math.hypot(t.x - e.x, t.y - e.y); if (dist < minDist) { minDist = dist; nearest = t; } });
 
         if (nearest) {
             if (minDist <= e.range) {
                 if (e.cooldown <= 0) {
                     e.cooldown = (50 / e.speed) / gameSpeed;
-
+                    var dmg = e.atk;
+                    if (nearest.debuffTimer > 0) dmg *= 1.2; // Acid debuff
+                    
                     if (e.id === 'laser_dude' && e.isDude) {
                         playSound('laser');
-                        combatParticles.push({
-                            type: 'beam', x1: e.x, y1: e.y, x2: nearest.x, y2: nearest.y, color: '#00f0ff', life: 12
-                        });
-                        nearest.hp -= e.atk;
-                        e.totalDamage = (e.totalDamage || 0) + e.atk;
-                        combatParticles.push({ x: nearest.x, y: nearest.y, text: '-' + e.atk, color: '#00f0ff', life: 25 });
+                        combatParticles.push({ type: 'beam', x1: e.x, y1: e.y, x2: nearest.x, y2: nearest.y, color: '#00f0ff', life: 12 });
+                        applyDamage(nearest, dmg, e);
+                    } else if (e.id === 'mutant_spitter' && e.isDude) {
+                        combatProjectiles.push({ x: e.x, y: e.y, target: nearest, damage: dmg, owner: e, speed: 6 * gameSpeed, radius: 5, color: '#22c55e', type: 'acid', debuff: true });
                     } else if (e.id === 'wizard' && e.isDude) {
-                        playSound('shoot');
-                        combatProjectiles.push({
-                            x: e.x, y: e.y, target: nearest, damage: e.atk, owner: e,
-                            speed: 5 * gameSpeed, radius: 6, color: '#f97316', type: 'fireball'
-                        });
-                    } else if (e.id === 'cowboy' && e.isDude) {
-                        playSound('shoot');
-                        combatProjectiles.push({
-                            x: e.x, y: e.y, target: nearest, damage: e.atk, owner: e,
-                            speed: 10 * gameSpeed, radius: 3, color: '#facc15', type: 'bullet'
-                        });
-                    } else if (e.id === 'cleric' && e.isDude) {
-                        var lowestDude = dudes.sort(function(a, b) { return a.hp - b.hp; })[0];
-                        if (lowestDude) {
-                            var healAmt = 15 * e.tier;
-                            lowestDude.hp = Math.min(lowestDude.maxHp, lowestDude.hp + healAmt);
-                            e.totalHeal = (e.totalHeal || 0) + healAmt;
-                            playSound('heal');
-
-                            combatParticles.push({
-                                x: lowestDude.x, y: lowestDude.y, text: '+' + healAmt + ' HP', color: '#4ade80', life: 25
-                            });
-                            combatParticles.push({
-                                type: 'beam', x1: e.x, y1: e.y, x2: lowestDude.x, y2: lowestDude.y, color: '#22c55e', life: 10
-                            });
-                        }
+                        combatProjectiles.push({ x: e.x, y: e.y, target: nearest, damage: dmg, owner: e, speed: 5 * gameSpeed, radius: 6, color: '#f97316', type: 'fireball' });
                     } else {
-                        nearest.hp -= e.atk;
-                        if (e.isDude) e.totalDamage = (e.totalDamage || 0) + e.atk;
-
-                        if (e.isDude && state.relics.some(function(r) { return r.id === 'blood_shield'; })) {
-                            e.hp = Math.min(e.maxHp, e.hp + 3);
-                            e.totalHeal = (e.totalHeal || 0) + 3;
-                        }
-
-                        if (!e.isDude && counts['warrior'] >= 4) {
-                            var refl = Math.round(e.atk * 0.2);
-                            e.hp -= refl;
-                        }
-
-                        if (e.isDude && counts['fantasy'] >= 4) {
-                            var splashed = enemies.filter(function(en) { return en !== nearest && en.hp > 0; }).slice(0, 2);
-                            splashed.forEach(function(s) {
-                                var splashDmg = Math.round(e.atk * 0.5);
-                                s.hp -= splashDmg;
-                                e.totalDamage = (e.totalDamage || 0) + splashDmg;
-                                combatParticles.push({
-                                    type: 'beam', x1: nearest.x, y1: nearest.y, x2: s.x, y2: s.y, color: '#38bdf8', life: 8
-                                });
-                            });
-                        }
-
-                        combatParticles.push({
-                            x: nearest.x, y: nearest.y, text: '-' + e.atk, color: e.isDude ? '#f87171' : '#38bdf8', life: 25
-                        });
-
-                        if (nearest.hp <= 0 && !nearest.isDude) {
-                            playSound('gold');
-                            var droppedGold = nearest.bounty + (state.relics.some(function(r) { return r.id === 'golden_touch'; }) ? 1 : 0);
-                            state.gold += droppedGold;
-                            updateUI();
-
-                            combatParticles.push({
-                                x: nearest.x, y: nearest.y - 10, text: '+$' + droppedGold + ' 金幣', color: '#f39c12', life: 35
-                            });
-                        }
-
-                        if (nearest.hp <= 0 && nearest.isDude) {
-                            if (nearest.hasInsurance) {
-                                playSound('gold');
-                                state.gold += 5;
-                                updateUI();
-                                combatParticles.push({ x: nearest.x, y: nearest.y, text: '+$5保險金', color: '#facc15', life: 35 });
-                            }
-
-                            if (counts['undead'] >= 4 && Math.random() < 0.5) {
-                                combatEntities.push({
-                                    isDude: true, id: 'skeleton', name: '小骷髏', family: 'undead', tier: 1,
-                                    x: nearest.x, y: nearest.y, hp: 15, maxHp: 15, atk: 6, range: 40, speed: 1.5, cooldown: 0, radius: 10, color: '#e9d5ff',
-                                    totalDamage: 0, totalHeal: 0
-                                });
-                                combatParticles.push({ x: nearest.x, y: nearest.y, text: '💀 骷髏降臨', color: '#e9d5ff', life: 25 });
-                            }
-
-                            if (nearest.id === 'zombie' || state.relics.some(function(r) { return r.id === 'explosive_guts'; })) {
-                                playSound('explosion');
-                                screenShake = 10;
-                                combatParticles.push({ type: 'ring', x: nearest.x, y: nearest.y, radius: 10, maxRadius: 40, color: '#a855f7', life: 15 });
-                                enemies.forEach(function(en) {
-                                    if (Math.hypot(en.x - nearest.x, en.y - nearest.y) <= 60) {
-                                        en.hp -= 20;
-                                        if (nearest.isDude) nearest.totalDamage = (nearest.totalDamage || 0) + 20;
-                                        combatParticles.push({ x: en.x, y: en.y, text: '-20爆破', color: '#c084fc', life: 25 });
-                                    }
-                                });
-                            }
-                        }
+                        applyDamage(nearest, dmg, e);
+                        if (e.id === 'mutant_brute' && e.isDude) { e.maxHp += 2; e.hp += 2; }
                     }
                 }
             } else {
                 var angle = Math.atan2(nearest.y - e.y, nearest.x - e.x);
-                e.x += Math.cos(angle) * (e.speed * 1.5 * gameSpeed);
-                e.y += Math.sin(angle) * (e.speed * 1.5 * gameSpeed);
+                e.x += Math.cos(angle) * (e.speed * 1.5 * gameSpeed * dt);
+                e.y += Math.sin(angle) * (e.speed * 1.5 * gameSpeed * dt);
             }
         }
+        if (e.cooldown > 0) e.cooldown -= dt * gameSpeed;
+        if (e.debuffTimer > 0) e.debuffTimer -= dt * gameSpeed;
+    }
 
-        if (e.cooldown > 0) e.cooldown--;
+    // Projectiles Update
+    for (var p = combatProjectiles.length - 1; p >= 0; p--) {
+        var proj = combatProjectiles[p];
+        if (!proj.target || proj.target.hp <= 0) { combatProjectiles[p] = combatProjectiles[combatProjectiles.length - 1]; combatProjectiles.pop(); continue; }
+        var angle = Math.atan2(proj.target.y - proj.y, proj.target.x - proj.x);
+        proj.x += Math.cos(angle) * proj.speed * dt;
+        proj.y += Math.sin(angle) * proj.speed * dt;
+        ctx.fillStyle = proj.color; ctx.beginPath(); ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2); ctx.fill();
+        if (Math.hypot(proj.target.x - proj.x, proj.target.y - proj.y) <= proj.target.radius + proj.radius) {
+            applyDamage(proj.target, proj.damage, proj.owner);
+            if (proj.debuff) proj.target.debuffTimer = 180; // 3 seconds
+            if (proj.type === 'fireball') { screenShake = 6; enemies.forEach(en => { if(en !== proj.target && Math.hypot(en.x - proj.x, en.y - proj.y) <= 30) applyDamage(en, proj.damage * 0.5, proj.owner); }); }
+            combatProjectiles[p] = combatProjectiles[combatProjectiles.length - 1]; combatProjectiles.pop();
+        }
+    }
+
+    // Rendering Entities
+    combatEntities.forEach(e => {
+        if (e.isDude && e.tier >= 2) { ctx.strokeStyle = ['#f39c12', '#a855f7', '#ec4899', '#00f0ff'][e.tier - 2] || '#00f0ff'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI * 2); ctx.stroke(); }
+        ctx.fillStyle = e.color; if(e.isBoss) { ctx.shadowBlur = 20; ctx.shadowColor = e.color; }
+        ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+        if (e.shield > 0) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 2, 0, Math.PI * 2); ctx.stroke(); }
+        if (e.debuffTimer > 0) { ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2); ctx.stroke(); }
+        var barW = e.radius * 2, barH = 4, hpPct = Math.max(0, e.hp / e.maxHp);
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW, barH);
+        ctx.fillStyle = e.isDude ? '#00f0ff' : '#ef4444'; ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
     });
 
-    combatProjectiles.forEach(function(p, idx) {
-        if (!p.target || p.target.hp <= 0) {
-            combatProjectiles.splice(idx, 1);
-            return;
-        }
-
-        var angle = Math.atan2(p.target.y - p.y, p.target.x - p.x);
-        p.x += Math.cos(angle) * p.speed;
-        p.y += Math.sin(angle) * p.speed;
-
-        ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        if (Math.hypot(p.target.x - p.x, p.target.y - p.y) <= p.target.radius + p.radius) {
-            p.target.hp -= p.damage;
-            if (p.owner) p.owner.totalDamage = (p.owner.totalDamage || 0) + p.damage;
-
-            combatParticles.push({
-                x: p.target.x, y: p.target.y, text: '-' + p.damage, color: '#fb923c', life: 25
-            });
-
-            if (p.target.hp <= 0 && !p.target.isDude) {
-                playSound('gold');
-                var droppedGold = p.target.bounty + (state.relics.some(function(r) { return r.id === 'golden_touch'; }) ? 1 : 0);
-                state.gold += droppedGold;
-                updateUI();
-                combatParticles.push({
-                    x: p.target.x, y: p.target.y - 10, text: '+$' + droppedGold + ' 金幣', color: '#f39c12', life: 35
-                });
-            }
-
-            if (p.type === 'fireball') {
-                playSound('explosion');
-                screenShake = 6;
-                combatParticles.push({
-                    type: 'ring', x: p.x, y: p.y, radius: 5, maxRadius: 25, color: '#f97316', life: 12
-                });
-            }
-
-            combatProjectiles.splice(idx, 1);
-        }
-    });
-
-    combatEntities.forEach(function(e) {
-        if (e.hp <= 0) return;
-
-        if (e.isDude && e.tier >= 2) {
-            var colors = ['#f39c12', '#f39c12', '#a855f7', '#ec4899', '#00f0ff'];
-            ctx.strokeStyle = colors[e.tier - 1] || '#00f0ff';
-            ctx.lineWidth = 2.5 + (e.tier - 2) * 0.5;
-            ctx.beginPath();
-            ctx.arc(e.x, e.y, e.radius + 3, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        ctx.fillStyle = e.color;
-        ctx.beginPath();
-        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        var barW = e.radius * 2;
-        var barH = 4;
-        var hpPct = Math.max(0, e.hp / e.maxHp);
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW, barH);
-        ctx.fillStyle = e.isDude ? '#00f0ff' : '#ef4444';
-        ctx.fillRect(e.x - e.radius, e.y - e.radius - 8, barW * hpPct, barH);
-    });
-
-    combatParticles.forEach(function(p, index) {
-        if (p.type === 'ring') {
-            ctx.strokeStyle = p.color;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.stroke();
-            p.radius += (p.maxRadius - p.radius) * 0.2;
-        } else if (p.type === 'beam') {
-            ctx.strokeStyle = p.color;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(p.x1, p.y1);
-            ctx.lineTo(p.x2, p.y2);
-            ctx.stroke();
-        } else {
-            ctx.fillStyle = p.color;
-            ctx.font = 'bold 12px sans-serif';
-            ctx.fillText(p.text, p.x, p.y);
-            p.y -= 0.5;
-        }
-
-        p.life--;
-        if (p.life <= 0) combatParticles.splice(index, 1);
-    });
+    // Particles Update
+    for (var pt = combatParticles.length - 1; pt >= 0; pt--) {
+        var part = combatParticles[pt];
+        if (part.type === 'beam') { ctx.strokeStyle = part.color; ctx.lineWidth = 3; ctx.shadowBlur = 10; ctx.shadowColor = part.color; ctx.beginPath(); ctx.moveTo(part.x1, part.y1); ctx.lineTo(part.x2, part.y2); ctx.stroke(); ctx.shadowBlur = 0; }
+        else if (part.type === 'ring') { ctx.strokeStyle = part.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(part.x, part.y, part.radius, 0, Math.PI * 2); ctx.stroke(); part.radius += 5; }
+        else { ctx.fillStyle = part.color; ctx.font = 'bold 14px sans-serif'; ctx.fillText(part.text, part.x, part.y); part.y -= 0.8; }
+        part.life -= dt * gameSpeed;
+        if (part.life <= 0) { combatParticles[pt] = combatParticles[combatParticles.length - 1]; combatParticles.pop(); }
+    }
 
     ctx.restore();
     battleAnimationId = requestAnimationFrame(battleLoop);
 }
 
+function applyDamage(target, dmg, attacker) {
+    if (target.shield > 0) {
+        var shieldDmg = Math.min(target.shield, dmg);
+        target.shield -= shieldDmg;
+        dmg -= shieldDmg;
+    }
+    target.hp -= dmg;
+    if (attacker && attacker.isDude) attacker.totalDamage = (attacker.totalDamage || 0) + dmg;
+    combatParticles.push({ x: target.x, y: target.y, text: '-' + Math.round(dmg), color: attacker && attacker.isDude ? '#f87171' : '#38bdf8', life: 25 });
+    
+    if (target.hp <= 0 && !target.isDude && attacker) {
+        playSound('gold'); var droppedGold = target.bounty + (state.relics.some(r => r.id === 'golden_touch') ? 1 : 0);
+        state.gold += droppedGold; updateUI();
+        combatParticles.push({ x: target.x, y: target.y - 15, text: '+$' + droppedGold, color: '#f39c12', life: 35 });
+    }
+}
+
 function endBattle(victory) {
-    cancelAnimationFrame(battleAnimationId);
-    state.inBattle = false;
-    document.getElementById('btn-battle').disabled = false;
-    document.getElementById('btn-reroll').disabled = false;
-
+    cancelAnimationFrame(battleAnimationId); state.inBattle = false;
+    document.getElementById('btn-battle').disabled = false; document.getElementById('btn-reroll').disabled = false;
     var diffCfg = DIFFICULTY_CONFIGS[state.difficulty] || DIFFICULTY_CONFIGS['normal'];
-
     if (victory) {
-        playSound('victory');
-        var counts = {};
-        state.dudes.forEach(function(d) { counts[d.family] = (counts[d.family] || 0) + 1; });
-
-        var bonusGold = counts['employed'] >= 2 ? 2 : 0;
-        var reward = 5 + state.wave * 2 + bonusGold;
-
-        var baseDiamonds = 2 + Math.floor(state.wave / 2);
-        var diamondReward = Math.ceil(baseDiamonds * diffCfg.diamondMult);
-
-        state.gold += reward;
-        accountState.diamonds += diamondReward;
-        state.diamonds = accountState.diamonds;
-
-        log('🎉 勝利！獲得金幣 $' + reward + ' 及 💎' + diamondReward + ' 鑽石（難度倍率 x' + diffCfg.diamondMult + '）！');
+        playSound('victory'); var counts = {}; state.dudes.forEach(d => counts[d.family] = (counts[d.family] || 0) + 1);
+        var bonusGold = counts['employed'] >= 2 ? 2 : 0; var reward = 5 + state.wave * 2 + bonusGold;
+        var baseDiamonds = 2 + Math.floor(state.wave / 2); var diamondReward = Math.ceil(baseDiamonds * diffCfg.diamondMult);
+        state.gold += reward; accountState.diamonds += diamondReward; state.diamonds = accountState.diamonds;
+        log('🎉 勝利！獲得 $' + reward + ' 及 💎' + diamondReward + '！');
+        
+        // Inflation mechanic: Reroll cost increases every 3 waves
+        if (state.wave % 3 === 0 && state.rerollCost < 5) state.rerollCost++;
 
         pendingVictoryCallback = function() {
-            if ([3, 6, 9].includes(state.wave) || (state.endlessMode && state.wave % 3 === 0)) {
-                setTimeout(showRelicModal, 300);
-            }
-
-            if ([2, 4, 7].includes(state.wave)) {
-                setTimeout(showWanderingEventModal, 300);
-            }
-
+            if ([3, 6, 9].includes(state.wave)) setTimeout(showRelicModal, 300);
+            if ([2, 4, 7].includes(state.wave)) setTimeout(showWanderingEventModal, 300);
             if (state.wave >= state.maxWave && !state.endlessMode) {
-                var grandDiamonds = Math.ceil(10 * diffCfg.diamondMult);
-                log('🏆【通關勝利】恭喜你擊敗破滅之神！獲得 💎' + grandDiamonds + ' 鑽石通關大獎（難度倍率 x' + diffCfg.diamondMult + '）！');
-                accountState.diamonds += grandDiamonds;
-                state.diamonds = accountState.diamonds;
-
-                if (confirm('🏆 恭喜通關《How Many Dudes? Cyberpunk》！是否開啟「無盡生存模式 (Wave 11+)」繼續獲取全局遺物？')) {
-                    state.endlessMode = true;
-                    state.wave++;
-                    saveRunSession();
-                    rerollShop();
-                    updateUI();
-                    drawIdleArena();
-                    return;
-                } else {
-                    return;
-                }
-            }
-
-            state.wave++;
-            saveRunSession();
-            rerollShop();
-            updateUI();
-            drawIdleArena();
+                var grandDiamonds = Math.ceil(10 * diffCfg.diamondMult); accountState.diamonds += grandDiamonds; state.diamonds = accountState.diamonds;
+                if (confirm('🏆 恭喜通關！是否開啟「無盡生存模式」？')) { state.endlessMode = true; state.wave++; }
+            } else { state.wave++; }
+            saveRunSession(); rerollShop(); updateUI(); drawIdleArena();
         };
-
         showStatsModal(true);
     } else {
-        playSound('defeat');
-        state.lives--;
-        log('💀 戰敗！剩餘生命：' + state.lives + '。（已為你保留戰鬥中累積的所有 $' + state.gold + ' 金幣！）');
-
+        playSound('explosion'); state.lives--; log('💀 戰敗！剩餘生命：' + state.lives);
         pendingVictoryCallback = function() {
-            if (state.lives <= 0) {
-                log('💥【GAME OVER】你的 Dude 大軍覆滅了！重新開啟新局，鑽石與天賦已永久為你保留！');
-                alert('💥 Game Over！所有生命已耗盡。已為你完整保存 💎' + accountState.diamonds + ' 鑽石與天賦！');
-                localStorage.removeItem(RUN_STORAGE_KEY);
-                startNewRun();
-                updateUI();
-                drawIdleArena();
-                return;
-            }
-            saveRunSession();
-            updateUI();
-            drawIdleArena();
+            if (state.lives <= 0) { alert('💥 Game Over！'); localStorage.removeItem(RUN_STORAGE_KEY); startNewRun(); }
+            saveRunSession(); updateUI(); drawIdleArena();
         };
-
         showStatsModal(false);
     }
 }

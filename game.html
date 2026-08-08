@@ -177,13 +177,13 @@ S.inv.forEach(function(eq,i){var s=document.createElement('span');s.className='e
 S.dudes.forEach(function(d){if(d.equipment){var s=document.createElement('span');s.className='equip-item on-dude';s.innerText=d.equipment.ic+'→'+d.n;s.title=d.equipment.d+' (於'+d.n+')';el.appendChild(s);}});}
 function eqD(d){if(selEI===null||S.inBattle)return;var eq=S.inv[selEI];if(!eq)return;if(d.equipment)S.inv.push(d.equipment);d.equipment=eq;S.inv.splice(selEI,1);selEI=null;ps('eq');log('🔧【'+eq.n+'】→'+d.n);sRS();uUI();uEQ();dIA();}
 function rED(){if(Math.random()<.35){var eq=EQDB[Math.floor(Math.random()*EQDB.length)];S.inv.push(Object.assign({},eq));log('🎁獲得【'+eq.ic+' '+eq.n+'】');return eq;}return null;}
-function init(){sDD();lAD();lRS();rS();uUI();uEQ();iBP();dIA();}
+function init(){sDD();lAD();lRS();rerollShop();uUI();uEQ();iBP();dIA();}
 function sAD(){try{localStorage.setItem(AK,JSON.stringify({d:acc.diamonds,t:acc.talents}));}catch(e){}}
 function lAD(){try{var r=localStorage.getItem(AK);if(r){var a=JSON.parse(r);acc.diamonds=a.d||0;acc.talents=a.t||acc.talents;}S.diamonds=acc.diamonds;S.talents=acc.talents;}catch(e){}}
 function sRS(){sAD();try{localStorage.setItem(RK,JSON.stringify({g:S.gold,l:S.lives,w:S.wave,df:S.difficulty,du:S.dudes,re:S.relics,tr:S.trinkets,en:S.endless,rc:S.rc,st:S.streak,iv:S.inv}));}catch(e){}}
 function saveGameManual(){sRS();log('💾存檔成功');}
 function lRS(){try{var r=localStorage.getItem(RK);if(r){var d=JSON.parse(r);if(confirm('發現進度(第'+d.w+'波)，繼續？')){S.gold=d.g;S.lives=d.l;S.wave=d.w;S.difficulty=d.df||'normal';S.dudes=d.du||[];S.relics=d.re||[];S.trinkets=d.tr||[];S.endless=d.en||false;S.rc=d.rc||2;S.streak=d.st||{c:0,t:null};S.inv=d.iv||[];}else sNR();}else sNR();}catch(e){sNR();}}
-function confirmStartNewRun(){if(confirm('新冒險？(💎天賦保留)')){sNR();rS();uUI();uEQ();dIA();}}
+function confirmStartNewRun(){if(confirm('新冒險？(💎天賦保留)')){sNR();rerollShop();uUI();uEQ();dIA();}}
 function sNR(){S.gold=15+(acc.talents.startGoldLevel||0)*3;S.lives=3;S.wave=1;S.dudes=[];S.relics=[];S.trinkets=[];S.endless=false;S.diamonds=acc.diamonds;S.talents=acc.talents;S.rc=2;S.streak={c:0,t:null};S.inv=[];sRS();}
 function log(m){var p=document.getElementById('log-panel');p.innerHTML+='<div>['+new Date().toLocaleTimeString().split(' ')[0]+'] '+m+'</div>';p.scrollTop=p.scrollHeight;}
 function uUI(){document.getElementById('ui-gold').innerText=S.gold;document.getElementById('ui-diamonds').innerText=acc.diamonds;document.getElementById('ui-lives').innerText=S.lives;document.getElementById('ui-wave').innerText=S.wave+'/'+(S.endless?'∞':S.maxWave);document.getElementById('ui-dude-count').innerText=S.dudes.length;document.getElementById('btn-reroll').innerText='🔄$'+S.rc;

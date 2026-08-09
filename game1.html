@@ -1292,9 +1292,9 @@
                 if (item.isWeapon && player.weapons.length >= maxWeaponSlots()) { showToast(`武器欄已滿（${maxWeaponSlots()} 把）！`); return; }
                 if (player.gold < item.price) { showToast('材料不足！'); return; }
                 player.gold -= item.price;
-                document.getElementById('shop-gold').innerText = player.gold;
                 if (item.isWeapon) addWeapon(item.weaponData, item.tier, item.affix);
                 else item.itemData.apply(player);
+                document.getElementById('shop-gold').innerText = player.gold;   // ← 套用效果後再刷新，+30 立即顯示
                 card.style.opacity = '0.4';
                 card.style.pointerEvents = 'none';
                 buyBtn.innerText = '已購買';

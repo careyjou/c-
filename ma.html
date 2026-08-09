@@ -27,8 +27,6 @@
     .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; padding: 0 4px; }
     .fraction .numerator { border-bottom: 2px solid currentColor; padding-bottom: 1px; }
     .fraction .denominator { padding-top: 1px; }
-
-    /* ===== 5. 咒力注入點擊特效 (Ripple) ===== */
     .ripple {
       position: absolute; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
       background: radial-gradient(circle, rgba(255,90,90,.8) 0%, rgba(220,38,38,.45) 45%, transparent 70%);
@@ -37,15 +35,11 @@
     @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
     .energy-glow { animation: energyPulse .5s ease-out; }
     @keyframes energyPulse { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,.8); } 100% { box-shadow: 0 0 0 14px rgba(220,38,38,0); } }
-
-    /* ===== 4. Mascot 動態情緒 ===== */
     .mascot-happy { animation: mascotBounce .7s ease; filter: drop-shadow(0 0 10px rgba(56,189,248,.9)); }
     .mascot-sad   { animation: mascotShake .5s ease; filter: grayscale(.6) drop-shadow(0 0 8px rgba(220,38,38,.9)); }
     .mascot-flash { animation: mascotBounce .45s ease 2; filter: drop-shadow(0 0 16px rgba(220,38,38,1)); }
     @keyframes mascotBounce { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-8px) scale(1.08)} 60%{transform:translateY(0) scale(1.02)} }
     @keyframes mascotShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px) rotate(-3deg)} 40%{transform:translateX(5px) rotate(3deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
-
-    /* ===== 黑閃 / 晉升 覆蓋動畫 ===== */
     #blackflash-overlay.show, #rankup-overlay.show { display: flex; animation: overlayAnim 1s ease forwards; }
     @keyframes overlayAnim { 0%{opacity:0} 12%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
     .flash-text { animation: flashZoom .9s cubic-bezier(.2,1.4,.4,1) forwards; }
@@ -58,7 +52,6 @@
 
   <div class="hidden xl:block fixed right-2 top-1/3 z-0 writing-vertical font-display text-3xl font-black text-red-900/50 tracking-[0.5em] pointer-events-none select-none">咒術迴戰・祓除</div>
 
-  <!-- ===== 2. 響應式 Header：手機直向自動換行堆疊 ===== -->
   <header class="bg-black speedlines text-white sticky top-0 z-30 border-b-4 border-red-600 shadow-md">
     <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 flex flex-col md:flex-row md:items-center gap-2">
       <div class="flex items-center justify-between gap-2 flex-1 md:flex-none min-w-0">
@@ -72,7 +65,6 @@
             <span class="hidden sm:block text-[10px] text-red-400 font-bold tracking-widest">國小五年級上學期數學 × 咒術迴戰</span>
           </div>
         </div>
-        <!-- 7. 音效開關 + 3. 咒力/階級顯示 -->
         <div class="flex items-center gap-2 shrink-0">
           <button id="sound-toggle-btn" onclick="toggleMute()" class="p-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border-2 border-black touch-btn" title="音效開關">
             <i id="sound-icon" class="fa-solid fa-volume-high text-amber-400"></i>
@@ -91,7 +83,6 @@
           </div>
         </div>
       </div>
-      <!-- 模式切換：手機版整列排滿 -->
       <div class="flex bg-neutral-900 p-1 rounded-xl border-2 border-neutral-700 text-xs sm:text-sm font-bold w-full md:w-auto md:ml-auto">
         <button id="mode-teach-btn" onclick="switchMode('teach')" class="flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000] font-bold">
           <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>咒術教學<span class="hidden lg:inline"> (50)</span>
@@ -108,7 +99,6 @@
 
   <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row p-3 sm:p-5 gap-4 relative z-10 pb-20 md:pb-4">
 
-    <!-- ===== 1. 優化側邊欄：單元摺疊手風琴 ===== -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:translate-x-0 md:w-72 lg:w-80 md:transition-none flex flex-col shrink-0 overflow-hidden bg-neutral-900 border-2 border-red-700 md:border-black md:shadow-[6px_6px_0_rgba(220,38,38,0.5)] rounded-none md:rounded-xl">
       <div class="p-3 pb-0">
         <img src="images/jjk-banner.jpg" alt="咒術迴戰橫幅" class="w-full h-24 lg:h-28 object-cover rounded-lg border-2 border-black shadow-[4px_4px_0_#7f1d1d]">
@@ -151,7 +141,6 @@
         </div>
       </div>
 
-      <!-- Mascot 區（含動態情緒） -->
       <div class="bg-neutral-900 border-2 border-black shadow-[6px_6px_0_rgba(37,99,235,0.55)] rounded-xl flex items-center gap-3 p-2 sm:p-3 speedlines">
         <img id="mascot-img" src="images/jjk-gojo.jpg" alt="mascot" class="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-md border-2 border-black shadow-[3px_3px_0_#000]">
         <div class="min-w-0">
@@ -189,14 +178,12 @@
     </main>
   </div>
 
-  <!-- ===== 2. 手機版底部操作列 ===== -->
   <div class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-neutral-950/95 backdrop-blur border-t-2 border-red-700 px-2 py-2 flex items-center gap-2">
     <button onclick="navigateQuestion(-1)" class="px-4 py-2.5 bg-neutral-800 text-neutral-200 font-bold rounded-xl touch-btn border-2 border-black"><i class="fa-solid fa-chevron-left"></i></button>
     <button onclick="submitCurrentQuiz()" class="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black shadow-[3px_3px_0_#000]"><i class="fa-solid fa-check-circle mr-1"></i>送出檢定</button>
     <button onclick="navigateQuestion(1)" class="px-4 py-2.5 bg-neutral-800 text-neutral-200 font-bold rounded-xl touch-btn border-2 border-black"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 
-  <!-- 結果視窗 -->
   <div id="result-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
     <div class="bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-red-600 flex flex-col items-center text-center animate-bounce-short max-h-[90vh] overflow-y-auto">
       <img id="result-mascot" src="images/jjk-gojo.jpg" alt="result mascot" class="w-20 h-20 rounded-full object-cover border-4 border-black shadow-[4px_4px_0_#dc2626] mb-4">
@@ -215,7 +202,6 @@
     </div>
   </div>
 
-  <!-- 黑閃 / 晉升 覆蓋層 -->
   <div id="blackflash-overlay" class="fixed inset-0 z-[80] pointer-events-none hidden items-center justify-center bg-black/85">
     <div class="flash-text font-display text-6xl sm:text-8xl font-black text-red-500 tracking-widest" style="text-shadow:0 0 40px #dc2626">黑閃<span class="text-white">！</span></div>
   </div>
@@ -228,97 +214,130 @@
 
   <div id="mobile-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
-  <!-- 6. 外部題庫載入（file:// 用 questions.js；HTTP 優先 fetch questions.json） -->
   <script src="questions.js"></script>
   <script>
-    const IMG = { banner:"images/jjk-banner.jpg", gojo:"images/jjk-gojo.jpg", sukuna:"images/jjk-sukuna.jpg", itadori:"images/jjk-itadori.jpg" };
+    const IMG = {
+      banner: "images/jjk-banner.jpg",
+      gojo: "images/jjk-gojo.jpg",
+      sukuna: "images/jjk-sukuna.jpg",
+      itadori: "images/jjk-itadori.jpg"
+    };
 
-    // ===== 4. Mascot 情緒台詞庫 =====
     const MASCOTS = {
-      teach: { img: IMG.gojo, name: "五條 悟 (特級咒術師)",
+      teach: {
+        img: IMG.gojo, name: "五條 悟 (特級咒術師)",
         neutral: "「天上天下，唯我獨尊。」聽好了，標準解法都在這裡！",
         happy: ["哦？不錯嘛，有點特級的資質。", "完美！這就是我的學生！"],
         sad: ["唉，回去特訓一百次。", "別讓我看笑話啊，再想一次。"],
-        flash: ["黑閃？！小子，你今天是主角啊！"] },
-      real: { img: IMG.itadori, name: "虎杖 悠仁 (三級咒術師)",
+        flash: ["黑閃？！小子，你今天是主角啊！"]
+      },
+      real: {
+        img: IMG.itadori, name: "虎杖 悠仁 (三級咒術師)",
         neutral: "檢定開始！讓我們把 50 隻咒靈全部祓除吧！",
         happy: ["太讚了！祓除成功！", "好耶！繼續保持這個氣勢！"],
         sad: ["唔哇！被咒靈反擊了…再試一次！"],
-        flash: ["這就是黑閃的感覺嗎？太誇張了吧！"] },
-      hard: { img: IMG.sukuna, name: "兩面宿儺 (詛咒之王)",
+        flash: ["這就是黑閃的感覺嗎？太誇張了吧！"]
+      },
+      hard: {
+        img: IMG.sukuna, name: "兩面宿儺 (詛咒之王)",
         neutral: "知道自己幾兩重了嗎，愚者。撐不過領域展開就別當咒術師。",
         happy: ["哼，勉強及格的螻蟻。", "有趣…再讓我享受一點吧。"],
         sad: ["就這點本事？真是讓人發笑。"],
-        flash: ["黑閃嗎…有點意思，螻蟻。"] }
+        flash: ["黑閃嗎…有點意思，螻蟻。"]
+      }
     };
 
-    // ===== 3. 咒力系統 =====
     const RANKS = [
-      { name:"四級咒術師", min:0 }, { name:"三級咒術師", min:200 },
-      { name:"二級咒術師", min:600 }, { name:"一級咒術師", min:1200 },
-      { name:"特級咒術師", min:2000 }
+      { name: "四級咒術師", min: 0 },
+      { name: "三級咒術師", min: 200 },
+      { name: "二級咒術師", min: 600 },
+      { name: "一級咒術師", min: 1200 },
+      { name: "特級咒術師", min: 2000 }
     ];
-    const MODE_MULT = { teach:1, real:1.5, hard:2 };
+    const MODE_MULT = { teach: 1, real: 1.5, hard: 2 };
     let totalEnergy = parseInt(localStorage.getItem('jjk_energy') || '0', 10);
     let sessionEnergy = 0, combo = 0, quizSubmitted = false;
 
-    // ===== 7. 音效管理（Web Audio 合成，免外部音檔） =====
     const SoundFX = {
-      ctx: null, muted: localStorage.getItem('jjk_muted') === '1',
-      ensure(){ if(!this.ctx){ const AC = window.AudioContext || window.webkitAudioContext; if(AC) this.ctx = new AC(); } if(this.ctx && this.ctx.state==='suspended') this.ctx.resume(); },
-      tone(f, dur, type='sine', vol=.2, delay=0, slide=null){
-        if(!this.ctx) return;
+      ctx: null,
+      muted: localStorage.getItem('jjk_muted') === '1',
+      ensure: function(){
+        if (!this.ctx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) this.ctx = new AC();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      tone: function(f, dur, type, vol, delay, slide){
+        if (!this.ctx) return;
+        type = type || 'sine'; vol = (vol === undefined) ? 0.2 : vol; delay = delay || 0;
         const t = this.ctx.currentTime + delay;
         const o = this.ctx.createOscillator(), g = this.ctx.createGain();
         o.type = type; o.frequency.setValueAtTime(f, t);
         if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
-        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur + .02);
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(this.ctx.destination);
+        o.start(t); o.stop(t + dur + 0.02);
       },
-      play(name){
+      play: function(name){
         if (this.muted) return;
-        this.ensure(); if(!this.ctx) return;
-        if (name==='click') this.tone(700,.05,'square',.06);
-        else if (name==='correct'){ this.tone(660,.08,'sine',.18); this.tone(880,.1,'sine',.18,.08); this.tone(1320,.12,'sine',.12,.16); }
-        else if (name==='wrong'){ this.tone(180,.2,'sawtooth',.15,0,120); this.tone(90,.3,'sawtooth',.12,.05,60); }
-        else if (name==='blackflash'){ this.tone(60,.5,'sine',.4,0,40); this.tone(1400,.06,'square',.15); this.tone(100,.4,'sawtooth',.2,.02,50); }
-        else if (name==='rankup'){ [523,659,784,1046,1318].forEach((f,i)=>this.tone(f,.12,'triangle',.2,i*.09)); }
-        else if (name==='domain'){ this.tone(200,.7,'sawtooth',.2,0,60); this.tone(50,.8,'sine',.3); }
+        this.ensure();
+        if (!this.ctx) return;
+        if (name === 'click') this.tone(700, .05, 'square', .06);
+        else if (name === 'correct') { this.tone(660, .08); this.tone(880, .1, 'sine', .18, .08); this.tone(1320, .12, 'sine', .12, .16); }
+        else if (name === 'wrong') { this.tone(180, .2, 'sawtooth', .15, 0, 120); this.tone(90, .3, 'sawtooth', .12, .05, 60); }
+        else if (name === 'blackflash') { this.tone(60, .5, 'sine', .4, 0, 40); this.tone(1400, .06, 'square', .15); this.tone(100, .4, 'sawtooth', .2, .02, 50); }
+        else if (name === 'rankup') { [523, 659, 784, 1046, 1318].forEach(function(f, i){ SoundFX.tone(f, .12, 'triangle', .2, i * .09); }); }
+        else if (name === 'domain') { this.tone(200, .7, 'sawtooth', .2, 0, 60); this.tone(50, .8, 'sine', .3); }
       }
     };
     function toggleMute(){
       SoundFX.muted = !SoundFX.muted;
       localStorage.setItem('jjk_muted', SoundFX.muted ? '1' : '0');
-      updateSoundIcon(); if(!SoundFX.muted) SoundFX.play('click');
+      updateSoundIcon();
+      if (!SoundFX.muted) SoundFX.play('click');
     }
     function updateSoundIcon(){
       document.getElementById('sound-icon').className = SoundFX.muted ? 'fa-solid fa-volume-xmark text-neutral-500' : 'fa-solid fa-volume-high text-amber-400';
     }
 
-    // ===== 狀態 =====
     let currentMode = 'teach', currentQuestionIndex = 0, questionsList = [], userAnswers = {};
     let expandedUnits = new Set(), testTimer = null, secondsElapsed = 0, TEACHING_DATA = null;
 
-    const UNITS = { 1:"1. 因數與倍數", 2:"2. 異分母分數加減", 3:"3. 多邊形與內角和", 4:"4. 平面圖形面積", 5:"5. 小數乘法", 6:"6. 線對稱圖形" };
+    const UNITS = {
+      1: "1. 因數與倍數",
+      2: "2. 異分母分數加減",
+      3: "3. 多邊形與內角和",
+      4: "4. 平面圖形面積",
+      5: "5. 小數乘法",
+      6: "6. 線對稱圖形"
+    };
     const UNIT_VIDEOS = {
-      1:{title:"📹 單元 1：【均一】因數與倍數 & 最大公因數",embedId:"NEafa4sDswc",desc:"掌握因數、倍數與最大公因數的定義與解題技巧。"},
-      2:{title:"📹 單元 2：【均一】異分母分數的通分與加減",embedId:"dO7NhJ9TBo8",desc:"釐清如何利用最小公倍數進行通分。"},
-      3:{title:"📹 單元 3：【均一】多邊形內角和公式與分割",embedId:"iTbZzMPy0B8",desc:"推導 (n-2)×180° 的內角和公式。"},
-      4:{title:"📹 單元 4：【均一】平行四邊形、三角形與梯形面積",embedId:"VGZ9AuQ1ZEw",desc":"面積公式的割補由來與計算示範。"},
-      5:{title:"📹 單元 5：【均一】小數乘以整數與小數乘法",embedId:"O6LpX8Chjpk",desc:"積的小數位數決定方式與直式運算技巧。"},
-      6:{title:"📹 單元 6：【均一】線對稱圖形與對稱軸性質",embedId:"gBIQHJMoZp4",desc:"認識對稱軸、對稱點與對摺重合特性。"}
+      1: { title: "📹 單元 1：【均一】因數與倍數 & 最大公因數", embedId: "NEafa4sDswc", desc: "掌握因數、倍數與最大公因數的定義與解題技巧。" },
+      2: { title: "📹 單元 2：【均一】異分母分數的通分與加減", embedId: "dO7NhJ9TBo8", desc: "釐清如何利用最小公倍數進行通分。" },
+      3: { title: "📹 單元 3：【均一】多邊形內角和公式與分割", embedId: "iTbZzMPy0B8", desc: "推導 (n-2)×180° 的內角和公式。" },
+      4: { title: "📹 單元 4：【均一】平行四邊形、三角形與梯形面積", embedId: "VGZ9AuQ1ZEw", desc: "面積公式的割補由來與計算示範。" },
+      5: { title: "📹 單元 5：【均一】小數乘以整數與小數乘法", embedId: "O6LpX8Chjpk", desc: "積的小數位數決定方式與直式運算技巧。" },
+      6: { title: "📹 單元 6：【均一】線對稱圖形與對稱軸性質", embedId: "gBIQHJMoZp4", desc: "認識對稱軸、對稱點與對摺重合特性。" }
     };
 
-    function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
-    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-    function energyOf(q){ const s = (q.difficulty||'').match(/★/g); return (s ? s.length : 1) * 10; }
-    function rankIndex(v){ let r=0; RANKS.forEach((rk,i)=>{ if(v>=rk.min) r=i; }); return r; }
-
+    function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
+    function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+    function energyOf(q){
+      const m = (q.difficulty || '').match(/★/g);
+      return (m ? m.length : 1) * 10;
+    }
+    function rankIndex(v){
+      let r = 0;
+      RANKS.forEach(function(rk, i){ if (v >= rk.min) r = i; });
+      return r;
+    }
     function updateEnergyUI(){
       const ri = rankIndex(totalEnergy);
       document.getElementById('rank-name').innerText = RANKS[ri].name;
       document.getElementById('energy-value').innerText = totalEnergy;
-      const next = RANKS[ri+1];
+      const next = RANKS[ri + 1];
       const pct = next ? Math.min(100, Math.round((totalEnergy - RANKS[ri].min) / (next.min - RANKS[ri].min) * 100)) : 100;
       document.getElementById('energy-bar').style.width = pct + '%';
     }
@@ -329,29 +348,29 @@
       updateEnergyUI();
       const chip = document.getElementById('energy-chip');
       chip.classList.remove('energy-glow'); void chip.offsetWidth; chip.classList.add('energy-glow');
-      const after = rankIndex(totalEnergy);
-      if (after > before) showRankUp(RANKS[after].name);
+      if (rankIndex(totalEnergy) > before) showRankUp(RANKS[rankIndex(totalEnergy)].name);
     }
     function showRankUp(name){
       document.getElementById('rankup-text').innerText = name;
       const ov = document.getElementById('rankup-overlay');
       ov.classList.remove('hidden'); ov.classList.add('show');
-      SoundFX.play('rankup'); navigator.vibrate?.([60,40,60]);
-      setTimeout(()=>{ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1600);
+      SoundFX.play('rankup');
+      if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+      setTimeout(function(){ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1600);
     }
     function triggerBlackFlash(){
       const ov = document.getElementById('blackflash-overlay');
       ov.classList.remove('hidden'); ov.classList.add('show');
-      SoundFX.play('blackflash'); navigator.vibrate?.([40,60,40]);
+      SoundFX.play('blackflash');
+      if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
       setMascotEmotion('flash');
-      setTimeout(()=>{ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1000);
+      setTimeout(function(){ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1000);
     }
 
-    // ===== 4. Mascot 控制 =====
     function updateMascot(){
       const m = MASCOTS[currentMode];
       const img = document.getElementById('mascot-img');
-      img.classList.remove('mascot-happy','mascot-sad','mascot-flash');
+      img.classList.remove('mascot-happy', 'mascot-sad', 'mascot-flash');
       img.src = m.img;
       document.getElementById('mascot-name').innerText = m.name;
       document.getElementById('mascot-quote').innerText = m.neutral;
@@ -359,39 +378,42 @@
     function setMascotEmotion(em){
       const m = MASCOTS[currentMode];
       const img = document.getElementById('mascot-img');
-      img.classList.remove('mascot-happy','mascot-sad','mascot-flash');
+      img.classList.remove('mascot-happy', 'mascot-sad', 'mascot-flash');
       void img.offsetWidth;
       const quote = document.getElementById('mascot-quote');
-      if (em==='happy'){ img.classList.add('mascot-happy'); quote.innerText = pick(m.happy); }
-      else if (em==='sad'){ img.classList.add('mascot-sad'); quote.innerText = pick(m.sad); }
-      else if (em==='flash'){ img.classList.add('mascot-flash'); quote.innerText = pick(m.flash); }
+      if (em === 'happy') { img.classList.add('mascot-happy'); quote.innerText = pick(m.happy); }
+      else if (em === 'sad') { img.classList.add('mascot-sad'); quote.innerText = pick(m.sad); }
+      else if (em === 'flash') { img.classList.add('mascot-flash'); quote.innerText = pick(m.flash); }
     }
 
-    // ===== 5. 咒力注入 Ripple =====
     function spawnRipple(btn, e){
       const rect = btn.getBoundingClientRect();
       const d = Math.max(rect.width, rect.height) * 1.2;
-      const cx = (e && e.clientX ? e.clientX : rect.left + rect.width/2) - rect.left;
-      const cy = (e && e.clientY ? e.clientY : rect.top + rect.height/2) - rect.top;
+      const cx = (e && e.clientX ? e.clientX : rect.left + rect.width / 2) - rect.left;
+      const cy = (e && e.clientY ? e.clientY : rect.top + rect.height / 2) - rect.top;
       const span = document.createElement('span');
       span.className = 'ripple';
       span.style.width = span.style.height = d + 'px';
-      span.style.left = (cx - d/2) + 'px'; span.style.top = (cy - d/2) + 'px';
-      btn.appendChild(span); setTimeout(()=>span.remove(), 650);
+      span.style.left = (cx - d / 2) + 'px';
+      span.style.top = (cy - d / 2) + 'px';
+      btn.appendChild(span);
+      setTimeout(function(){ span.remove(); }, 650);
     }
 
-    // ===== 6. 題庫載入：HTTP 優先 questions.json，否則 questions.js =====
     async function loadTeachingData(){
       try {
         const res = await fetch('questions.json');
         if (res.ok) { TEACHING_DATA = await res.json(); return; }
-      } catch(e) {}
-      if (window.QUESTIONS_JSON) TEACHING_DATA = window.QUESTIONS_JSON;
+      } catch (e) {}
+      if (window.QUESTIONS_JSON && Array.isArray(window.QUESTIONS_JSON)) {
+        TEACHING_DATA = window.QUESTIONS_JSON;
+      }
     }
     function generateTeachingQuestions(){ return TEACHING_DATA ? TEACHING_DATA.slice() : []; }
 
-    function generateExamQuestions(isHard = false){
-      const list = []; const prefix = isHard ? "【領域展開】" : "【等級檢定】";
+    function generateExamQuestions(isHard){
+      const list = [];
+      const prefix = isHard ? "【領域展開】" : "【等級檢定】";
       for (let i = 1; i <= 50; i++) {
         let u, diffText;
         if (i <= 9) { u = 1; diffText = i <= 3 ? "★☆☆ (基礎)" : (i <= 6 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
@@ -402,58 +424,65 @@
         else { u = 6; diffText = i <= 46 ? "★☆☆ (基礎)" : (i <= 48 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
         let q = {};
         if (!isHard) {
-          if (u === 1) { const a = 12+i*2, b = 18+i*2, g = gcd(a,b);
-            q = { unit:1, difficulty:diffText, stem:`${prefix} 兩隻咒靈的咒力值分別是 ${a} 與 ${b}，它們的最大公因數是多少？`, options:[`${g}`,`${g*2}`,`${Math.max(1,g-1)}`,`${g+3}`], answer:0 };
-          } else if (u === 2) { const n = i%3+1;
-            q = { unit:2, difficulty:diffText, stem:`${prefix} 虎杖用去 <span class='fraction'><span class='numerator'>${n}</span><span class='denominator'>4</span></span> 瓶咒力藥水，伏黑用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 瓶，兩人共用去幾瓶？`, options:[`<span class='fraction'><span class='numerator'>${n*3+4}</span><span class='denominator'>12</span></span>`,`<span class='fraction'><span class='numerator'>${n+1}</span><span class='denominator'>7</span></span>`,`<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>`,`<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>`], answer:0 };
-          } else if (u === 3) { const s = 5+(i%5), sum = (s-2)*180;
-            q = { unit:3, difficulty:diffText, stem:`${prefix} 一個正 ${s} 邊形的領域圖案，內角和是多少度？`, options:[`${sum}°`,`${sum+180}°`,`${sum-180}°`,`${sum/2}°`], answer:0 };
-          } else if (u === 4) { const b = 10+i, h = 6+(i%4), area = (b*h)/2;
-            q = { unit:4, difficulty:diffText, stem:`${prefix} 三角形咒靈出沒區的底為 ${b}cm，高為 ${h}cm，求面積？`, options:[`${area} cm²`,`${area*2} cm²`,`${area+5} cm²`,`${area-3} cm²`], answer:0 };
-          } else if (u === 5) { const v = (1.5+i*0.1).toFixed(1), r = (parseFloat(v)*2.4).toFixed(2);
-            q = { unit:5, difficulty:diffText, stem:`${prefix} 一隻咒靈的咒力為 ${v} 單位，經黑閃放大為原來的 2.4 倍，放大後是多少？`, options:[`${r}`,`${(r*10).toFixed(1)}`,`${(r/10).toFixed(3)}`,`${(parseFloat(r)+0.12).toFixed(2)}`], answer:0 };
-          } else q = { unit:6, difficulty:diffText, stem:`${prefix} 正方形咒符共有幾條對稱軸？`, options:["4 條","2 條","8 條","無數條"], answer:0 };
+          if (u === 1) {
+            const a = 12 + i * 2, b = 18 + i * 2, g = gcd(a, b);
+            q = { unit: 1, difficulty: diffText, stem: prefix + " 兩隻咒靈的咒力值分別是 " + a + " 與 " + b + "，它們的最大公因數是多少？", options: [String(g), String(g * 2), String(Math.max(1, g - 1)), String(g + 3)], answer: 0 };
+          } else if (u === 2) {
+            const n = i % 3 + 1;
+            q = { unit: 2, difficulty: diffText, stem: prefix + " 虎杖用去 <span class='fraction'><span class='numerator'>" + n + "</span><span class='denominator'>4</span></span> 瓶咒力藥水，伏黑用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 瓶，兩人共用去幾瓶？", options: ["<span class='fraction'><span class='numerator'>" + (n * 3 + 4) + "</span><span class='denominator'>12</span></span>", "<span class='fraction'><span class='numerator'>" + (n + 1) + "</span><span class='denominator'>7</span></span>", "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>", "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>"], answer: 0 };
+          } else if (u === 3) {
+            const s = 5 + (i % 5), sum = (s - 2) * 180;
+            q = { unit: 3, difficulty: diffText, stem: prefix + " 一個正 " + s + " 邊形的領域圖案，內角和是多少度？", options: [sum + "°", (sum + 180) + "°", (sum - 180) + "°", (sum / 2) + "°"], answer: 0 };
+          } else if (u === 4) {
+            const b = 10 + i, h = 6 + (i % 4), area = (b * h) / 2;
+            q = { unit: 4, difficulty: diffText, stem: prefix + " 三角形咒靈出沒區的底為 " + b + "cm，高為 " + h + "cm，求面積？", options: [area + " cm²", (area * 2) + " cm²", (area + 5) + " cm²", (area - 3) + " cm²"], answer: 0 };
+          } else if (u === 5) {
+            const v = (1.5 + i * 0.1).toFixed(1), r = (parseFloat(v) * 2.4).toFixed(2);
+            q = { unit: 5, difficulty: diffText, stem: prefix + " 一隻咒靈的咒力為 " + v + " 單位，經黑閃放大為原來的 2.4 倍，放大後是多少？", options: [r, (r * 10).toFixed(1), (r / 10).toFixed(3), (parseFloat(r) + 0.12).toFixed(2)], answer: 0 };
+          } else {
+            q = { unit: 6, difficulty: diffText, stem: prefix + " 正方形咒符共有幾條對稱軸？", options: ["4 條", "2 條", "8 條", "無數條"], answer: 0 };
+          }
         } else {
-          if (u === 1) q = { unit:1, difficulty:diffText, stem:`${prefix} 結界代碼加上 3 後是 15 與 20 的公倍數，代碼小於 200，最大是多少？`, options:["177","180","117","120"], answer:0 };
-          else if (u === 2) q = { unit:2, difficulty:diffText, stem:`${prefix} 計算咒力波動：4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> = ?`, options:["5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>","4<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>","5<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>","4<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"], answer:0 };
-          else if (u === 3) q = { unit:3, difficulty:diffText, stem:`${prefix} 一個正多邊形領域的每一個內角是 144°，請問是幾邊形？`, options:["十邊形","十二邊形","八邊形","九邊形"], answer:0 };
-          else if (u === 4) q = { unit:4, difficulty:diffText, stem:`${prefix} 梯形咒力屏障上底增加 4 公分後變平行四邊形，面積增加 20 平方公分。原高 10 公分、下底 12 公分，求原梯形面積？`, options:["100 平方公分","120 平方公分","80 平方公分","90 平方公分"], answer:0 };
-          else if (u === 5) q = { unit:5, difficulty:diffText, stem:`${prefix} 一包咒術米 3.75 公斤售價 240 元，虎杖買 2.4 包，共要付多少元？`, options:["576 元","500 元","600 元","480 元"], answer:0 };
-          else q = { unit:6, difficulty:diffText, stem:`${prefix} 點 A(2, 6) 對於對稱軸 L(x=4) 的對稱點 A' 座標為何？`, options:["(6, 6)","(4, 6)","(2, 4)","(8, 6)"], answer:0 };
+          if (u === 1) q = { unit: 1, difficulty: diffText, stem: prefix + " 結界代碼加上 3 後是 15 與 20 的公倍數，代碼小於 200，最大是多少？", options: ["177", "180", "117", "120"], answer: 0 };
+          else if (u === 2) q = { unit: 2, difficulty: diffText, stem: prefix + " 計算咒力波動：4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> = ?", options: ["5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>", "4<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>", "5<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>", "4<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"], answer: 0 };
+          else if (u === 3) q = { unit: 3, difficulty: diffText, stem: prefix + " 一個正多邊形領域的每一個內角是 144°，請問是幾邊形？", options: ["十邊形", "十二邊形", "八邊形", "九邊形"], answer: 0 };
+          else if (u === 4) q = { unit: 4, difficulty: diffText, stem: prefix + " 梯形咒力屏障上底增加 4 公分後變平行四邊形，面積增加 20 平方公分。原高 10 公分、下底 12 公分，求原梯形面積？", options: ["100 平方公分", "120 平方公分", "80 平方公分", "90 平方公分"], answer: 0 };
+          else if (u === 5) q = { unit: 5, difficulty: diffText, stem: prefix + " 一包咒術米 3.75 公斤售價 240 元，虎杖買 2.4 包，共要付多少元？", options: ["576 元", "500 元", "600 元", "480 元"], answer: 0 };
+          else q = { unit: 6, difficulty: diffText, stem: prefix + " 點 A(2, 6) 對於對稱軸 L(x=4) 的對稱點 A' 座標為何？", options: ["(6, 6)", "(4, 6)", "(2, 4)", "(8, 6)"], answer: 0 };
         }
         list.push(q);
       }
       return list;
     }
 
-    // ===== 1. 單元手風琴列表 =====
     function toggleUnit(u){
       u = Number(u);
       if (expandedUnits.has(u)) expandedUnits.delete(u); else expandedUnits.add(u);
       SoundFX.play('click');
       renderQuestionGrid();
     }
+
     function renderQuestionGrid(){
       const acc = document.getElementById('unit-accordion');
       acc.innerHTML = '';
       const groups = {};
-      questionsList.forEach((q, idx) => { (groups[q.unit] = groups[q.unit] || []).push(idx); });
+      questionsList.forEach(function(q, idx){ (groups[q.unit] = groups[q.unit] || []).push(idx); });
 
-      Object.keys(groups).forEach(u => {
+      Object.keys(groups).forEach(function(u){
         const idxs = groups[u];
-        const answered = idxs.filter(i => userAnswers[i] !== undefined).length;
+        const answered = idxs.filter(function(i){ return userAnswers[i] !== undefined; }).length;
         const open = expandedUnits.has(Number(u));
         const block = document.createElement('div');
 
         const header = document.createElement('button');
         header.className = 'w-full flex items-center justify-between bg-neutral-800 hover:bg-neutral-700 border-2 border-black rounded-lg px-2.5 py-2 text-xs font-bold text-neutral-200 touch-btn';
-        header.innerHTML = `<span class="flex items-center min-w-0"><i class="fa-solid fa-scroll text-red-500 mr-1.5 shrink-0"></i><span class="truncate">${UNITS[u]}</span></span>
-          <span class="flex items-center gap-1.5 shrink-0 ml-2"><span class="text-red-400">${answered}/${idxs.length}</span><i class="fa-solid fa-chevron-down text-[10px] transition-transform ${open ? 'rotate-180' : ''}"></i></span>`;
-        header.onclick = () => toggleUnit(u);
+        header.innerHTML = '<span class="flex items-center min-w-0"><i class="fa-solid fa-scroll text-red-500 mr-1.5 shrink-0"></i><span class="truncate">' + UNITS[u] + '</span></span>' +
+          '<span class="flex items-center gap-1.5 shrink-0 ml-2"><span class="text-red-400">' + answered + '/' + idxs.length + '</span><i class="fa-solid fa-chevron-down text-[10px] transition-transform ' + (open ? 'rotate-180' : '') + '"></i></span>';
+        header.onclick = function(){ toggleUnit(u); };
 
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-5 gap-1.5 mt-1.5' + (open ? '' : ' hidden');
-        idxs.forEach(idx => {
+        idxs.forEach(function(idx){
           const q = questionsList[idx];
           const btn = document.createElement('button');
           btn.innerText = idx + 1;
@@ -465,16 +494,22 @@
               : 'bg-red-600 text-white';
           } else cls += 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300';
           btn.className = cls;
-          btn.onclick = (e) => { currentQuestionIndex = idx; spawnRipple(btn, e); refresh(); if (window.innerWidth < 768) closeMobileSidebar(); };
+          btn.onclick = function(e){
+            currentQuestionIndex = idx;
+            spawnRipple(btn, e);
+            refresh();
+            if (window.innerWidth < 768) closeMobileSidebar();
+          };
           grid.appendChild(btn);
         });
 
-        block.appendChild(header); block.appendChild(grid);
+        block.appendChild(header);
+        block.appendChild(grid);
         acc.appendChild(block);
       });
 
       const answeredCount = Object.keys(userAnswers).length;
-      document.getElementById('progress-text').innerText = `已祓除 ${answeredCount} / ${questionsList.length}`;
+      document.getElementById('progress-text').innerText = '已祓除 ' + answeredCount + ' / ' + questionsList.length;
     }
 
     function refresh(){
@@ -486,25 +521,28 @@
 
     function loadQuestion(index){
       const q = questionsList[index];
-      if (!q) { document.getElementById('q-stem').innerText = '⚠️ 題庫未載入：請確認 questions.js 或 questions.json 與 index.html 放在同一資料夾。'; return; }
-      document.getElementById('q-number-badge').innerText = `第 ${index + 1} 題`;
-      document.getElementById('q-unit-tag').innerText = `單元：${UNITS[q.unit] || '綜合'}`;
-      document.getElementById('q-diff-tag').innerText = `難度：${q.difficulty || '★☆☆'}`;
+      if (!q) {
+        document.getElementById('q-stem').innerText = '⚠️ 題庫未載入：請確認 questions.js 與 ma.html 放在同一資料夾，且 questions.js 內沒有 <script> 標籤。';
+        return;
+      }
+      document.getElementById('q-number-badge').innerText = '第 ' + (index + 1) + ' 題';
+      document.getElementById('q-unit-tag').innerText = '單元：' + (UNITS[q.unit] || '綜合');
+      document.getElementById('q-diff-tag').innerText = '難度：' + (q.difficulty || '★☆☆');
       document.getElementById('q-stem').innerHTML = q.stem;
-      ['hint-card','steps-card','video-card'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      ['hint-card', 'steps-card', 'video-card'].forEach(function(id){ document.getElementById(id).classList.add('hidden'); });
 
       const v = UNIT_VIDEOS[q.unit];
       if (v) {
         document.getElementById('video-card-title').innerText = v.title;
         document.getElementById('video-card-desc').innerText = v.desc;
-        document.getElementById('youtube-iframe').src = `https://www.youtube.com/embed/${v.embedId}?rel=0`;
+        document.getElementById('youtube-iframe').src = 'https://www.youtube.com/embed/' + v.embedId + '?rel=0';
       }
 
       const optContainer = document.getElementById('options-container');
       optContainer.innerHTML = '';
       const selectedOpt = userAnswers[index];
 
-      q.options.forEach((optText, optIdx) => {
+      q.options.forEach(function(optText, optIdx){
         const isSelected = selectedOpt === optIdx, isCorrect = optIdx === q.answer;
         let btnClass = 'p-4 rounded-lg border-2 text-left font-bold text-sm sm:text-base flex items-center justify-between transition-all touch-btn relative overflow-hidden ';
         if (selectedOpt !== undefined) {
@@ -520,9 +558,13 @@
 
         const optBtn = document.createElement('button');
         optBtn.className = btnClass;
-        optBtn.onclick = (e) => selectOption(optIdx, e);
-        optBtn.innerHTML = `<div class="flex items-center space-x-3"><span class="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 flex items-center justify-center text-xs font-black shrink-0">${String.fromCharCode(65+optIdx)}</span><span>${optText}</span></div>
-          ${selectedOpt !== undefined && currentMode === 'teach' ? (isCorrect ? '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>' : (isSelected ? '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>' : '')) : ''}`;
+        optBtn.onclick = function(e){ selectOption(optIdx, e); };
+        let icon = '';
+        if (selectedOpt !== undefined && currentMode === 'teach') {
+          if (isCorrect) icon = '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>';
+          else if (isSelected) icon = '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>';
+        }
+        optBtn.innerHTML = '<div class="flex items-center space-x-3"><span class="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 flex items-center justify-center text-xs font-black shrink-0">' + String.fromCharCode(65 + optIdx) + '</span><span>' + optText + '</span></div>' + icon;
         optContainer.appendChild(optBtn);
       });
 
@@ -534,12 +576,16 @@
           fbBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 text-2xl"></i><span>祓除成功！非常優秀，對照下方解題步驟繼續修行吧。</span>';
         } else {
           fbBox.className = 'p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-rose-500/15 text-rose-300 border-2 border-rose-600';
-          fbBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-2xl"></i><span>被咒靈反擊了！正確答案是 (${String.fromCharCode(65+q.answer)})。</span>`;
+          fbBox.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-500 text-2xl"></i><span>被咒靈反擊了！正確答案是 (' + String.fromCharCode(65 + q.answer) + ')。</span>';
         }
       } else fbBox.classList.add('hidden');
 
       if (q.hint) document.getElementById('hint-content').innerText = q.hint;
-      if (q.steps) document.getElementById('steps-content').innerHTML = q.steps.map(s => `<div class="p-2.5 bg-neutral-950 rounded-lg border border-sky-800 font-medium"><i class="fa-solid fa-arrow-right text-sky-400 mr-2"></i>${s}</div>`).join('');
+      if (q.steps) {
+        document.getElementById('steps-content').innerHTML = q.steps.map(function(s){
+          return '<div class="p-2.5 bg-neutral-950 rounded-lg border border-sky-800 font-medium"><i class="fa-solid fa-arrow-right text-sky-400 mr-2"></i>' + s + '</div>';
+        }).join('');
+      }
     }
 
     function selectOption(optIdx, e){
@@ -550,18 +596,19 @@
       if (e && e.currentTarget) spawnRipple(e.currentTarget, e);
       SoundFX.play('click');
 
-      // 3. 咒力系統：教學模式即時回饋（含連擊黑閃）；檢定模式於送出時結算
       if (firstTime && currentMode === 'teach') {
         if (optIdx === q.answer) {
           combo++;
           let gain = energyOf(q) * MODE_MULT.teach;
-          if (combo >= 3) { gain *= 2; triggerBlackFlash(); } else { SoundFX.play('correct'); setMascotEmotion('happy'); }
-          navigator.vibrate?.(30);
+          if (combo >= 3) { gain *= 2; triggerBlackFlash(); }
+          else { SoundFX.play('correct'); setMascotEmotion('happy'); }
+          if (navigator.vibrate) navigator.vibrate(30);
           addEnergy(Math.round(gain));
         } else {
           combo = 0;
-          SoundFX.play('wrong'); setMascotEmotion('sad');
-          navigator.vibrate?.(80);
+          SoundFX.play('wrong');
+          setMascotEmotion('sad');
+          if (navigator.vibrate) navigator.vibrate(80);
         }
       }
       refresh();
@@ -569,30 +616,40 @@
 
     function navigateQuestion(d){
       const n = currentQuestionIndex + d;
-      if (n >= 0 && n < questionsList.length) { currentQuestionIndex = n; SoundFX.play('click'); refresh(); }
+      if (n >= 0 && n < questionsList.length) {
+        currentQuestionIndex = n;
+        SoundFX.play('click');
+        refresh();
+      }
     }
     function toggleHint(){ SoundFX.play('click'); document.getElementById('hint-card').classList.toggle('hidden'); }
     function toggleSteps(){ SoundFX.play('click'); document.getElementById('steps-card').classList.toggle('hidden'); }
     function toggleVideo(){ SoundFX.play('click'); document.getElementById('video-card').classList.toggle('hidden'); }
 
-    function startTimer(){ stopTimer(); secondsElapsed = 0; updateTimerDisplay(); testTimer = setInterval(()=>{ secondsElapsed++; updateTimerDisplay(); }, 1000); }
+    function startTimer(){
+      stopTimer();
+      secondsElapsed = 0;
+      updateTimerDisplay();
+      testTimer = setInterval(function(){ secondsElapsed++; updateTimerDisplay(); }, 1000);
+    }
     function stopTimer(){ if (testTimer) clearInterval(testTimer); }
     function updateTimerDisplay(){
-      const m = String(Math.floor(secondsElapsed/60)).padStart(2,'0'), s = String(secondsElapsed%60).padStart(2,'0');
-      document.getElementById('timer-display').innerText = `${m}:${s}`;
+      const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      const s = String(secondsElapsed % 60).padStart(2, '0');
+      document.getElementById('timer-display').innerText = m + ':' + s;
     }
 
     function submitCurrentQuiz(){
-      stopTimer(); SoundFX.play('click');
+      stopTimer();
+      SoundFX.play('click');
       let correctCount = 0;
       const total = questionsList.length;
-      questionsList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) correctCount++; });
-      const scorePercent = total ? Math.round((correctCount/total)*100) : 0;
+      questionsList.forEach(function(q, idx){ if (userAnswers[idx] === q.answer) correctCount++; });
+      const scorePercent = total ? Math.round((correctCount / total) * 100) : 0;
 
-      // 檢定/領域模式：送出時一次結算咒力（防重複刷：quizSubmitted）
       if (currentMode !== 'teach' && !quizSubmitted) {
         let gained = 0;
-        questionsList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) gained += energyOf(q) * MODE_MULT[currentMode]; });
+        questionsList.forEach(function(q, idx){ if (userAnswers[idx] === q.answer) gained += energyOf(q) * MODE_MULT[currentMode]; });
         gained = Math.round(gained);
         if (gained > 0) addEnergy(gained);
         if (scorePercent >= 90) triggerBlackFlash();
@@ -601,22 +658,26 @@
       }
       quizSubmitted = true;
 
-      document.getElementById('result-score').innerText = `${correctCount} / ${total}`;
-      document.getElementById('result-percentage').innerText = `${scorePercent}分`;
-      document.getElementById('result-energy').innerText = `+${sessionEnergy}`;
+      document.getElementById('result-score').innerText = correctCount + ' / ' + total;
+      document.getElementById('result-percentage').innerText = scorePercent + '分';
+      document.getElementById('result-energy').innerText = '+' + sessionEnergy;
 
       const advice = document.getElementById('result-advice'), mascotImg = document.getElementById('result-mascot');
-      if (scorePercent >= 90) { mascotImg.src = IMG.gojo; advice.innerHTML = "🌟 <strong>特級咒術師！</strong>「不錯嘛，你已經掌握小五上全部數學咒式。」請繼續保持！"; }
-      else if (scorePercent >= 70) { mascotImg.src = IMG.itadori; advice.innerHTML = "👍 <strong>一級咒術師！</strong> 基礎觀念紮實，錯題可切換「咒術教學」查看標準解法復習。"; }
-      else { mascotImg.src = IMG.sukuna; advice.innerHTML = "💪 <strong>四級咒術師，繼續修行！</strong>「知道自己幾兩重了嗎？」多利用提示與解題步驟釐清題意。"; }
+      if (scorePercent >= 90) { mascotImg.src = IMG.gojo; advice.innerHTML = '🌟 <strong>特級咒術師！</strong>「不錯嘛，你已經掌握小五上全部數學咒式。」請繼續保持！'; }
+      else if (scorePercent >= 70) { mascotImg.src = IMG.itadori; advice.innerHTML = '👍 <strong>一級咒術師！</strong> 基礎觀念紮實，錯題可切換「咒術教學」查看標準解法復習。'; }
+      else { mascotImg.src = IMG.sukuna; advice.innerHTML = '💪 <strong>四級咒術師，繼續修行！</strong>「知道自己幾兩重了嗎？」多利用提示與解題步驟釐清題意。'; }
       document.getElementById('result-modal').classList.remove('hidden');
     }
     function closeResultModal(){ document.getElementById('result-modal').classList.add('hidden'); }
     function restartQuiz(){
-      closeResultModal(); userAnswers = {}; currentQuestionIndex = 0;
-      combo = 0; sessionEnergy = 0; quizSubmitted = false; expandedUnits = new Set();
+      closeResultModal();
+      userAnswers = {};
+      currentQuestionIndex = 0;
+      combo = 0; sessionEnergy = 0; quizSubmitted = false;
+      expandedUnits = new Set();
       if (currentMode !== 'teach') startTimer();
-      updateMascot(); refresh();
+      updateMascot();
+      refresh();
     }
 
     function toggleMobileSidebar(){
@@ -630,37 +691,50 @@
     }
 
     function switchMode(mode){
-      currentMode = mode; userAnswers = {}; currentQuestionIndex = 0;
-      combo = 0; sessionEnergy = 0; quizSubmitted = false; expandedUnits = new Set();
+      currentMode = mode;
+      userAnswers = {};
+      currentQuestionIndex = 0;
+      combo = 0; sessionEnergy = 0; quizSubmitted = false;
+      expandedUnits = new Set();
       const badge = document.getElementById('current-mode-badge');
       const active = 'flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg transition-all duration-200 bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000] font-bold';
       const inactive = 'flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg transition-all duration-200 text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent font-bold';
-      document.getElementById('mode-teach-btn').className = mode==='teach' ? active : inactive;
-      document.getElementById('mode-real-btn').className = mode==='real' ? active : inactive;
-      document.getElementById('mode-hard-btn').className = mode==='hard' ? active : inactive;
+      document.getElementById('mode-teach-btn').className = mode === 'teach' ? active : inactive;
+      document.getElementById('mode-real-btn').className = mode === 'real' ? active : inactive;
+      document.getElementById('mode-hard-btn').className = mode === 'hard' ? active : inactive;
 
       if (mode === 'teach') {
-        badge.innerText = '咒術教學模式'; badge.className = 'bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600';
+        badge.innerText = '咒術教學模式';
+        badge.className = 'bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600';
         document.getElementById('teaching-section').classList.remove('hidden');
         document.getElementById('test-timer-box').classList.add('hidden');
-        stopTimer(); questionsList = generateTeachingQuestions();
+        stopTimer();
+        questionsList = generateTeachingQuestions();
       } else if (mode === 'real') {
-        badge.innerText = '等級檢定模式'; badge.className = 'bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-600';
+        badge.innerText = '等級檢定模式';
+        badge.className = 'bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-600';
         document.getElementById('teaching-section').classList.add('hidden');
         document.getElementById('test-timer-box').classList.remove('hidden');
-        startTimer(); questionsList = generateExamQuestions(false); SoundFX.play('click');
+        startTimer();
+        questionsList = generateExamQuestions(false);
+        SoundFX.play('click');
       } else {
-        badge.innerText = '領域展開模式'; badge.className = 'bg-rose-500/20 text-rose-300 text-xs px-2.5 py-1 rounded-full font-bold border border-rose-600';
+        badge.innerText = '領域展開模式';
+        badge.className = 'bg-rose-500/20 text-rose-300 text-xs px-2.5 py-1 rounded-full font-bold border border-rose-600';
         document.getElementById('teaching-section').classList.add('hidden');
         document.getElementById('test-timer-box').classList.remove('hidden');
-        startTimer(); questionsList = generateExamQuestions(true); SoundFX.play('domain');
+        startTimer();
+        questionsList = generateExamQuestions(true);
+        SoundFX.play('domain');
       }
-      updateMascot(); refresh();
+      updateMascot();
+      refresh();
     }
 
     window.onload = async function(){
       document.getElementById('toggle-sidebar-btn').onclick = toggleMobileSidebar;
-      updateSoundIcon(); updateEnergyUI();
+      updateSoundIcon();
+      updateEnergyUI();
       await loadTeachingData();
       switchMode('teach');
     };

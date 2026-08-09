@@ -229,7 +229,7 @@
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
         <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | <b style="color:#c48aff;">咒力集滿按 Q 領域展開！</b> | Esc 暫停<br>
-        共 20 波、每 5 波 Boss（必須擊殺 Boss 才能結束 Boss 波）｜ 第 10 波起 Boss 也會展開領域，可發動「領域對衝」！</p>
+        共 20 波、每 5 波 Boss（必須擊殺 Boss 才能結束 Boss 波，擊倒後自動回收材料）｜ Boss 也會展開領域，可發動「領域對衝」！</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
@@ -619,6 +619,7 @@
 
     let domainCine = 0;      // 結印儀式動畫計時
     let bossDomain = null;   // { owner, timer }
+    let bossEndTimer = 0;    // Boss 擊殺後的結束倒數
 
     function gainCursed(v) {
         player.cursed = Math.min(100, player.cursed + v);
@@ -885,7 +886,7 @@
         player.shieldTime = 0; player.rageTime = 0; player.iFrame = 0;
         player.dashTime = 0; player.dashCd = 0;
         player.cursed = 0; player.domainActive = null;
-        domainCine = 0; bossDomain = null;
+        domainCine = 0; bossDomain = null; bossEndTimer = 0;
         player.genes = 0; player.mutations = defaultMutations(); player.sideEffects = [];
         player.freezeTime = 0; player.confuseTime = 0; player.driftX = 0; player.driftY = 0;
         player.weapons = [];
@@ -930,7 +931,7 @@
         spawnTimer = 0; screenShake = 0;
         spawnLocked = false;
         player.domainActive = null;
-        domainCine = 0; bossDomain = null;
+        domainCine = 0; bossDomain = null; bossEndTimer = 0;
         player.shieldTime = 0; player.rageTime = 0;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
         waveStats = { elapsed: 0, kills: 0, damageDealt: 0, damageTaken: 0, goldEarned: 0, weaponDamage: {} };
@@ -1584,11 +1585,11 @@
             if (idx !== -1) enemies.splice(idx, 1);
 
             if (enemy.type === 'BOSS' && BOSS_WAVES[currentWave]) {
-                if (currentWave === MAX_WAVE) {
-                    setTimeout(() => { if (gameState === 'PLAYING') triggerVictory(); }, 700);
-                } else {
-                    setTimeout(() => { if (gameState === 'PLAYING') completeWave(); }, 800);
-                }
+                // Boss 擊殺：全場材料磁吸 + 停止刷怪 + 3 秒後結束本波
+                gems.forEach(g => g.magnet = true);
+                spawnLocked = true;
+                bossEndTimer = 3;
+                announce('Boss 已擊倒！', '自動回收材料中，3 秒後結束本波');
             }
         }
     }
@@ -1759,6 +1760,23 @@
     function update(dt) {
         // 領域結印儀式：全場凍結
         if (domainCine > 0) { domainCine -= dt; return; }
+
+        // Boss 擊殺結束倒數：勝利無敵 + 強制回收
+        if (bossEndTimer > 0) {
+            bossEndTimer -= dt;
+            player.iFrame = Math.max(player.iFrame, 0.2);
+            if (bossEndTimer <= 0) {
+                gems.forEach(g => {
+                    player.gold += g.val;
+                    runStats.gems += g.val;
+                    waveStats.goldEarned += g.val;
+                });
+                gems = [];
+                if (currentWave === MAX_WAVE) triggerVictory();
+                else completeWave();
+                return;
+            }
+        }
 
         if (screenShake > 0) screenShake -= dt * 10;
         if (player.shieldTime > 0) player.shieldTime -= dt;
@@ -2093,6 +2111,11 @@
             const p = pickups[i];
             p.bob += dt * 3;
             p.life -= dt;
+            if (bossEndTimer > 0) {
+                const a = Math.atan2(player.y - p.y, player.x - p.x);
+                p.x += Math.cos(a) * 10;
+                p.y += Math.sin(a) * 10;
+            }
             if (p.life <= 0) { pickups.splice(i, 1); continue; }
             if (Math.hypot(player.x - p.x, player.y - p.y) < player.radius + p.radius + 4) {
                 applyPickup(p);
@@ -2217,14 +2240,12 @@
 
         drawPlayerPotato(t);
 
-        // 結印的雙手
         ctx.fillStyle = '#e8c07d';
         ctx.strokeStyle = '#6f4a22';
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(player.x - 3, player.y + 6, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.beginPath(); ctx.arc(player.x + 3, player.y + 6, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-        // 擴散結界環
         const rr = (1 - p) * 420 + 20;
         ctx.save();
         ctx.globalAlpha = p;
@@ -2398,7 +2419,6 @@
         ctx.ellipse(player.x, player.y + r + 5, r * 0.9, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 領域展開時的氣場
         if (player.domainActive) {
             ctx.strokeStyle = hexA(player.domainActive.color, 0.6 + Math.sin(t * 6) * 0.2);
             ctx.lineWidth = 3;
@@ -2859,9 +2879,15 @@
             ctx.restore();
         }
 
+        if (bossEndTimer > 0) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText(`Boss 擊倒！回收材料中… ${Math.ceil(bossEndTimer)}`, canvas.width / 2, 140);
+        }
+
         ctx.restore();
 
-        // 結印儀式覆蓋層（最上層）
         if (domainCine > 0) drawDomainCinematic(t);
         if (bossDomain) drawBossDomainOverlay(t);
     }

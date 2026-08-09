@@ -4,1014 +4,500 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>咒術小學初級咒師測試</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
-
   <style>
     body {
-      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      font-family: 'Noto Sans TC', sans-serif;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none;
       background-color: #0a0a0d;
-      /* 漫畫網點背景 */
       background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.4px);
       background-size: 12px 12px;
       color: #e5e5e5;
     }
-
-    .font-display { font-family: 'Noto Serif TC', 'Noto Sans TC', serif; }
-
-    /* 漫畫分鏡面板：粗黑邊 + 紅色偏移陰影 */
-    .manga-panel {
-      background: #141419;
-      border: 3px solid #000;
-      box-shadow: 6px 6px 0 rgba(220, 38, 38, 0.55);
-      border-radius: 10px;
-    }
-    .manga-panel-blue { box-shadow: 6px 6px 0 rgba(37, 99, 235, 0.55); }
-
-    /* 速度線 */
-    .speedlines {
-      background-image: repeating-linear-gradient(115deg, transparent 0 12px, rgba(255,255,255,0.05) 12px 13px);
-    }
-
+    .font-display { font-family: 'Noto Serif TC', serif; }
+    .speedlines { background-image: repeating-linear-gradient(115deg, transparent 0 12px, rgba(255,255,255,0.05) 12px 13px); }
     .writing-vertical { writing-mode: vertical-rl; }
-
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #17171c; }
     ::-webkit-scrollbar-thumb { background: #7f1d1d; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #dc2626; }
-
-    .touch-btn { transition: transform 0.1s ease, background-color 0.15s ease; }
+    .touch-btn { transition: transform .1s ease, background-color .15s ease; }
     .touch-btn:active { transform: scale(0.96); }
-
-    .fraction {
-      display: inline-flex;
-      flex-direction: column;
-      vertical-align: middle;
-      text-align: center;
-      padding: 0 4px;
-    }
+    .fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; padding: 0 4px; }
     .fraction .numerator { border-bottom: 2px solid currentColor; padding-bottom: 1px; }
     .fraction .denominator { padding-top: 1px; }
 
-    @keyframes bounceShort { 0%{transform:scale(.8);} 60%{transform:scale(1.05);} 100%{transform:scale(1);} }
+    /* ===== 5. 咒力注入點擊特效 (Ripple) ===== */
+    .ripple {
+      position: absolute; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+      background: radial-gradient(circle, rgba(255,90,90,.8) 0%, rgba(220,38,38,.45) 45%, transparent 70%);
+      transform: scale(0); animation: rippleAnim .6s ease-out forwards;
+    }
+    @keyframes rippleAnim { to { transform: scale(2.6); opacity: 0; } }
+    .energy-glow { animation: energyPulse .5s ease-out; }
+    @keyframes energyPulse { 0% { box-shadow: 0 0 0 0 rgba(220,38,38,.8); } 100% { box-shadow: 0 0 0 14px rgba(220,38,38,0); } }
+
+    /* ===== 4. Mascot 動態情緒 ===== */
+    .mascot-happy { animation: mascotBounce .7s ease; filter: drop-shadow(0 0 10px rgba(56,189,248,.9)); }
+    .mascot-sad   { animation: mascotShake .5s ease; filter: grayscale(.6) drop-shadow(0 0 8px rgba(220,38,38,.9)); }
+    .mascot-flash { animation: mascotBounce .45s ease 2; filter: drop-shadow(0 0 16px rgba(220,38,38,1)); }
+    @keyframes mascotBounce { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-8px) scale(1.08)} 60%{transform:translateY(0) scale(1.02)} }
+    @keyframes mascotShake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-5px) rotate(-3deg)} 40%{transform:translateX(5px) rotate(3deg)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+
+    /* ===== 黑閃 / 晉升 覆蓋動畫 ===== */
+    #blackflash-overlay.show, #rankup-overlay.show { display: flex; animation: overlayAnim 1s ease forwards; }
+    @keyframes overlayAnim { 0%{opacity:0} 12%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+    .flash-text { animation: flashZoom .9s cubic-bezier(.2,1.4,.4,1) forwards; }
+    @keyframes flashZoom { 0%{transform:scale(.3) rotate(-8deg)} 20%{transform:scale(1.15) rotate(2deg)} 100%{transform:scale(1)} }
+    @keyframes bounceShort { 0%{transform:scale(.8)} 60%{transform:scale(1.05)} 100%{transform:scale(1)} }
     .animate-bounce-short { animation: bounceShort .35s ease-out; }
   </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col text-neutral-200">
 
-  <!-- 直式裝飾文字 -->
-  <div class="hidden xl:block fixed right-2 top-1/3 z-0 writing-vertical font-display text-3xl font-black text-red-900/50 tracking-[0.5em] pointer-events-none select-none">
-    咒術迴戰・祓除
-  </div>
+  <div class="hidden xl:block fixed right-2 top-1/3 z-0 writing-vertical font-display text-3xl font-black text-red-900/50 tracking-[0.5em] pointer-events-none select-none">咒術迴戰・祓除</div>
 
-  <!-- Top Navigation Header -->
-  <header class="bg-black speedlines text-white shadow-md sticky top-0 z-30 border-b-4 border-red-600">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-2">
-      <div class="flex items-center space-x-3">
-        <button id="toggle-sidebar-btn" class="p-2 rounded-lg bg-red-700 hover:bg-red-800 text-white md:hidden touch-btn border-2 border-black">
-          <i class="fa-solid fa-bars text-xl"></i>
-        </button>
-        <div class="flex items-center space-x-2 sm:space-x-3">
-          <span class="bg-red-600 text-white font-black px-2.5 py-1 rounded-md text-sm sm:text-base border-2 border-black shadow-[3px_3px_0_#000] font-display">呪術</span>
-          <div class="flex flex-col">
-            <h1 class="text-lg sm:text-2xl font-black tracking-wide font-display text-white">咒術小學初級咒師測試</h1>
-            <span class="text-[10px] sm:text-xs text-red-400 font-bold tracking-widest">國小五年級上學期數學 × 咒術迴戰</span>
+  <!-- ===== 2. 響應式 Header：手機直向自動換行堆疊 ===== -->
+  <header class="bg-black speedlines text-white sticky top-0 z-30 border-b-4 border-red-600 shadow-md">
+    <div class="max-w-7xl mx-auto px-3 sm:px-5 py-2.5 flex flex-col md:flex-row md:items-center gap-2">
+      <div class="flex items-center justify-between gap-2 flex-1 md:flex-none min-w-0">
+        <div class="flex items-center space-x-2 min-w-0">
+          <button id="toggle-sidebar-btn" class="p-2.5 rounded-lg bg-red-700 hover:bg-red-800 text-white md:hidden touch-btn border-2 border-black">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          <span class="bg-red-600 text-white font-black px-2.5 py-1 rounded-md text-sm border-2 border-black shadow-[3px_3px_0_#000] font-display shrink-0">呪術</span>
+          <div class="flex flex-col min-w-0">
+            <h1 class="text-base sm:text-xl lg:text-2xl font-black tracking-wide font-display truncate">咒術小學初級咒師測試</h1>
+            <span class="hidden sm:block text-[10px] text-red-400 font-bold tracking-widest">國小五年級上學期數學 × 咒術迴戰</span>
+          </div>
+        </div>
+        <!-- 7. 音效開關 + 3. 咒力/階級顯示 -->
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="sound-toggle-btn" onclick="toggleMute()" class="p-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 border-2 border-black touch-btn" title="音效開關">
+            <i id="sound-icon" class="fa-solid fa-volume-high text-amber-400"></i>
+          </button>
+          <div id="energy-chip" class="flex items-center gap-2 bg-neutral-900 border-2 border-red-700 rounded-lg px-2.5 py-1.5">
+            <i class="fa-solid fa-bolt text-amber-400"></i>
+            <div class="flex flex-col leading-none gap-1">
+              <span id="rank-name" class="text-[10px] sm:text-xs font-black text-red-400">四級咒術師</span>
+              <span class="flex items-center gap-1.5">
+                <span id="energy-value" class="font-mono text-xs sm:text-sm font-bold text-amber-300">0</span>
+                <span class="hidden sm:block w-16 h-1.5 bg-neutral-700 rounded-full overflow-hidden">
+                  <span id="energy-bar" class="block h-full bg-gradient-to-r from-red-600 to-amber-400 transition-all duration-500" style="width:0%"></span>
+                </span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
-
-      <!-- Mode Switcher Tabs -->
-      <div class="flex bg-neutral-900 p-1 rounded-xl border-2 border-neutral-700 text-xs sm:text-sm font-bold">
-        <button id="mode-teach-btn" onclick="switchMode('teach')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000]">
-          <i class="fa-solid fa-lightbulb text-amber-400 mr-1 sm:mr-1.5"></i>咒術教學 (50)
+      <!-- 模式切換：手機版整列排滿 -->
+      <div class="flex bg-neutral-900 p-1 rounded-xl border-2 border-neutral-700 text-xs sm:text-sm font-bold w-full md:w-auto md:ml-auto">
+        <button id="mode-teach-btn" onclick="switchMode('teach')" class="flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000] font-bold">
+          <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>咒術教學<span class="hidden lg:inline"> (50)</span>
         </button>
-        <button id="mode-real-btn" onclick="switchMode('real')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent">
-          <i class="fa-solid fa-pen-clip text-emerald-400 mr-1 sm:mr-1.5"></i>等級檢定 (50)
+        <button id="mode-real-btn" onclick="switchMode('real')" class="flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent font-bold">
+          <i class="fa-solid fa-pen-clip text-emerald-400 mr-1"></i>等級檢定<span class="hidden lg:inline"> (50)</span>
         </button>
-        <button id="mode-hard-btn" onclick="switchMode('hard')" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent">
-          <i class="fa-solid fa-fire text-rose-500 mr-1 sm:mr-1.5"></i>領域展開 (50)
+        <button id="mode-hard-btn" onclick="switchMode('hard')" class="flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent font-bold">
+          <i class="fa-solid fa-fire text-rose-500 mr-1"></i>領域展開<span class="hidden lg:inline"> (50)</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Layout -->
-  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row p-3 sm:p-5 gap-4 relative z-10">
+  <div class="max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row p-3 sm:p-5 gap-4 relative z-10 pb-20 md:pb-4">
 
-    <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:translate-x-0 md:w-80 md:transition-none flex flex-col shrink-0 overflow-hidden bg-neutral-900 border-2 border-red-700 md:border-black md:shadow-[6px_6px_0_rgba(220,38,38,0.5)] rounded-none md:rounded-xl">
-
-      <!-- 橫幅圖 -->
+    <!-- ===== 1. 優化側邊欄：單元摺疊手風琴 ===== -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform -translate-x-full transition-transform duration-300 ease-in-out md:static md:translate-x-0 md:w-72 lg:w-80 md:transition-none flex flex-col shrink-0 overflow-hidden bg-neutral-900 border-2 border-red-700 md:border-black md:shadow-[6px_6px_0_rgba(220,38,38,0.5)] rounded-none md:rounded-xl">
       <div class="p-3 pb-0">
-        <img src="images/jjk-banner.jpg" alt="咒術迴戰橫幅" class="w-full h-28 object-cover rounded-lg border-2 border-black shadow-[4px_4px_0_#7f1d1d]">
+        <img src="images/jjk-banner.jpg" alt="咒術迴戰橫幅" class="w-full h-24 lg:h-28 object-cover rounded-lg border-2 border-black shadow-[4px_4px_0_#7f1d1d]">
       </div>
-
-      <div class="p-4 bg-neutral-900 border-b-2 border-red-900 flex items-center justify-between">
+      <div class="p-4 pb-3 bg-neutral-900 border-b-2 border-red-900 flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-layer-group text-red-500"></i>
-          <h2 class="font-bold text-neutral-200">咒術卷軸導覽與單元順序</h2>
+          <h2 class="font-bold text-neutral-200 text-sm">咒術卷軸導覽</h2>
         </div>
-        <span id="current-mode-badge" class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600">
-          咒術教學模式
-        </span>
+        <span id="current-mode-badge" class="bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600">咒術教學模式</span>
       </div>
-
-      <!-- Unit Filter -->
-      <div class="p-3 border-b border-neutral-800 bg-neutral-900/60">
-        <label class="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-1 block">依單元篩選：</label>
-        <select id="unit-filter" onchange="filterQuestionsByUnit()" class="w-full bg-neutral-950 border-2 border-neutral-700 text-neutral-200 rounded-lg p-2 text-xs font-bold focus:ring-2 focus:ring-red-500 outline-none">
-          <option value="all">🌟 全部 50 題 (依單元與難度排序)</option>
-          <option value="1">1. 因數與倍數 (第 1~9 題)</option>
-          <option value="2">2. 異分母分數加減 (第 10~18 題)</option>
-          <option value="3">3. 多邊形與內角和 (第 19~26 題)</option>
-          <option value="4">4. 平面圖形面積 (第 27~35 題)</option>
-          <option value="5">5. 小數乘法 (第 36~43 題)</option>
-          <option value="6">6. 線對稱圖形 (第 44~50 題)</option>
-        </select>
-      </div>
-
-      <!-- Question Grid -->
       <div class="p-3 flex-1 overflow-y-auto">
         <div class="text-xs font-bold text-neutral-500 mb-2 flex justify-between items-center">
-          <span>咒靈祓除列表</span>
+          <span>咒靈祓除列表（點單元展開）</span>
           <span id="progress-text" class="text-red-400">已祓除 0 / 50</span>
         </div>
-        <div id="question-grid" class="grid grid-cols-5 gap-2"></div>
+        <div id="unit-accordion" class="space-y-2"></div>
       </div>
-
-      <!-- Timer / Submit -->
       <div class="p-4 bg-neutral-900 border-t-2 border-red-900 space-y-3">
-        <div id="test-timer-box" class="hidden flex items-center justify-between bg-red-950/40 p-3 rounded-xl border border-red-800">
+        <div id="test-timer-box" class="hidden items-center justify-between bg-red-950/40 p-3 rounded-xl border border-red-800">
           <span class="text-xs font-bold text-red-300"><i class="fa-regular fa-clock mr-1"></i>施術時間</span>
           <span id="timer-display" class="font-mono font-bold text-red-100 text-lg">00:00</span>
         </div>
-
-        <button id="submit-quiz-btn" onclick="submitCurrentQuiz()" class="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold rounded-xl text-sm flex items-center justify-center space-x-2 touch-btn border-2 border-black shadow-[4px_4px_0_#000]">
-          <i class="fa-solid fa-check-circle"></i>
-          <span>送出檢定・評定咒師等級</span>
+        <button onclick="submitCurrentQuiz()" class="w-full py-3 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold rounded-xl text-sm flex items-center justify-center space-x-2 touch-btn border-2 border-black shadow-[4px_4px_0_#000]">
+          <i class="fa-solid fa-check-circle"></i><span>送出檢定・評定等級</span>
         </button>
       </div>
     </aside>
 
-    <!-- Main Question Workspace -->
-    <main class="flex-1 flex flex-col gap-4 overflow-hidden">
-
-      <!-- Question Header Info -->
+    <main class="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0">
       <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-neutral-800">
         <div class="flex items-center space-x-2 sm:space-x-3 flex-wrap">
-          <span id="q-number-badge" class="bg-red-600 text-white font-black px-3 py-1 rounded-lg text-lg border-2 border-black shadow-[3px_3px_0_#000] font-display">
-            第 1 題
-          </span>
-          <span id="q-unit-tag" class="bg-neutral-800 text-neutral-200 text-xs sm:text-sm font-bold px-3 py-1 rounded-md border border-neutral-600">
-            單元：1. 因數與倍數
-          </span>
-          <span id="q-diff-tag" class="bg-red-500/10 text-red-300 text-xs font-bold px-2.5 py-1 rounded-md border border-red-800">
-            難度：★☆☆ (基礎)
-          </span>
+          <span id="q-number-badge" class="bg-red-600 text-white font-black px-3 py-1 rounded-lg text-lg border-2 border-black shadow-[3px_3px_0_#000] font-display">第 1 題</span>
+          <span id="q-unit-tag" class="bg-neutral-800 text-neutral-200 text-xs sm:text-sm font-bold px-3 py-1 rounded-md border border-neutral-600">單元：1. 因數與倍數</span>
+          <span id="q-diff-tag" class="bg-red-500/10 text-red-300 text-xs font-bold px-2.5 py-1 rounded-md border border-red-800">難度：★☆☆ (基礎)</span>
         </div>
-
-        <div class="flex items-center space-x-2">
-          <button onclick="navigateQuestion(-1)" class="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-sm touch-btn flex items-center border-2 border-black">
-            <i class="fa-solid fa-chevron-left mr-1"></i> 上一題
-          </button>
-          <button onclick="navigateQuestion(1)" class="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-sm touch-btn flex items-center border-2 border-black">
-            下一題 <i class="fa-solid fa-chevron-right ml-1"></i>
-          </button>
+        <div class="hidden md:flex items-center space-x-2">
+          <button onclick="navigateQuestion(-1)" class="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-sm touch-btn border-2 border-black"><i class="fa-solid fa-chevron-left mr-1"></i> 上一題</button>
+          <button onclick="navigateQuestion(1)" class="px-3.5 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold rounded-xl text-sm touch-btn border-2 border-black">下一題 <i class="fa-solid fa-chevron-right ml-1"></i></button>
         </div>
       </div>
 
-      <!-- Mascot Strip -->
-      <div class="manga-panel manga-panel-blue flex items-center gap-3 p-2 sm:p-3 speedlines">
+      <!-- Mascot 區（含動態情緒） -->
+      <div class="bg-neutral-900 border-2 border-black shadow-[6px_6px_0_rgba(37,99,235,0.55)] rounded-xl flex items-center gap-3 p-2 sm:p-3 speedlines">
         <img id="mascot-img" src="images/jjk-gojo.jpg" alt="mascot" class="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-md border-2 border-black shadow-[3px_3px_0_#000]">
-        <div>
+        <div class="min-w-0">
           <div id="mascot-name" class="text-xs font-black text-sky-400 mb-0.5">五條 悟 (特級咒術師)</div>
           <div id="mascot-quote" class="text-xs sm:text-sm text-neutral-300 font-medium leading-snug">「天上天下，唯我獨尊。」聽好了，標準解法都在這裡！</div>
         </div>
       </div>
 
-      <!-- Question Stem -->
-      <div class="text-base sm:text-xl font-bold text-neutral-100 leading-relaxed min-h-[60px] font-display" id="q-stem">
-        載入題目中...
-      </div>
+      <div class="text-base sm:text-xl font-bold text-neutral-100 leading-relaxed min-h-[60px] font-display" id="q-stem">載入題目中...</div>
+      <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      <div id="feedback-box" class="hidden p-4 rounded-xl text-sm font-bold flex items-center space-x-3"></div>
 
-      <!-- Options -->
-      <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2"></div>
-
-      <!-- Feedback -->
-      <div id="feedback-box" class="hidden p-4 rounded-xl text-sm font-bold flex items-center space-x-3">
-        <i id="feedback-icon" class="text-2xl"></i>
-        <span id="feedback-msg"></span>
-      </div>
-
-      <!-- Teaching Section -->
       <div id="teaching-section" class="flex-1 flex flex-col gap-4">
-
-        <div class="flex items-center justify-between gap-3 bg-neutral-900/80 p-3 rounded-2xl border-2 border-neutral-700 flex-wrap sm:flex-nowrap">
-          <button onclick="toggleHint()" class="flex-1 py-2.5 px-3 sm:px-4 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-black font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]">
-            <i class="fa-solid fa-lightbulb"></i>
-            <span>咒術師提示</span>
-          </button>
-
-          <button onclick="toggleSteps()" class="flex-1 py-2.5 px-3 sm:px-4 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]">
-            <i class="fa-solid fa-book-open"></i>
-            <span>都立標準解題法</span>
-          </button>
-
-          <button onclick="toggleVideo()" class="flex-1 py-2.5 px-3 sm:px-4 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]">
-            <i class="fa-brands fa-youtube text-base"></i>
-            <span>術式影音解說</span>
-          </button>
+        <div class="flex items-center justify-between gap-2 sm:gap-3 bg-neutral-900/80 p-2.5 sm:p-3 rounded-2xl border-2 border-neutral-700 flex-wrap sm:flex-nowrap">
+          <button onclick="toggleHint()" class="flex-1 py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]"><i class="fa-solid fa-lightbulb"></i><span>咒術師提示</span></button>
+          <button onclick="toggleSteps()" class="flex-1 py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]"><i class="fa-solid fa-book-open"></i><span>都立標準解題法</span></button>
+          <button onclick="toggleVideo()" class="flex-1 py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center space-x-1.5 touch-btn border-2 border-black shadow-[3px_3px_0_#000]"><i class="fa-brands fa-youtube"></i><span>術式影音解說</span></button>
         </div>
-
-        <!-- Hint Card -->
-        <div id="hint-card" class="hidden bg-amber-500/10 rounded-2xl p-4 sm:p-5 border-2 border-amber-600 text-amber-200 shadow-sm">
-          <div class="flex items-center space-x-2 font-bold text-amber-300 mb-2">
-            <i class="fa-solid fa-lightbulb text-amber-400 text-lg"></i>
-            <h3>咒術師的解題提示：</h3>
-          </div>
-          <div id="hint-content" class="text-sm sm:text-base leading-relaxed font-medium">提示內容載入中...</div>
+        <div id="hint-card" class="hidden bg-amber-500/10 rounded-2xl p-4 sm:p-5 border-2 border-amber-600 text-amber-200">
+          <div class="flex items-center space-x-2 font-bold text-amber-300 mb-2"><i class="fa-solid fa-lightbulb text-amber-400 text-lg"></i><h3>咒術師的解題提示：</h3></div>
+          <div id="hint-content" class="text-sm sm:text-base leading-relaxed font-medium"></div>
         </div>
-
-        <!-- Steps Card -->
-        <div id="steps-card" class="hidden bg-sky-500/10 rounded-2xl p-4 sm:p-5 border-2 border-sky-600 text-sky-100 shadow-sm">
-          <div class="flex items-center space-x-2 font-bold text-sky-300 mb-3 border-b border-sky-800/60 pb-2">
-            <i class="fa-solid fa-book-bookmark text-sky-400 text-lg"></i>
-            <h3>東京咒術高專標準解題步驟 (翰林/康軒/南一範式)：</h3>
-          </div>
+        <div id="steps-card" class="hidden bg-sky-500/10 rounded-2xl p-4 sm:p-5 border-2 border-sky-600 text-sky-100">
+          <div class="flex items-center space-x-2 font-bold text-sky-300 mb-3 border-b border-sky-800/60 pb-2"><i class="fa-solid fa-book-bookmark text-sky-400 text-lg"></i><h3>東京咒術高專標準解題步驟 (翰林/康軒/南一範式)：</h3></div>
           <div id="steps-content" class="space-y-3 text-sm sm:text-base"></div>
         </div>
-
-        <!-- Video Card -->
-        <div id="video-card" class="hidden bg-rose-500/10 rounded-2xl p-4 sm:p-5 border-2 border-rose-700 text-rose-100 shadow-sm">
-          <div class="flex items-center space-x-2 font-bold text-rose-300 mb-2 border-b border-rose-800/60 pb-2">
-            <i class="fa-brands fa-youtube text-rose-500 text-xl"></i>
-            <h3 id="video-card-title">術式影音解說微課程</h3>
-          </div>
-          <p id="video-card-desc" class="text-xs sm:text-sm text-rose-300 mb-3 font-medium">搭配優質數位教學影片，強化學習觀念：</p>
-          <div class="relative w-full overflow-hidden rounded-xl border-2 border-black bg-black aspect-video shadow-md">
+        <div id="video-card" class="hidden bg-rose-500/10 rounded-2xl p-4 sm:p-5 border-2 border-rose-700 text-rose-100">
+          <div class="flex items-center space-x-2 font-bold text-rose-300 mb-2 border-b border-rose-800/60 pb-2"><i class="fa-brands fa-youtube text-rose-500 text-xl"></i><h3 id="video-card-title"></h3></div>
+          <p id="video-card-desc" class="text-xs sm:text-sm text-rose-300 mb-3 font-medium"></p>
+          <div class="relative w-full overflow-hidden rounded-xl border-2 border-black bg-black aspect-video">
             <iframe id="youtube-iframe" class="w-full h-full" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
-
       </div>
     </main>
   </div>
 
-  <!-- Result Modal -->
+  <!-- ===== 2. 手機版底部操作列 ===== -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-neutral-950/95 backdrop-blur border-t-2 border-red-700 px-2 py-2 flex items-center gap-2">
+    <button onclick="navigateQuestion(-1)" class="px-4 py-2.5 bg-neutral-800 text-neutral-200 font-bold rounded-xl touch-btn border-2 border-black"><i class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="submitCurrentQuiz()" class="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black shadow-[3px_3px_0_#000]"><i class="fa-solid fa-check-circle mr-1"></i>送出檢定</button>
+    <button onclick="navigateQuestion(1)" class="px-4 py-2.5 bg-neutral-800 text-neutral-200 font-bold rounded-xl touch-btn border-2 border-black"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+
+  <!-- 結果視窗 -->
   <div id="result-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[70] flex items-center justify-center p-4 hidden">
-    <div class="bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-red-600 flex flex-col items-center text-center animate-bounce-short">
+    <div class="bg-neutral-900 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-red-600 flex flex-col items-center text-center animate-bounce-short max-h-[90vh] overflow-y-auto">
       <img id="result-mascot" src="images/jjk-gojo.jpg" alt="result mascot" class="w-20 h-20 rounded-full object-cover border-4 border-black shadow-[4px_4px_0_#dc2626] mb-4">
       <h2 class="text-2xl font-black text-white mb-1 font-display">檢定完成！</h2>
-      <p id="result-subtitle" class="text-neutral-400 font-medium text-sm mb-4">咒術小學初級咒師測試・小五上數學</p>
-
-      <div class="bg-neutral-950 rounded-2xl p-4 w-full grid grid-cols-2 gap-4 mb-6 border-2 border-neutral-700">
-        <div class="flex flex-col items-center">
-          <span class="text-xs text-neutral-400 font-bold mb-1">祓除題數</span>
-          <span id="result-score" class="text-3xl font-black text-emerald-400">0 / 50</span>
-        </div>
-        <div class="flex flex-col items-center">
-          <span class="text-xs text-neutral-400 font-bold mb-1">檢定得分</span>
-          <span id="result-percentage" class="text-3xl font-black text-red-400">0分</span>
-        </div>
+      <p class="text-neutral-400 font-medium text-sm mb-4">咒術小學初級咒師測試・小五上數學</p>
+      <div class="bg-neutral-950 rounded-2xl p-4 w-full grid grid-cols-3 gap-2 mb-4 border-2 border-neutral-700">
+        <div class="flex flex-col items-center"><span class="text-xs text-neutral-400 font-bold mb-1">祓除題數</span><span id="result-score" class="text-xl sm:text-2xl font-black text-emerald-400">0/50</span></div>
+        <div class="flex flex-col items-center"><span class="text-xs text-neutral-400 font-bold mb-1">檢定得分</span><span id="result-percentage" class="text-xl sm:text-2xl font-black text-red-400">0分</span></div>
+        <div class="flex flex-col items-center"><span class="text-xs text-neutral-400 font-bold mb-1">獲得咒力</span><span id="result-energy" class="text-xl sm:text-2xl font-black text-amber-400">+0</span></div>
       </div>
-
-      <div id="result-advice" class="text-sm text-neutral-300 mb-6 bg-red-950/30 p-3 rounded-xl border border-red-800 text-left w-full">
-        診斷建議載入中...
-      </div>
-
+      <div id="result-advice" class="text-sm text-neutral-300 mb-6 bg-red-950/30 p-3 rounded-xl border border-red-800 text-left w-full"></div>
       <div class="flex w-full space-x-3">
-        <button onclick="closeResultModal()" class="flex-1 py-3 bg-neutral-700 hover:bg-neutral-600 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black">
-          檢視答題與錯題
-        </button>
-        <button onclick="restartQuiz()" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black shadow-[3px_3px_0_#000]">
-          再次修行
-        </button>
+        <button onclick="closeResultModal()" class="flex-1 py-3 bg-neutral-700 hover:bg-neutral-600 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black">檢視答題</button>
+        <button onclick="restartQuiz()" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm touch-btn border-2 border-black shadow-[3px_3px_0_#000]">再次修行</button>
       </div>
     </div>
   </div>
 
-  <!-- Mobile Overlay -->
+  <!-- 黑閃 / 晉升 覆蓋層 -->
+  <div id="blackflash-overlay" class="fixed inset-0 z-[80] pointer-events-none hidden items-center justify-center bg-black/85">
+    <div class="flash-text font-display text-6xl sm:text-8xl font-black text-red-500 tracking-widest" style="text-shadow:0 0 40px #dc2626">黑閃<span class="text-white">！</span></div>
+  </div>
+  <div id="rankup-overlay" class="fixed inset-0 z-[80] pointer-events-none hidden items-center justify-center bg-black/85">
+    <div class="flash-text flex flex-col items-center">
+      <span class="text-amber-400 font-display text-2xl sm:text-3xl font-black tracking-widest mb-2">咒術師階級晉升</span>
+      <span id="rankup-text" class="text-red-500 font-display text-5xl sm:text-7xl font-black tracking-widest" style="text-shadow:0 0 40px #dc2626">三級咒術師</span>
+    </div>
+  </div>
+
   <div id="mobile-overlay" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
 
+  <!-- 6. 外部題庫載入（file:// 用 questions.js；HTTP 優先 fetch questions.json） -->
+  <script src="questions.js"></script>
   <script>
+    const IMG = { banner:"images/jjk-banner.jpg", gojo:"images/jjk-gojo.jpg", sukuna:"images/jjk-sukuna.jpg", itadori:"images/jjk-itadori.jpg" };
 
-    // ============ 圖片設定 (若使用圖床請替換此處網址) ============
-    const IMG = {
-      banner: "images/jjk-banner.jpg",
-      gojo: "images/jjk-gojo.jpg",
-      sukuna: "images/jjk-sukuna.jpg",
-      itadori: "images/jjk-itadori.jpg"
-    };
-
+    // ===== 4. Mascot 情緒台詞庫 =====
     const MASCOTS = {
-      teach: { img: IMG.gojo, name: "五條 悟 (特級咒術師)", quote: "「天上天下，唯我獨尊。」聽好了，標準解法都在這裡！" },
-      real:  { img: IMG.itadori, name: "虎杖 悠仁 (三級咒術師)", quote: "檢定開始！讓我們把 50 隻咒靈全部祓除吧！" },
-      hard:  { img: IMG.sukuna, name: "兩面宿儺 (詛咒之王)", quote: "知道自己幾兩重了嗎，愚者。撐不過領域展開就別當咒術師。" }
+      teach: { img: IMG.gojo, name: "五條 悟 (特級咒術師)",
+        neutral: "「天上天下，唯我獨尊。」聽好了，標準解法都在這裡！",
+        happy: ["哦？不錯嘛，有點特級的資質。", "完美！這就是我的學生！"],
+        sad: ["唉，回去特訓一百次。", "別讓我看笑話啊，再想一次。"],
+        flash: ["黑閃？！小子，你今天是主角啊！"] },
+      real: { img: IMG.itadori, name: "虎杖 悠仁 (三級咒術師)",
+        neutral: "檢定開始！讓我們把 50 隻咒靈全部祓除吧！",
+        happy: ["太讚了！祓除成功！", "好耶！繼續保持這個氣勢！"],
+        sad: ["唔哇！被咒靈反擊了…再試一次！"],
+        flash: ["這就是黑閃的感覺嗎？太誇張了吧！"] },
+      hard: { img: IMG.sukuna, name: "兩面宿儺 (詛咒之王)",
+        neutral: "知道自己幾兩重了嗎，愚者。撐不過領域展開就別當咒術師。",
+        happy: ["哼，勉強及格的螻蟻。", "有趣…再讓我享受一點吧。"],
+        sad: ["就這點本事？真是讓人發笑。"],
+        flash: ["黑閃嗎…有點意思，螻蟻。"] }
     };
 
-    // Application State
-    let currentMode = 'teach';
-    let currentFilteredUnit = 'all';
-    let currentQuestionIndex = 0;
-    let questionsList = [];
-    let userAnswers = {};
-    let testTimer = null;
-    let secondsElapsed = 0;
+    // ===== 3. 咒力系統 =====
+    const RANKS = [
+      { name:"四級咒術師", min:0 }, { name:"三級咒術師", min:200 },
+      { name:"二級咒術師", min:600 }, { name:"一級咒術師", min:1200 },
+      { name:"特級咒術師", min:2000 }
+    ];
+    const MODE_MULT = { teach:1, real:1.5, hard:2 };
+    let totalEnergy = parseInt(localStorage.getItem('jjk_energy') || '0', 10);
+    let sessionEnergy = 0, combo = 0, quizSubmitted = false;
 
-    const UNITS = {
-      1: "1. 因數與倍數",
-      2: "2. 異分母分數加減",
-      3: "3. 多邊形與內角和",
-      4: "4. 平面圖形面積",
-      5: "5. 小數乘法",
-      6: "6. 線對稱圖形"
+    // ===== 7. 音效管理（Web Audio 合成，免外部音檔） =====
+    const SoundFX = {
+      ctx: null, muted: localStorage.getItem('jjk_muted') === '1',
+      ensure(){ if(!this.ctx){ const AC = window.AudioContext || window.webkitAudioContext; if(AC) this.ctx = new AC(); } if(this.ctx && this.ctx.state==='suspended') this.ctx.resume(); },
+      tone(f, dur, type='sine', vol=.2, delay=0, slide=null){
+        if(!this.ctx) return;
+        const t = this.ctx.currentTime + delay;
+        const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+        o.type = type; o.frequency.setValueAtTime(f, t);
+        if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+        g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + dur + .02);
+      },
+      play(name){
+        if (this.muted) return;
+        this.ensure(); if(!this.ctx) return;
+        if (name==='click') this.tone(700,.05,'square',.06);
+        else if (name==='correct'){ this.tone(660,.08,'sine',.18); this.tone(880,.1,'sine',.18,.08); this.tone(1320,.12,'sine',.12,.16); }
+        else if (name==='wrong'){ this.tone(180,.2,'sawtooth',.15,0,120); this.tone(90,.3,'sawtooth',.12,.05,60); }
+        else if (name==='blackflash'){ this.tone(60,.5,'sine',.4,0,40); this.tone(1400,.06,'square',.15); this.tone(100,.4,'sawtooth',.2,.02,50); }
+        else if (name==='rankup'){ [523,659,784,1046,1318].forEach((f,i)=>this.tone(f,.12,'triangle',.2,i*.09)); }
+        else if (name==='domain'){ this.tone(200,.7,'sawtooth',.2,0,60); this.tone(50,.8,'sine',.3); }
+      }
     };
-
-    const UNIT_VIDEOS = {
-      1: { title: "📹 單元 1：【均一教育平台】因數與倍數 & 最大公因數觀念解說", embedId: "NEafa4sDswc", desc: "觀看均一教育平台的優質影音，快速掌握因數、倍數與最大公因數的定義與解題技巧。" },
-      2: { title: "📹 單元 2：【均一教育平台】異分母分數的通分與加減", embedId: "dO7NhJ9TBo8", desc: "觀看影音解說，釐清分數加減時如何利用最小公倍數進行通分。" },
-      3: { title: "📹 單元 3：【均一教育平台】多邊形內角和公式與分割說明", embedId: "iTbZzMPy0B8", desc: "學習如何將多邊形畫對角線分割成三角形，推導出 (n-2)×180° 的內角和公式。" },
-      4: { title: "📹 單元 4：【均一教育平台】平行四邊形、三角形與梯形面積計算", embedId: "VGZ9AuQ1ZEw", desc: "觀看梯形與平面圖形面積公式的割補由來與計算示範。" },
-      5: { title: "📹 單元 5：【均一教育平台】小數乘以整數與小數乘法", embedId: "O6LpX8Chjpk", desc: "瞭解小數乘法中，積的小數位數決定方式與直式運算技巧。" },
-      6: { title: "📹 單元 6：【均一教育平台】線對稱圖形與對稱軸性質", embedId: "gBIQHJMoZp4", desc: "透過動畫與實例，認識對稱軸、對稱點、對稱邊與對摺重合的幾何特性。" }
-    };
-
-    function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
-    function lcm(a, b) { return (a * b) / gcd(a, b); }
-
-    // =====================================================
-    // 教學題 50 題 (咒術迴戰情境，數學內容與答案不變)
-    // =====================================================
-    function generateTeachingQuestions() {
-      const list = [];
-
-      // ============ 單元 1：因數與倍數 (第 1~9 題) ============
-      list.push({
-        unit: 1, difficulty: "★☆☆ (基礎)",
-        stem: "五條悟老師要將 36 張咒符平分給咒術小學的學生，每人拿到的張數必須是整數。請問下列哪一個人數可以剛好分完（即為 36 的因數）？",
-        options: ["5 人", "8 人", "9 人", "10 人"],
-        answer: 2,
-        hint: "如果 36 除以該人數可以整除（餘數為 0），則該人數是 36 的因數。",
-        steps: ["驗證：36 ÷ 9 = 4 ... 餘 0，故 9 人可以剛好分完，9 是 36 的因數。"]
-      });
-      list.push({
-        unit: 1, difficulty: "★☆☆ (基礎)",
-        stem: "編號 1 到 40 的咒靈被封印在咒術庫中，其中編號是 8 的倍數的咒靈共有幾隻？",
-        options: ["3 隻", "4 隻", "5 隻", "6 隻"],
-        answer: 2,
-        hint: "計算 40 除以 8 的商數，即可得到倍數的總個數。",
-        steps: ["40 ÷ 8 = 5，分別為 8, 16, 24, 32, 40，共 5 隻。"]
-      });
-      list.push({
-        unit: 1, difficulty: "★★☆ (進階)",
-        stem: "虎杖悠仁有 18 顆咒靈核，伏黑惠有 24 顆咒靈核。兩人想各自把咒靈核分成堆數相同、每堆也相同的整數堆，請問所有可能的堆數（公因數）有哪些？",
-        options: ["1, 2, 3, 6", "1, 2, 4, 8", "1, 3, 6, 9", "1, 2, 3, 4, 6"],
-        answer: 0,
-        hint: "分別列出 18 與 24 的因數，再找出兩者共同的因數。",
-        steps: [
-          "18 的因數：1, 2, 3, 6, 9, 18",
-          "24 的因數：1, 2, 3, 4, 6, 8, 12, 24",
-          "共同的公因數為：1, 2, 3, 6。"
-        ]
-      });
-      list.push({
-        unit: 1, difficulty: "★★☆ (進階)",
-        stem: "咒靈 A 每 12 分鐘出現一次，咒靈 B 每 15 分鐘出現一次。兩者同時出現的間隔時間之「最小公倍數」是多少分鐘？",
-        options: ["30", "60", "90", "120"],
-        answer: 1,
-        hint: "利用短除法或列舉倍數，找出同時能被 12 和 15 整除的最小正整數。",
-        steps: ["12 的倍數：12, 24, 36, 48, 60...；15 的倍數：15, 30, 45, 60...。最小公倍數為 60。"]
-      });
-      list.push({
-        unit: 1, difficulty: "★★☆ (應用)",
-        stem: "釘崎野薔薇要將 24 根釘子與 36 個稻草人平分裝入若干個相同的祓除工具箱，每箱的釘子與稻草人都要一樣多。最多可以裝成幾箱？",
-        options: ["4 箱", "6 箱", "12 箱", "24 箱"],
-        answer: 2,
-        hint: "「最多可以裝成幾箱」求的是 24 和 36 的最大公因數 (GCD)。",
-        steps: ["24 與 36 的最大公因數為 12，故最多可裝成 12 箱。"]
-      });
-      list.push({
-        unit: 1, difficulty: "★★☆ (應用)",
-        stem: "東京校巡邏隊每 15 分鐘出發一班，京都校巡邏隊每 20 分鐘出發一班。若早上 8:00 兩隊同時出發，下一次同時出發是幾點幾分？",
-        options: ["8:35", "9:00", "9:20", "10:00"],
-        answer: 1,
-        hint: "下一次同時出發的時間間隔是 15 與 20 的最小公倍數 (LCM)。",
-        steps: ["15 與 20 的最小公倍數是 60 分鐘（1 小時）。8:00 + 1 小時 = 9:00。"]
-      });
-      list.push({
-        unit: 1, difficulty: "★★★ (挑戰)",
-        stem: "結界啟動碼是一個三位數 54□，它必須既是 2 的倍數也是 3 的倍數才能啟動結界。請問個位數字 □ 最大可以填多少？",
-        options: ["4", "6", "8", "9"],
-        answer: 1,
-        hint: "2 的倍數個位數必須是偶數；3 的倍數各位數字和必須能被 3 整除。",
-        steps: [
-          "各數字和：5 + 4 + □ = 9 + □。",
-          "為使 9 + □ 是 3 的倍數，且 □ 是偶數，可能值有 □ = 0, 6。",
-          "其中最大的是 6。"
-        ]
-      });
-      list.push({
-        unit: 1, difficulty: "★★★ (挑戰)",
-        stem: "咒術小學集會人數在 100 到 150 人之間。如果每 12 人排成一列或每 16 人排成一列都剛好排完，請問集會共有多少人？",
-        options: ["108 人", "120 人", "144 人", "148 人"],
-        answer: 2,
-        hint: "人數必須是 12 和 16 的公倍數，且介於 100 到 150 之間。",
-        steps: [
-          "12 與 16 的最小公倍數為 48。",
-          "48 的倍數有：48, 96, 144, 192...",
-          "介於 100 與 150 之間的只有 144 人。"
-        ]
-      });
-      list.push({
-        unit: 1, difficulty: "★★★ (複合)",
-        stem: "咒術師 A 與咒術師 B 的咒力輸出最大公因數是 6，最小公倍數是 72。若 A 的輸出是 18，則 B 的輸出是多少？",
-        options: ["12", "24", "36", "48"],
-        answer: 1,
-        hint: "公式觀念：兩數的乘積等於其最大公因數乘以最小公倍數 (A × B = GCD × LCM)。",
-        steps: ["18 × B = 6 × 72 = 432，故 B = 432 ÷ 18 = 24。"]
-      });
-
-      // ============ 單元 2：異分母分數加減 (第 10~18 題) ============
-      list.push({
-        unit: 2, difficulty: "★☆☆ (基礎)",
-        stem: "虎杖悠仁用去一瓶咒力藥水的 <span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span>。若換算成分母為 15 的等值分數，分子應該是多少？",
-        options: ["4", "6", "8", "10"],
-        answer: 1,
-        hint: "分子與分母同時乘以相同的數（3），分數的大小不變。",
-        steps: ["分母 5 × 3 = 15，分子 2 × 3 = 6。故分子為 6。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★☆☆ (基礎)",
-        stem: "五條悟一天中花了 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 天出祓除任務，又花了 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 天教導學生。他總共花了幾天的時間？",
-        options: [
-          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>7</span></span>",
-          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>",
-          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
-          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>"
-        ],
-        answer: 1,
-        hint: "異分母分數加法必須先「通分」，將分母化為相同的最小公倍數 12。",
-        steps: ["1/3 = 4/12，1/4 = 3/12。相加得 4/12 + 3/12 = 7/12。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★★☆ (進階)",
-        stem: "伏黑的玉犬吞噬了一隻咒靈的 <span class='fraction'><span class='numerator'>5</span><span class='denominator'>6</span></span>，狗卷棘的咒言封印了 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span>。兩者處理的咒靈部分相差幾分之幾？",
-        options: [
-          "<span class='fraction'><span class='numerator'>11</span><span class='denominator'>24</span></span>",
-          "<span class='fraction'><span class='numerator'>2</span><span class='denominator'>2</span></span>",
-          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>24</span></span>",
-          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span>"
-        ],
-        answer: 0,
-        hint: "6 與 8 的最小公倍數是 24。",
-        steps: ["5/6 通分化為 20/24，3/8 通分化為 9/24。相減 20/24 - 9/24 = 11/24。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★★☆ (進階)",
-        stem: "封印咒繩第一段長 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公尺，第二段長 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>5</span></span> 公尺。兩段咒繩共長多少公尺？",
-        options: [
-          "3<span class='fraction'><span class='numerator'>3</span><span class='denominator'>9</span></span>",
-          "3<span class='fraction'><span class='numerator'>13</span><span class='denominator'>20</span></span>",
-          "3<span class='fraction'><span class='numerator'>7</span><span class='denominator'>20</span></span>",
-          "4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>20</span></span>"
-        ],
-        answer: 1,
-        hint: "整數部分與分數部分分開相加，分數部分通分母為 20。",
-        steps: ["整數：1 + 2 = 3。分數：1/4 (5/20) + 2/5 (8/20) = 13/20。結果為 3 13/20。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★★☆ (進階)",
-        stem: "野薔薇有 3<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 瓶咒釘，任務中用去了 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> 瓶，還剩下多少瓶？",
-        options: [
-          "1<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>",
-          "2<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
-          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
-          "2<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
-        ],
-        answer: 0,
-        hint: "通分後分子不夠減時，需向整數部分借 1 化為假分數。",
-        steps: [
-          "通分：3(4/12) - 1(9/12)。",
-          "4 不夠減 9，借 1 得：2(16/12) - 1(9/12) = 1(7/12)。"
-        ]
-      });
-      list.push({
-        unit: 2, difficulty: "★★☆ (應用)",
-        stem: "一張咒符長 <span class='fraction'><span class='numerator'>7</span><span class='denominator'>8</span></span> 公尺，封印咒靈用去了 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 公尺後，還剩下多少公尺？",
-        options: [
-          "<span class='fraction'><span class='numerator'>3</span><span class='denominator'>8</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>6</span><span class='denominator'>6</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>5</span><span class='denominator'>8</span></span> 公尺",
-          "<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公尺"
-        ],
-        answer: 0,
-        hint: "用總長度減去用掉的長度，1/2 需通分為 4/8。",
-        steps: ["7/8 - 1/2 = 7/8 - 4/8 = 3/8 公尺。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★★★ (挑戰)",
-        stem: "一桶咒力補充液有 5 公升，虎杖喝了 1<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 公升，伏黑喝了 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>4</span></span> 公升，還剩下多少公升？",
-        options: [
-          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
-          "1<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span> 公升",
-          "2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span> 公升",
-          "<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span> 公升"
-        ],
-        answer: 0,
-        hint: "先計算兩人共喝了多少公升，再用 5 公升去減。",
-        steps: [
-          "共喝：1(8/12) + 2(3/12) = 3(11/12) 公升。",
-          "剩下：5 - 3(11/12) = 4(12/12) - 3(11/12) = 1(1/12) 公升。"
-        ]
-      });
-      list.push({
-        unit: 2, difficulty: "★★★ (挑戰)",
-        stem: "五條悟有 2 小時的空閒時間，指導學生特訓花了 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>5</span></span> 小時，買喜久福甜點花了 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span> 小時。還剩下多少小時？",
-        options: [
-          "<span class='fraction'><span class='numerator'>9</span><span class='denominator'>10</span></span>",
-          "1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>10</span></span>",
-          "<span class='fraction'><span class='numerator'>7</span><span class='denominator'>10</span></span>",
-          "1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>10</span></span>"
-        ],
-        answer: 0,
-        hint: "通分分母為 10，將 2 化為 20/10 再連續相減。",
-        steps: ["20/10 - 6/10 - 5/10 = 9/10。"]
-      });
-      list.push({
-        unit: 2, difficulty: "★★★ (複合)",
-        stem: "虎杖的咒力值是 2<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>，伏黑的咒力值比虎杖少 <span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span>，野薔薇的咒力值又比伏黑多 1<span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span>。求野薔薇的咒力值是多少？",
-        options: [
-          "3<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>",
-          "2<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>",
-          "3<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
-          "2<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
-        ],
-        answer: 0,
-        hint: "先求伏黑 = 虎杖 - 3/4，再求野薔薇 = 伏黑 + 1(1/3)。",
-        steps: [
-          "伏黑 = 2(2/4) - 3/4 = 1(3/4)。",
-          "野薔薇 = 1(3/4) + 1(1/3) = 1(9/12) + 1(4/12) = 2(13/12) = 3(1/12)。"
-        ]
-      });
-
-      // ============ 單元 3：多邊形與內角和 (第 19~26 題) ============
-      list.push({
-        unit: 3, difficulty: "★☆☆ (基礎)",
-        stem: "五條悟展開領域「無量空處」時，地面浮現一個三角形咒紋。這個三角形的三個內角和是多少度？",
-        options: ["90°", "180°", "270°", "360°"],
-        answer: 1,
-        hint: "三角形內角和固定為平角（180 度）。",
-        steps: ["三角形內角和 = 180°。"]
-      });
-      list.push({
-        unit: 3, difficulty: "★☆☆ (基礎)",
-        stem: "包圍咒術小學的四邊形結界，它的內角和是多少度？",
-        options: ["180°", "360°", "540°", "720°"],
-        answer: 1,
-        hint: "四邊形可由一個頂點畫對角線分成 2 個三角形。",
-        steps: ["2 × 180° = 360°。"]
-      });
-      list.push({
-        unit: 3, difficulty: "★★☆ (進階)",
-        stem: "用來封印宿儺手指的五邊形封印陣，內角和是多少度？",
-        options: ["360°", "540°", "720°", "900°"],
-        answer: 1,
-        hint: "n 邊形內角和公式：(n - 2) × 180°。",
-        steps: ["(5 - 2) × 180° = 3 × 180° = 540°。"]
-      });
-      list.push({
-        unit: 3, difficulty: "★★☆ (進階)",
-        stem: "咒力環的圖案是一個「正六邊形」，它的每一個內角是多少度？",
-        options: ["108°", "120°", "135°", "140°"],
-        answer: 1,
-        hint: "先求出六邊形內角和，再平均分配給 6 個相等的內角。",
-        steps: [
-          "內角和 = (6 - 2) × 180° = 720°。",
-          "每個內角 = 720° ÷ 6 = 120°。"
-        ]
-      });
-      list.push({
-        unit: 3, difficulty: "★★☆ (進階)",
-        stem: "從八邊形領域圖案的一個頂點出發，最多可以畫出幾條對角線？可將領域分成幾個三角形？",
-        options: ["5 條對角線，6 個三角形", "6 條對角線，7 個三角形", "4 條對角線，5 個三角形", "5 條對角線，5 個三角形"],
-        answer: 0,
-        hint: "對角線數 = n - 3，分割出的三角形數 = n - 2。",
-        steps: ["對角線：8 - 3 = 5 條。三角形：8 - 2 = 6 個。"]
-      });
-      list.push({
-        unit: 3, difficulty: "★★★ (挑戰)",
-        stem: "一個三角形咒靈圖案中，∠A = 50°，∠B = 60°。請問 ∠C 是多少度？這是什麼三角形？",
-        options: ["70°，銳角三角形", "70°，直角三角形", "80°，銳角三角形", "70°，鈍角三角形"],
-        answer: 0,
-        hint: "∠C = 180° - 50° - 60°。三個角皆小於 90° 即為銳角三角形。",
-        steps: ["∠C = 180° - 110° = 70°。因三個角都是銳角，故為銳角三角形。"]
-      });
-      list.push({
-        unit: 3, difficulty: "★★★ (挑戰)",
-        stem: "某個領域展開圖案的內角和是 1080°，請問這個圖案是幾邊形？",
-        options: ["六邊形", "七邊形", "八邊形", "九邊形"],
-        answer: 2,
-        hint: "利用公式反推：(n - 2) × 180° = 1080°。",
-        steps: [
-          "n - 2 = 1080 ÷ 180 = 6。",
-          "n = 6 + 2 = 8，故為八邊形。"
-        ]
-      });
-      list.push({
-        unit: 3, difficulty: "★★★ (複合)",
-        stem: "正五邊形封印陣的每一個內角，比正三角形咒紋的每一個內角多幾度？",
-        options: ["30°", "48°", "60°", "108°"],
-        answer: 1,
-        hint: "分別算出正五邊形與正三角形的內角度數再相減。",
-        steps: [
-          "正三角形每個內角 = 180° ÷ 3 = 60°。",
-          "正五邊形每個內角 = (5 - 2) × 180° ÷ 5 = 108°。",
-          "108° - 60° = 48°。"
-        ]
-      });
-
-      // ============ 單元 4：平面圖形面積 (第 27~35 題) ============
-      list.push({
-        unit: 4, difficulty: "★☆☆ (基礎)",
-        stem: "東京校平行四邊形訓練場的底是 12 公尺，高是 7 公尺，面積是多少平方公尺？",
-        options: ["42 平方公尺", "84 平方公尺", "38 平方公尺", "96 平方公尺"],
-        answer: 1,
-        hint: "平行四邊形面積公式 = 底 × 高。",
-        steps: ["12 × 7 = 84 平方公尺。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★☆☆ (基礎)",
-        stem: "一個三角形咒靈出沒區的底是 10 公尺，高是 6 公尺，面積是多少平方公尺？",
-        options: ["60 平方公尺", "30 平方公尺", "15 平方公尺", "45 平方公尺"],
-        answer: 1,
-        hint: "三角形面積公式 = 底 × 高 ÷ 2。",
-        steps: ["10 × 6 ÷ 2 = 30 平方公尺。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★☆☆ (基礎)",
-        stem: "梯形咒力屏障的上底是 5 公尺，下底是 9 公尺，高是 4 公尺，面積是多少平方公尺？",
-        options: ["28 平方公尺", "56 平方公尺", "36 平方公尺", "18 平方公尺"],
-        answer: 0,
-        hint: "梯形面積公式 = (上底 + 下底) × 高 ÷ 2。",
-        steps: ["(5 + 9) × 4 ÷ 2 = 14 × 4 ÷ 2 = 28 平方公尺。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★★☆ (進階)",
-        stem: "已知一個三角形領域的面積是 48 平方公尺，底是 12 公尺，請問它的高是多少公尺？",
-        options: ["4 公尺", "6 公尺", "8 公尺", "10 公尺"],
-        answer: 2,
-        hint: "利用反推公式：高 = 面積 × 2 ÷ 底。",
-        steps: ["高 = 48 × 2 ÷ 12 = 96 ÷ 12 = 8 公尺。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★★☆ (進階)",
-        stem: "已知一個梯形訓練場面積是 75 平方公尺，高是 10 公尺。若上底是 6 公尺，下底是多少公尺？",
-        options: ["7 公尺", "8 公尺", "9 公尺", "10 公尺"],
-        answer: 2,
-        hint: "兩底和 (上底 + 下底) = 面積 × 2 ÷ 高。",
-        steps: [
-          "上底 + 下底 = 75 × 2 ÷ 10 = 15。",
-          "下底 = 15 - 6 = 9 公尺。"
-        ]
-      });
-      list.push({
-        unit: 4, difficulty: "★★☆ (應用)",
-        stem: "同底等高的平行四邊形訓練場與三角形訓練場，平行四邊形的面積是三角形面積的幾倍？",
-        options: ["1/2 倍", "1 倍", "2 倍", "4 倍"],
-        answer: 2,
-        hint: "平行四邊形面積 = 底×高；三角形面積 = 底×高÷2。",
-        steps: ["因為三角形面積要除以 2，所以平行四邊形面積是三角形的 2 倍。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★★★ (挑戰)",
-        stem: "一個平行四邊形咒術森林底長 20 公尺，高 12 公尺。若在中間開闢一條寬 2 公尺的矩形通道供咒術師通行，剩餘森林面積是多少平方公尺？",
-        options: ["216 平方公尺", "240 平方公尺", "220 平方公尺", "200 平方公尺"],
-        answer: 0,
-        hint: "將兩側土地扣除路寬後拼起來，新底變為 (20 - 2) 公尺。",
-        steps: ["(20 - 2) × 12 = 18 × 12 = 216 平方公尺。"]
-      });
-      list.push({
-        unit: 4, difficulty: "★★★ (挑戰)",
-        stem: "一張直角三角形咒符的三條邊分別為 6 公分、8 公分、10 公分，請問最長邊（斜邊）上的高是多少公分？",
-        options: ["4.2 公分", "4.8 公分", "5.0 公分", "5.2 公分"],
-        answer: 1,
-        hint: "兩條直角邊為底和高求出面積，再用斜邊作為底反推斜邊上的高。",
-        steps: [
-          "面積 = 6 × 8 ÷ 2 = 24 平方公分。",
-          "斜邊上的高 = 24 × 2 ÷ 10 = 4.8 公分。"
-        ]
-      });
-      list.push({
-        unit: 4, difficulty: "★★★ (複合)",
-        stem: "一個複合咒印圖案由長方形（長 10cm、寬 6cm）和梯形（上底 10cm、下底 14cm、高 5cm）拼成，總面積是多少？",
-        options: ["90 平方公分", "120 平方公分", "110 平方公分", "100 平方公分"],
-        answer: 1,
-        hint: "分別算出長方形面積與梯形面積再相加。",
-        steps: [
-          "長方形面積 = 10 × 6 = 60。",
-          "梯形面積 = (10 + 14) × 5 ÷ 2 = 60。",
-          "總面積 = 60 + 60 = 120 平方公分。"
-        ]
-      });
-
-      // ============ 單元 5：小數乘法 (第 36~43 題) ============
-      list.push({
-        unit: 5, difficulty: "★☆☆ (基礎)",
-        stem: "一顆咒靈核重 0.8 兩，7 顆咒靈核共重多少兩？",
-        options: ["5.6", "0.56", "56", "0.056"],
-        answer: 0,
-        hint: "先算 8 × 7 = 56，因被乘數有一位小數，結果點上一位小數。",
-        steps: ["8 × 7 = 56 ➔ 5.6。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★☆☆ (基礎)",
-        stem: "一條咒繩每公尺重 2.5 公克，0.4 公尺的咒繩重多少公克？",
-        options: ["1", "1.0", "0.1", "10"],
-        answer: 0,
-        hint: "25 × 4 = 100，共有 2 位小數，1.00 簡化為 1。",
-        steps: ["2.5 × 0.4 = 1.00 = 1。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★★☆ (進階)",
-        stem: "一瓶咒力藥水容量 1.25 公升，0.8 瓶的容量是多少公升？",
-        options: ["1", "0.1", "10", "1.25"],
-        answer: 0,
-        hint: "125 × 8 = 1000，被乘數 2 位 + 乘數 1 位 = 3 位小數。",
-        steps: ["1.25 × 0.8 = 1.000 = 1。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★★☆ (進階)",
-        stem: "虎杖巡邏咒靈現場，每一圈路線要花 4.15 小時，巡邏 3.2 圈共要花多少小時？",
-        options: ["13.28", "132.8", "1.328", "13.08"],
-        answer: 0,
-        hint: "先算 415 × 32 = 13280，共 3 位小數，末尾 0 去除。",
-        steps: ["4.15 (2位) × 3.2 (1位) = 13.280 ➔ 13.28。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★★☆ (應用)",
-        stem: "一公斤咒獸肉賣 45.5 元（虎杖的最愛），他買了 3.2 公斤，一共要付多少元？",
-        options: ["145.6 元", "1456 元", "14.56 元", "146 元"],
-        answer: 0,
-        hint: "總價 = 單價 × 重量 = 45.5 × 3.2。",
-        steps: ["45.5 × 3.2 = 145.60 ➔ 145.6 元。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★★★ (挑戰)",
-        stem: "虎杖悠仁追擊咒靈的跑步速度是每秒 3.85 公尺，他跑了 1 分鐘 20 秒，一共跑了多少公尺？",
-        options: ["308 公尺", "269.5 公尺", "385 公尺", "320 公尺"],
-        answer: 0,
-        hint: "先將時間換算為秒數：1 分 20 秒 = 80 秒，再乘以速度。",
-        steps: ["80 秒 × 3.85 = 308 公尺。"]
-      });
-      list.push({
-        unit: 5, difficulty: "★★★ (挑戰)",
-        stem: "一塊長方形咒術土地長 12.5 公尺，寬 8.4 公尺。如果每平方公尺售價 1500 元，這塊土地總共賣多少元？",
-        options: ["157,500 元", "105,000 元", "125,000 元", "150,000 元"],
-        answer: 0,
-        hint: "先求土地面積 = 長 × 寬，再乘以單價。",
-        steps: [
-          "面積 = 12.5 × 8.4 = 105 平方公尺。",
-          "總價 = 105 × 1500 = 157,500 元。"
-        ]
-      });
-      list.push({
-        unit: 5, difficulty: "★★★ (複合)",
-        stem: "已知 38 × 24 = 912，請直接判斷 0.38 × 2.4 的咒力濃度計算結果是多少？",
-        options: ["0.912", "9.12", "0.0912", "91.2"],
-        answer: 0,
-        hint: "利用小數點位數規律：0.38 (2位) + 2.4 (1位) = 3 位小數。",
-        steps: ["912 向左移動 3 位小數點 ➔ 0.912。"]
-      });
-
-      // ============ 單元 6：線對稱圖形 (第 44~50 題) ============
-      list.push({
-        unit: 6, difficulty: "★☆☆ (基礎)",
-        stem: "下列哪一個咒符圖案「不是」線對稱圖形？",
-        options: ["等腰三角形", "正方形", "一般平行四邊形", "圓形"],
-        answer: 2,
-        hint: "沿對稱軸對折後，左右兩邊必須能夠完全重合。",
-        steps: ["一般平行四邊形對角對折無法完全重合，故不是線對稱圖形。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★☆☆ (基礎)",
-        stem: "長方形咒符共有幾條對稱軸？",
-        options: ["1 條", "2 條", "4 條", "無數條"],
-        answer: 1,
-        hint: "長方形連接兩對邊中點的直線為對稱軸，對角線折起來無法重合。",
-        steps: ["長方形有 2 條對稱軸。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★★☆ (進階)",
-        stem: "正五邊形封印陣共有幾條對稱軸？",
-        options: ["1 條", "3 條", "5 條", "10 條"],
-        answer: 2,
-        hint: "正 n 邊形會有 n 條對稱軸。",
-        steps: ["正五邊形有 5 條對稱軸（頂點連至對邊中點）。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★★☆ (進階)",
-        stem: "圓形咒力環共有幾條對稱軸？",
-        options: ["1 條", "2 條", "360 條", "無數條"],
-        answer: 3,
-        hint: "通過圓心的任何一條直線（直徑所在的直線）都是圓的對稱軸。",
-        steps: ["圓形有無數條對稱軸。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★★☆ (性質)",
-        stem: "在線對稱咒紋中，連接相對應點（對稱點）的連線與對稱軸有什麼關係？",
-        options: ["互相平行", "互相垂直且被對稱軸平分", "互相重合", "長度不相等"],
-        answer: 1,
-        hint: "線對稱的重要性質：對稱點連線會垂直對稱軸，且距離相等。",
-        steps: ["對稱點連線必定垂直對稱軸，且對稱軸會平分該連線。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★★★ (挑戰)",
-        stem: "等腰梯形盾牌有幾條對稱軸？菱形苦無有幾條對稱軸？",
-        options: ["等腰梯形 1 條，菱形 2 條", "等腰梯形 2 條，菱形 2 條", "等腰梯形 1 條，菱形 4 條", "等腰梯形 0 條，菱形 2 條"],
-        answer: 0,
-        hint: "等腰梯形過上下底中點；菱形兩對角線為對稱軸。",
-        steps: ["等腰梯形有 1 條對稱軸，菱形有 2 條對稱軸。"]
-      });
-      list.push({
-        unit: 6, difficulty: "★★★ (複合)",
-        stem: "在方格紙上，虎杖（點 A）距離對稱軸 4 格。若伏黑（點 A'）是點 A 的對稱點，請問點 A 與點 A' 之間的距離是多少格？",
-        options: ["4 格", "6 格", "8 格", "16 格"],
-        answer: 2,
-        hint: "兩對稱點到對稱軸的距離相等，總距離為距離的 2 倍。",
-        steps: ["4 格 × 2 = 8 格。"]
-      });
-
-      return list;
+    function toggleMute(){
+      SoundFX.muted = !SoundFX.muted;
+      localStorage.setItem('jjk_muted', SoundFX.muted ? '1' : '0');
+      updateSoundIcon(); if(!SoundFX.muted) SoundFX.play('click');
+    }
+    function updateSoundIcon(){
+      document.getElementById('sound-icon').className = SoundFX.muted ? 'fa-solid fa-volume-xmark text-neutral-500' : 'fa-solid fa-volume-high text-amber-400';
     }
 
-    // =====================================================
-    // 檢定題 / 領域展開題 (程式生成，咒術情境)
-    // =====================================================
-    function generateExamQuestions(isHard = false) {
-      const list = [];
-      const prefix = isHard ? "【領域展開】" : "【等級檢定】";
+    // ===== 狀態 =====
+    let currentMode = 'teach', currentQuestionIndex = 0, questionsList = [], userAnswers = {};
+    let expandedUnits = new Set(), testTimer = null, secondsElapsed = 0, TEACHING_DATA = null;
 
+    const UNITS = { 1:"1. 因數與倍數", 2:"2. 異分母分數加減", 3:"3. 多邊形與內角和", 4:"4. 平面圖形面積", 5:"5. 小數乘法", 6:"6. 線對稱圖形" };
+    const UNIT_VIDEOS = {
+      1:{title:"📹 單元 1：【均一】因數與倍數 & 最大公因數",embedId:"NEafa4sDswc",desc:"掌握因數、倍數與最大公因數的定義與解題技巧。"},
+      2:{title:"📹 單元 2：【均一】異分母分數的通分與加減",embedId:"dO7NhJ9TBo8",desc:"釐清如何利用最小公倍數進行通分。"},
+      3:{title:"📹 單元 3：【均一】多邊形內角和公式與分割",embedId:"iTbZzMPy0B8",desc:"推導 (n-2)×180° 的內角和公式。"},
+      4:{title:"📹 單元 4：【均一】平行四邊形、三角形與梯形面積",embedId:"VGZ9AuQ1ZEw",desc":"面積公式的割補由來與計算示範。"},
+      5:{title:"📹 單元 5：【均一】小數乘以整數與小數乘法",embedId:"O6LpX8Chjpk",desc:"積的小數位數決定方式與直式運算技巧。"},
+      6:{title:"📹 單元 6：【均一】線對稱圖形與對稱軸性質",embedId:"gBIQHJMoZp4",desc:"認識對稱軸、對稱點與對摺重合特性。"}
+    };
+
+    function gcd(a,b){ return b===0 ? a : gcd(b, a%b); }
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+    function energyOf(q){ const s = (q.difficulty||'').match(/★/g); return (s ? s.length : 1) * 10; }
+    function rankIndex(v){ let r=0; RANKS.forEach((rk,i)=>{ if(v>=rk.min) r=i; }); return r; }
+
+    function updateEnergyUI(){
+      const ri = rankIndex(totalEnergy);
+      document.getElementById('rank-name').innerText = RANKS[ri].name;
+      document.getElementById('energy-value').innerText = totalEnergy;
+      const next = RANKS[ri+1];
+      const pct = next ? Math.min(100, Math.round((totalEnergy - RANKS[ri].min) / (next.min - RANKS[ri].min) * 100)) : 100;
+      document.getElementById('energy-bar').style.width = pct + '%';
+    }
+    function addEnergy(g){
+      const before = rankIndex(totalEnergy);
+      totalEnergy += g; sessionEnergy += g;
+      localStorage.setItem('jjk_energy', String(totalEnergy));
+      updateEnergyUI();
+      const chip = document.getElementById('energy-chip');
+      chip.classList.remove('energy-glow'); void chip.offsetWidth; chip.classList.add('energy-glow');
+      const after = rankIndex(totalEnergy);
+      if (after > before) showRankUp(RANKS[after].name);
+    }
+    function showRankUp(name){
+      document.getElementById('rankup-text').innerText = name;
+      const ov = document.getElementById('rankup-overlay');
+      ov.classList.remove('hidden'); ov.classList.add('show');
+      SoundFX.play('rankup'); navigator.vibrate?.([60,40,60]);
+      setTimeout(()=>{ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1600);
+    }
+    function triggerBlackFlash(){
+      const ov = document.getElementById('blackflash-overlay');
+      ov.classList.remove('hidden'); ov.classList.add('show');
+      SoundFX.play('blackflash'); navigator.vibrate?.([40,60,40]);
+      setMascotEmotion('flash');
+      setTimeout(()=>{ ov.classList.add('hidden'); ov.classList.remove('show'); }, 1000);
+    }
+
+    // ===== 4. Mascot 控制 =====
+    function updateMascot(){
+      const m = MASCOTS[currentMode];
+      const img = document.getElementById('mascot-img');
+      img.classList.remove('mascot-happy','mascot-sad','mascot-flash');
+      img.src = m.img;
+      document.getElementById('mascot-name').innerText = m.name;
+      document.getElementById('mascot-quote').innerText = m.neutral;
+    }
+    function setMascotEmotion(em){
+      const m = MASCOTS[currentMode];
+      const img = document.getElementById('mascot-img');
+      img.classList.remove('mascot-happy','mascot-sad','mascot-flash');
+      void img.offsetWidth;
+      const quote = document.getElementById('mascot-quote');
+      if (em==='happy'){ img.classList.add('mascot-happy'); quote.innerText = pick(m.happy); }
+      else if (em==='sad'){ img.classList.add('mascot-sad'); quote.innerText = pick(m.sad); }
+      else if (em==='flash'){ img.classList.add('mascot-flash'); quote.innerText = pick(m.flash); }
+    }
+
+    // ===== 5. 咒力注入 Ripple =====
+    function spawnRipple(btn, e){
+      const rect = btn.getBoundingClientRect();
+      const d = Math.max(rect.width, rect.height) * 1.2;
+      const cx = (e && e.clientX ? e.clientX : rect.left + rect.width/2) - rect.left;
+      const cy = (e && e.clientY ? e.clientY : rect.top + rect.height/2) - rect.top;
+      const span = document.createElement('span');
+      span.className = 'ripple';
+      span.style.width = span.style.height = d + 'px';
+      span.style.left = (cx - d/2) + 'px'; span.style.top = (cy - d/2) + 'px';
+      btn.appendChild(span); setTimeout(()=>span.remove(), 650);
+    }
+
+    // ===== 6. 題庫載入：HTTP 優先 questions.json，否則 questions.js =====
+    async function loadTeachingData(){
+      try {
+        const res = await fetch('questions.json');
+        if (res.ok) { TEACHING_DATA = await res.json(); return; }
+      } catch(e) {}
+      if (window.QUESTIONS_JSON) TEACHING_DATA = window.QUESTIONS_JSON;
+    }
+    function generateTeachingQuestions(){ return TEACHING_DATA ? TEACHING_DATA.slice() : []; }
+
+    function generateExamQuestions(isHard = false){
+      const list = []; const prefix = isHard ? "【領域展開】" : "【等級檢定】";
       for (let i = 1; i <= 50; i++) {
-        let u = 1;
-        let diffText = "★☆☆";
-        if (i <= 9) { u = 1; diffText = i <= 3 ? "★☆☆" : (i <= 6 ? "★★☆" : "★★★"); }
-        else if (i <= 18) { u = 2; diffText = i <= 12 ? "★☆☆" : (i <= 15 ? "★★☆" : "★★★"); }
-        else if (i <= 26) { u = 3; diffText = i <= 21 ? "★☆☆" : (i <= 24 ? "★★☆" : "★★★"); }
-        else if (i <= 35) { u = 4; diffText = i <= 29 ? "★☆☆" : (i <= 32 ? "★★☆" : "★★★"); }
-        else if (i <= 43) { u = 5; diffText = i <= 38 ? "★☆☆" : (i <= 41 ? "★★☆" : "★★★"); }
-        else { u = 6; diffText = i <= 46 ? "★☆☆" : (i <= 48 ? "★★☆" : "★★★"); }
-
+        let u, diffText;
+        if (i <= 9) { u = 1; diffText = i <= 3 ? "★☆☆ (基礎)" : (i <= 6 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
+        else if (i <= 18) { u = 2; diffText = i <= 12 ? "★☆☆ (基礎)" : (i <= 15 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
+        else if (i <= 26) { u = 3; diffText = i <= 21 ? "★☆☆ (基礎)" : (i <= 24 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
+        else if (i <= 35) { u = 4; diffText = i <= 29 ? "★☆☆ (基礎)" : (i <= 32 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
+        else if (i <= 43) { u = 5; diffText = i <= 38 ? "★☆☆ (基礎)" : (i <= 41 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
+        else { u = 6; diffText = i <= 46 ? "★☆☆ (基礎)" : (i <= 48 ? "★★☆ (進階)" : "★★★ (挑戰)"); }
         let q = {};
         if (!isHard) {
-          if (u === 1) {
-            const numA = 12 + i * 2;
-            const numB = 18 + i * 2;
-            const ans = gcd(numA, numB);
-            q = {
-              unit: 1, difficulty: diffText,
-              stem: `${prefix} 兩隻咒靈的咒力值分別是 ${numA} 與 ${numB}，它們的最大公因數是多少？`,
-              options: [`${ans}`, `${ans * 2}`, `${Math.max(1, ans - 1)}`, `${ans + 3}`],
-              answer: 0
-            };
-          } else if (u === 2) {
-            q = {
-              unit: 2, difficulty: diffText,
-              stem: `${prefix} 虎杖用去 <span class='fraction'><span class='numerator'>${i%3 + 1}</span><span class='denominator'>4</span></span> 瓶咒力藥水，伏黑用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 瓶，兩人共用去幾瓶？`,
-              options: [
-                `<span class='fraction'><span class='numerator'>${(i%3 + 1)*3 + 4}</span><span class='denominator'>12</span></span>`,
-                `<span class='fraction'><span class='numerator'>${i%3 + 2}</span><span class='denominator'>7</span></span>`,
-                `<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>`,
-                `<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>`
-              ],
-              answer: 0
-            };
-          } else if (u === 3) {
-            const sides = 5 + (i % 5);
-            const sum = (sides - 2) * 180;
-            q = {
-              unit: 3, difficulty: diffText,
-              stem: `${prefix} 一個正 ${sides} 邊形的領域圖案，內角和是多少度？`,
-              options: [`${sum}°`, `${sum + 180}°`, `${sum - 180}°`, `${sum / 2}°`],
-              answer: 0
-            };
-          } else if (u === 4) {
-            const b = 10 + i;
-            const h = 6 + (i % 4);
-            const area = (b * h) / 2;
-            q = {
-              unit: 4, difficulty: diffText,
-              stem: `${prefix} 三角形咒靈出沒區的底為 ${b}cm，高為 ${h}cm，求面積？`,
-              options: [`${area} cm²`, `${area * 2} cm²`, `${area + 5} cm²`, `${area - 3} cm²`],
-              answer: 0
-            };
-          } else if (u === 5) {
-            const val = (1.5 + (i * 0.1)).toFixed(1);
-            const res = (parseFloat(val) * 2.4).toFixed(2);
-            q = {
-              unit: 5, difficulty: diffText,
-              stem: `${prefix} 一隻咒靈的咒力為 ${val} 單位，經黑閃放大後變為原來的 2.4 倍，放大後的咒力是多少？`,
-              options: [`${res}`, `${(res * 10).toFixed(1)}`, `${(res / 10).toFixed(3)}`, `${(parseFloat(res) + 0.12).toFixed(2)}`],
-              answer: 0
-            };
-          } else {
-            q = {
-              unit: 6, difficulty: diffText,
-              stem: `${prefix} 正方形咒符共有幾條對稱軸？`,
-              options: ["4 條", "2 條", "8 條", "無數條"],
-              answer: 0
-            };
-          }
+          if (u === 1) { const a = 12+i*2, b = 18+i*2, g = gcd(a,b);
+            q = { unit:1, difficulty:diffText, stem:`${prefix} 兩隻咒靈的咒力值分別是 ${a} 與 ${b}，它們的最大公因數是多少？`, options:[`${g}`,`${g*2}`,`${Math.max(1,g-1)}`,`${g+3}`], answer:0 };
+          } else if (u === 2) { const n = i%3+1;
+            q = { unit:2, difficulty:diffText, stem:`${prefix} 虎杖用去 <span class='fraction'><span class='numerator'>${n}</span><span class='denominator'>4</span></span> 瓶咒力藥水，伏黑用去 <span class='fraction'><span class='numerator'>1</span><span class='denominator'>3</span></span> 瓶，兩人共用去幾瓶？`, options:[`<span class='fraction'><span class='numerator'>${n*3+4}</span><span class='denominator'>12</span></span>`,`<span class='fraction'><span class='numerator'>${n+1}</span><span class='denominator'>7</span></span>`,`<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>`,`<span class='fraction'><span class='numerator'>1</span><span class='denominator'>2</span></span>`], answer:0 };
+          } else if (u === 3) { const s = 5+(i%5), sum = (s-2)*180;
+            q = { unit:3, difficulty:diffText, stem:`${prefix} 一個正 ${s} 邊形的領域圖案，內角和是多少度？`, options:[`${sum}°`,`${sum+180}°`,`${sum-180}°`,`${sum/2}°`], answer:0 };
+          } else if (u === 4) { const b = 10+i, h = 6+(i%4), area = (b*h)/2;
+            q = { unit:4, difficulty:diffText, stem:`${prefix} 三角形咒靈出沒區的底為 ${b}cm，高為 ${h}cm，求面積？`, options:[`${area} cm²`,`${area*2} cm²`,`${area+5} cm²`,`${area-3} cm²`], answer:0 };
+          } else if (u === 5) { const v = (1.5+i*0.1).toFixed(1), r = (parseFloat(v)*2.4).toFixed(2);
+            q = { unit:5, difficulty:diffText, stem:`${prefix} 一隻咒靈的咒力為 ${v} 單位，經黑閃放大為原來的 2.4 倍，放大後是多少？`, options:[`${r}`,`${(r*10).toFixed(1)}`,`${(r/10).toFixed(3)}`,`${(parseFloat(r)+0.12).toFixed(2)}`], answer:0 };
+          } else q = { unit:6, difficulty:diffText, stem:`${prefix} 正方形咒符共有幾條對稱軸？`, options:["4 條","2 條","8 條","無數條"], answer:0 };
         } else {
-          if (u === 1) {
-            q = {
-              unit: 1, difficulty: diffText,
-              stem: `${prefix} 結界代碼加上 3 後是 15 與 20 的公倍數，已知代碼小於 200，請問代碼最大是多少？`,
-              options: ["177", "180", "117", "120"],
-              answer: 0
-            };
-          } else if (u === 2) {
-            q = {
-              unit: 2, difficulty: diffText,
-              stem: `${prefix} 計算咒力波動值：4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> 的結果？`,
-              options: [
-                "5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>",
-                "4<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>",
-                "5<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>",
-                "4<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"
-              ],
-              answer: 0
-            };
-          } else if (u === 3) {
-            q = {
-              unit: 3, difficulty: diffText,
-              stem: `${prefix} 一個正多邊形領域的每一個內角是 144°，請問這個領域是幾邊形？`,
-              options: ["十邊形", "十二邊形", "八邊形", "九邊形"],
-              answer: 0
-            };
-          } else if (u === 4) {
-            q = {
-              unit: 4, difficulty: diffText,
-              stem: `${prefix} 一個梯形咒力屏障上底增加 4 公分後會變成平行四邊形，面積會增加 20 平方公分。若原梯形高為 10 公分，下底為 12 公分，求原梯形面積？`,
-              options: ["100 平方公分", "120 平方公分", "80 平方公分", "90 平方公分"],
-              answer: 0
-            };
-          } else if (u === 5) {
-            q = {
-              unit: 5, difficulty: diffText,
-              stem: `${prefix} 一包咒術米 3.75 公斤售價 240 元，虎杖買了 2.4 包，一共要付多少元？`,
-              options: ["576 元", "500 元", "600 元", "480 元"],
-              answer: 0
-            };
-          } else {
-            q = {
-              unit: 6, difficulty: diffText,
-              stem: `${prefix} 在座標平面上，虎杖的位置為點 A(2, 6)，對於對稱軸 L(x=4) 的對稱點 A' 座標為何？`,
-              options: ["(6, 6)", "(4, 6)", "(2, 4)", "(8, 6)"],
-              answer: 0
-            };
-          }
+          if (u === 1) q = { unit:1, difficulty:diffText, stem:`${prefix} 結界代碼加上 3 後是 15 與 20 的公倍數，代碼小於 200，最大是多少？`, options:["177","180","117","120"], answer:0 };
+          else if (u === 2) q = { unit:2, difficulty:diffText, stem:`${prefix} 計算咒力波動：4<span class='fraction'><span class='numerator'>1</span><span class='denominator'>6</span></span> - 1<span class='fraction'><span class='numerator'>3</span><span class='denominator'>4</span></span> + 2<span class='fraction'><span class='numerator'>2</span><span class='denominator'>3</span></span> = ?`, options:["5<span class='fraction'><span class='numerator'>1</span><span class='denominator'>12</span></span>","4<span class='fraction'><span class='numerator'>11</span><span class='denominator'>12</span></span>","5<span class='fraction'><span class='numerator'>5</span><span class='denominator'>12</span></span>","4<span class='fraction'><span class='numerator'>7</span><span class='denominator'>12</span></span>"], answer:0 };
+          else if (u === 3) q = { unit:3, difficulty:diffText, stem:`${prefix} 一個正多邊形領域的每一個內角是 144°，請問是幾邊形？`, options:["十邊形","十二邊形","八邊形","九邊形"], answer:0 };
+          else if (u === 4) q = { unit:4, difficulty:diffText, stem:`${prefix} 梯形咒力屏障上底增加 4 公分後變平行四邊形，面積增加 20 平方公分。原高 10 公分、下底 12 公分，求原梯形面積？`, options:["100 平方公分","120 平方公分","80 平方公分","90 平方公分"], answer:0 };
+          else if (u === 5) q = { unit:5, difficulty:diffText, stem:`${prefix} 一包咒術米 3.75 公斤售價 240 元，虎杖買 2.4 包，共要付多少元？`, options:["576 元","500 元","600 元","480 元"], answer:0 };
+          else q = { unit:6, difficulty:diffText, stem:`${prefix} 點 A(2, 6) 對於對稱軸 L(x=4) 的對稱點 A' 座標為何？`, options:["(6, 6)","(4, 6)","(2, 4)","(8, 6)"], answer:0 };
         }
         list.push(q);
       }
       return list;
     }
 
-    // =====================================================
-    // UI 函數
-    // =====================================================
-    function updateMascot() {
-      const m = MASCOTS[currentMode];
-      if (!m) return;
-      document.getElementById('mascot-img').src = m.img;
-      document.getElementById('mascot-name').innerText = m.name;
-      document.getElementById('mascot-quote').innerText = m.quote;
+    // ===== 1. 單元手風琴列表 =====
+    function toggleUnit(u){
+      u = Number(u);
+      if (expandedUnits.has(u)) expandedUnits.delete(u); else expandedUnits.add(u);
+      SoundFX.play('click');
+      renderQuestionGrid();
+    }
+    function renderQuestionGrid(){
+      const acc = document.getElementById('unit-accordion');
+      acc.innerHTML = '';
+      const groups = {};
+      questionsList.forEach((q, idx) => { (groups[q.unit] = groups[q.unit] || []).push(idx); });
+
+      Object.keys(groups).forEach(u => {
+        const idxs = groups[u];
+        const answered = idxs.filter(i => userAnswers[i] !== undefined).length;
+        const open = expandedUnits.has(Number(u));
+        const block = document.createElement('div');
+
+        const header = document.createElement('button');
+        header.className = 'w-full flex items-center justify-between bg-neutral-800 hover:bg-neutral-700 border-2 border-black rounded-lg px-2.5 py-2 text-xs font-bold text-neutral-200 touch-btn';
+        header.innerHTML = `<span class="flex items-center min-w-0"><i class="fa-solid fa-scroll text-red-500 mr-1.5 shrink-0"></i><span class="truncate">${UNITS[u]}</span></span>
+          <span class="flex items-center gap-1.5 shrink-0 ml-2"><span class="text-red-400">${answered}/${idxs.length}</span><i class="fa-solid fa-chevron-down text-[10px] transition-transform ${open ? 'rotate-180' : ''}"></i></span>`;
+        header.onclick = () => toggleUnit(u);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-5 gap-1.5 mt-1.5' + (open ? '' : ' hidden');
+        idxs.forEach(idx => {
+          const q = questionsList[idx];
+          const btn = document.createElement('button');
+          btn.innerText = idx + 1;
+          let cls = 'w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center transition-all touch-btn border border-black ';
+          if (idx === currentQuestionIndex) cls += 'ring-2 ring-red-500 ring-offset-1 ring-offset-black ';
+          if (userAnswers[idx] !== undefined) {
+            cls += (currentMode === 'teach')
+              ? (userAnswers[idx] === q.answer ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white')
+              : 'bg-red-600 text-white';
+          } else cls += 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300';
+          btn.className = cls;
+          btn.onclick = (e) => { currentQuestionIndex = idx; spawnRipple(btn, e); refresh(); if (window.innerWidth < 768) closeMobileSidebar(); };
+          grid.appendChild(btn);
+        });
+
+        block.appendChild(header); block.appendChild(grid);
+        acc.appendChild(block);
+      });
+
+      const answeredCount = Object.keys(userAnswers).length;
+      document.getElementById('progress-text').innerText = `已祓除 ${answeredCount} / ${questionsList.length}`;
     }
 
-    function loadQuestion(index) {
-      if (!questionsList[index]) return;
-      const q = questionsList[index];
+    function refresh(){
+      const q = questionsList[currentQuestionIndex];
+      if (q && !expandedUnits.has(Number(q.unit))) expandedUnits.add(Number(q.unit));
+      renderQuestionGrid();
+      loadQuestion(currentQuestionIndex);
+    }
 
+    function loadQuestion(index){
+      const q = questionsList[index];
+      if (!q) { document.getElementById('q-stem').innerText = '⚠️ 題庫未載入：請確認 questions.js 或 questions.json 與 index.html 放在同一資料夾。'; return; }
       document.getElementById('q-number-badge').innerText = `第 ${index + 1} 題`;
       document.getElementById('q-unit-tag').innerText = `單元：${UNITS[q.unit] || '綜合'}`;
       document.getElementById('q-diff-tag').innerText = `難度：${q.difficulty || '★☆☆'}`;
       document.getElementById('q-stem').innerHTML = q.stem;
+      ['hint-card','steps-card','video-card'].forEach(id => document.getElementById(id).classList.add('hidden'));
 
-      document.getElementById('hint-card').classList.add('hidden');
-      document.getElementById('steps-card').classList.add('hidden');
-      document.getElementById('video-card').classList.add('hidden');
-
-      const videoInfo = UNIT_VIDEOS[q.unit];
-      if (videoInfo) {
-        document.getElementById('video-card-title').innerText = videoInfo.title;
-        document.getElementById('video-card-desc').innerText = videoInfo.desc;
-        document.getElementById('youtube-iframe').src = `https://www.youtube.com/embed/${videoInfo.embedId}?rel=0`;
+      const v = UNIT_VIDEOS[q.unit];
+      if (v) {
+        document.getElementById('video-card-title').innerText = v.title;
+        document.getElementById('video-card-desc').innerText = v.desc;
+        document.getElementById('youtube-iframe').src = `https://www.youtube.com/embed/${v.embedId}?rel=0`;
       }
 
       const optContainer = document.getElementById('options-container');
@@ -1019,37 +505,24 @@
       const selectedOpt = userAnswers[index];
 
       q.options.forEach((optText, optIdx) => {
-        const isSelected = selectedOpt === optIdx;
-        const isCorrect = optIdx === q.answer;
-
-        let btnClass = "p-4 rounded-lg border-2 text-left font-bold text-sm sm:text-base flex items-center justify-between transition-all touch-btn ";
-
+        const isSelected = selectedOpt === optIdx, isCorrect = optIdx === q.answer;
+        let btnClass = 'p-4 rounded-lg border-2 text-left font-bold text-sm sm:text-base flex items-center justify-between transition-all touch-btn relative overflow-hidden ';
         if (selectedOpt !== undefined) {
           if (currentMode === 'teach') {
-            if (isSelected && isCorrect) btnClass += "border-emerald-500 bg-emerald-500/15 text-emerald-300";
-            else if (isSelected && !isCorrect) btnClass += "border-rose-600 bg-rose-600/15 text-rose-300";
-            else if (isCorrect) btnClass += "border-emerald-600/60 bg-emerald-500/10 text-emerald-400";
-            else btnClass += "border-neutral-800 bg-neutral-900/60 text-neutral-500";
+            if (isSelected && isCorrect) btnClass += 'border-emerald-500 bg-emerald-500/15 text-emerald-300';
+            else if (isSelected && !isCorrect) btnClass += 'border-rose-600 bg-rose-600/15 text-rose-300';
+            else if (isCorrect) btnClass += 'border-emerald-600/60 bg-emerald-500/10 text-emerald-400';
+            else btnClass += 'border-neutral-800 bg-neutral-900/60 text-neutral-500';
           } else {
-            if (isSelected) btnClass += "border-red-500 bg-red-500/15 text-red-200";
-            else btnClass += "border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800";
+            btnClass += isSelected ? 'border-red-500 bg-red-500/15 text-red-200' : 'border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800';
           }
-        } else {
-          btnClass += "border-neutral-700 bg-neutral-900 hover:border-red-500 text-neutral-200 hover:bg-red-500/10";
-        }
+        } else btnClass += 'border-neutral-700 bg-neutral-900 hover:border-red-500 text-neutral-200 hover:bg-red-500/10';
 
         const optBtn = document.createElement('button');
         optBtn.className = btnClass;
-        optBtn.onclick = () => selectOption(optIdx);
-
-        const labelLetter = String.fromCharCode(65 + optIdx);
-        optBtn.innerHTML = `
-          <div class="flex items-center space-x-3">
-            <span class="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 flex items-center justify-center text-xs font-black shrink-0">${labelLetter}</span>
-            <span>${optText}</span>
-          </div>
-          ${selectedOpt !== undefined && currentMode === 'teach' ? (isCorrect ? '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>' : (isSelected ? '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>' : '')) : ''}
-        `;
+        optBtn.onclick = (e) => selectOption(optIdx, e);
+        optBtn.innerHTML = `<div class="flex items-center space-x-3"><span class="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 flex items-center justify-center text-xs font-black shrink-0">${String.fromCharCode(65+optIdx)}</span><span>${optText}</span></div>
+          ${selectedOpt !== undefined && currentMode === 'teach' ? (isCorrect ? '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>' : (isSelected ? '<i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>' : '')) : ''}`;
         optContainer.appendChild(optBtn);
       });
 
@@ -1057,208 +530,138 @@
       if (selectedOpt !== undefined && currentMode === 'teach') {
         fbBox.classList.remove('hidden');
         if (selectedOpt === q.answer) {
-          fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-emerald-500/15 text-emerald-300 border-2 border-emerald-600";
-          document.getElementById('feedback-icon').className = "fa-solid fa-circle-check text-emerald-400 text-2xl";
-          document.getElementById('feedback-msg').innerText = "祓除成功！非常優秀，對照下方解題步驟與觀念繼續修行吧。";
+          fbBox.className = 'p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-emerald-500/15 text-emerald-300 border-2 border-emerald-600';
+          fbBox.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 text-2xl"></i><span>祓除成功！非常優秀，對照下方解題步驟繼續修行吧。</span>';
         } else {
-          fbBox.className = "p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-rose-500/15 text-rose-300 border-2 border-rose-600";
-          document.getElementById('feedback-icon').className = "fa-solid fa-circle-xmark text-rose-500 text-2xl";
-          document.getElementById('feedback-msg').innerText = `被咒靈反擊了！正確答案是 (${String.fromCharCode(65 + q.answer)})。點擊咒術師提示或標準解法重新修行。`;
+          fbBox.className = 'p-4 rounded-xl text-sm font-bold flex items-center space-x-3 bg-rose-500/15 text-rose-300 border-2 border-rose-600';
+          fbBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 text-2xl"></i><span>被咒靈反擊了！正確答案是 (${String.fromCharCode(65+q.answer)})。</span>`;
         }
-      } else {
-        fbBox.classList.add('hidden');
-      }
+      } else fbBox.classList.add('hidden');
 
       if (q.hint) document.getElementById('hint-content').innerText = q.hint;
-      if (q.steps) {
-        document.getElementById('steps-content').innerHTML = q.steps.map(s => `<div class="p-2.5 bg-neutral-950 rounded-lg border border-sky-800 shadow-sm font-medium"><i class="fa-solid fa-arrow-right text-sky-400 mr-2"></i>${s}</div>`).join('');
+      if (q.steps) document.getElementById('steps-content').innerHTML = q.steps.map(s => `<div class="p-2.5 bg-neutral-950 rounded-lg border border-sky-800 font-medium"><i class="fa-solid fa-arrow-right text-sky-400 mr-2"></i>${s}</div>`).join('');
+    }
+
+    function selectOption(optIdx, e){
+      const idx = currentQuestionIndex, q = questionsList[idx];
+      if (!q) return;
+      const firstTime = userAnswers[idx] === undefined;
+      userAnswers[idx] = optIdx;
+      if (e && e.currentTarget) spawnRipple(e.currentTarget, e);
+      SoundFX.play('click');
+
+      // 3. 咒力系統：教學模式即時回饋（含連擊黑閃）；檢定模式於送出時結算
+      if (firstTime && currentMode === 'teach') {
+        if (optIdx === q.answer) {
+          combo++;
+          let gain = energyOf(q) * MODE_MULT.teach;
+          if (combo >= 3) { gain *= 2; triggerBlackFlash(); } else { SoundFX.play('correct'); setMascotEmotion('happy'); }
+          navigator.vibrate?.(30);
+          addEnergy(Math.round(gain));
+        } else {
+          combo = 0;
+          SoundFX.play('wrong'); setMascotEmotion('sad');
+          navigator.vibrate?.(80);
+        }
       }
+      refresh();
     }
 
-    function selectOption(optIdx) {
-      userAnswers[currentQuestionIndex] = optIdx;
-      renderQuestionGrid();
-      loadQuestion(currentQuestionIndex);
+    function navigateQuestion(d){
+      const n = currentQuestionIndex + d;
+      if (n >= 0 && n < questionsList.length) { currentQuestionIndex = n; SoundFX.play('click'); refresh(); }
+    }
+    function toggleHint(){ SoundFX.play('click'); document.getElementById('hint-card').classList.toggle('hidden'); }
+    function toggleSteps(){ SoundFX.play('click'); document.getElementById('steps-card').classList.toggle('hidden'); }
+    function toggleVideo(){ SoundFX.play('click'); document.getElementById('video-card').classList.toggle('hidden'); }
+
+    function startTimer(){ stopTimer(); secondsElapsed = 0; updateTimerDisplay(); testTimer = setInterval(()=>{ secondsElapsed++; updateTimerDisplay(); }, 1000); }
+    function stopTimer(){ if (testTimer) clearInterval(testTimer); }
+    function updateTimerDisplay(){
+      const m = String(Math.floor(secondsElapsed/60)).padStart(2,'0'), s = String(secondsElapsed%60).padStart(2,'0');
+      document.getElementById('timer-display').innerText = `${m}:${s}`;
     }
 
-    function navigateQuestion(direction) {
-      const newIndex = currentQuestionIndex + direction;
-      if (newIndex >= 0 && newIndex < questionsList.length) {
-        currentQuestionIndex = newIndex;
-        renderQuestionGrid();
-        loadQuestion(currentQuestionIndex);
-      }
-    }
-
-    function toggleHint() { document.getElementById('hint-card').classList.toggle('hidden'); }
-    function toggleSteps() { document.getElementById('steps-card').classList.toggle('hidden'); }
-    function toggleVideo() { document.getElementById('video-card').classList.toggle('hidden'); }
-
-    function startTimer() {
-      stopTimer();
-      secondsElapsed = 0;
-      updateTimerDisplay();
-      testTimer = setInterval(() => { secondsElapsed++; updateTimerDisplay(); }, 1000);
-    }
-    function stopTimer() { if (testTimer) clearInterval(testTimer); }
-    function updateTimerDisplay() {
-      const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
-      const secs = (secondsElapsed % 60).toString().padStart(2, '0');
-      document.getElementById('timer-display').innerText = `${mins}:${secs}`;
-    }
-
-    function submitCurrentQuiz() {
-      stopTimer();
+    function submitCurrentQuiz(){
+      stopTimer(); SoundFX.play('click');
       let correctCount = 0;
       const total = questionsList.length;
       questionsList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) correctCount++; });
-      const scorePercent = Math.round((correctCount / total) * 100);
+      const scorePercent = total ? Math.round((correctCount/total)*100) : 0;
+
+      // 檢定/領域模式：送出時一次結算咒力（防重複刷：quizSubmitted）
+      if (currentMode !== 'teach' && !quizSubmitted) {
+        let gained = 0;
+        questionsList.forEach((q, idx) => { if (userAnswers[idx] === q.answer) gained += energyOf(q) * MODE_MULT[currentMode]; });
+        gained = Math.round(gained);
+        if (gained > 0) addEnergy(gained);
+        if (scorePercent >= 90) triggerBlackFlash();
+        else if (scorePercent >= 70) { SoundFX.play('correct'); setMascotEmotion('happy'); }
+        else { SoundFX.play('wrong'); setMascotEmotion('sad'); }
+      }
+      quizSubmitted = true;
 
       document.getElementById('result-score').innerText = `${correctCount} / ${total}`;
       document.getElementById('result-percentage').innerText = `${scorePercent}分`;
+      document.getElementById('result-energy').innerText = `+${sessionEnergy}`;
 
-      const advice = document.getElementById('result-advice');
-      const mascotImg = document.getElementById('result-mascot');
-      if (scorePercent >= 90) {
-        mascotImg.src = IMG.gojo;
-        advice.innerHTML = "🌟 <strong>特級咒術師！</strong> 「不錯嘛，你已經掌握小五上全部數學咒式。」請繼續保持高水準的思考歷程！";
-      } else if (scorePercent >= 70) {
-        mascotImg.src = IMG.itadori;
-        advice.innerHTML = "👍 <strong>一級咒術師！</strong> 基礎觀念很紮實，部分錯題可以切換至「咒術教學模式」查看標準解題法進行復習。";
-      } else {
-        mascotImg.src = IMG.sukuna;
-        advice.innerHTML = "💪 <strong>四級咒術師，繼續修行！</strong> 「知道自己幾兩重了嗎？」多利用咒術師提示與解題步驟，按部就班釐清題意。";
-      }
-
+      const advice = document.getElementById('result-advice'), mascotImg = document.getElementById('result-mascot');
+      if (scorePercent >= 90) { mascotImg.src = IMG.gojo; advice.innerHTML = "🌟 <strong>特級咒術師！</strong>「不錯嘛，你已經掌握小五上全部數學咒式。」請繼續保持！"; }
+      else if (scorePercent >= 70) { mascotImg.src = IMG.itadori; advice.innerHTML = "👍 <strong>一級咒術師！</strong> 基礎觀念紮實，錯題可切換「咒術教學」查看標準解法復習。"; }
+      else { mascotImg.src = IMG.sukuna; advice.innerHTML = "💪 <strong>四級咒術師，繼續修行！</strong>「知道自己幾兩重了嗎？」多利用提示與解題步驟釐清題意。"; }
       document.getElementById('result-modal').classList.remove('hidden');
     }
-
-    function closeResultModal() { document.getElementById('result-modal').classList.add('hidden'); }
-
-    function restartQuiz() {
-      closeResultModal();
-      userAnswers = {};
-      currentQuestionIndex = 0;
+    function closeResultModal(){ document.getElementById('result-modal').classList.add('hidden'); }
+    function restartQuiz(){
+      closeResultModal(); userAnswers = {}; currentQuestionIndex = 0;
+      combo = 0; sessionEnergy = 0; quizSubmitted = false; expandedUnits = new Set();
       if (currentMode !== 'teach') startTimer();
-      renderQuestionGrid();
-      loadQuestion(0);
+      updateMascot(); refresh();
     }
 
-    // 手機版抽屜：以 transform 滑動
-    function toggleMobileSidebar() {
+    function toggleMobileSidebar(){
       document.getElementById('sidebar').classList.toggle('-translate-x-full');
       document.getElementById('mobile-overlay').classList.toggle('hidden');
+      SoundFX.play('click');
     }
-    function closeMobileSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      if (!sidebar.classList.contains('-translate-x-full')) toggleMobileSidebar();
+    function closeMobileSidebar(){
+      const sb = document.getElementById('sidebar');
+      if (!sb.classList.contains('-translate-x-full')) toggleMobileSidebar();
     }
 
-    function switchMode(mode) {
-      currentMode = mode;
-      userAnswers = {};
-      currentQuestionIndex = 0;
-      currentFilteredUnit = 'all';
-
-      const filterSelect = document.getElementById('unit-filter');
-      if (filterSelect) filterSelect.value = 'all';
-
+    function switchMode(mode){
+      currentMode = mode; userAnswers = {}; currentQuestionIndex = 0;
+      combo = 0; sessionEnergy = 0; quizSubmitted = false; expandedUnits = new Set();
       const badge = document.getElementById('current-mode-badge');
-      const teachBtn = document.getElementById('mode-teach-btn');
-      const realBtn = document.getElementById('mode-real-btn');
-      const hardBtn = document.getElementById('mode-hard-btn');
-      const teachSec = document.getElementById('teaching-section');
-      const timerBox = document.getElementById('test-timer-box');
-
-      const activeClass = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000] font-bold";
-      const inactiveClass = "px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-all duration-200 text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent font-bold";
-
-      if (teachBtn) teachBtn.className = mode === 'teach' ? activeClass : inactiveClass;
-      if (realBtn) realBtn.className = mode === 'real' ? activeClass : inactiveClass;
-      if (hardBtn) hardBtn.className = mode === 'hard' ? activeClass : inactiveClass;
+      const active = 'flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg transition-all duration-200 bg-red-600 text-white border-2 border-black shadow-[3px_3px_0_#000] font-bold';
+      const inactive = 'flex-1 md:flex-none px-3 py-2 sm:px-4 rounded-lg transition-all duration-200 text-neutral-300 hover:text-white hover:bg-neutral-800 border-2 border-transparent font-bold';
+      document.getElementById('mode-teach-btn').className = mode==='teach' ? active : inactive;
+      document.getElementById('mode-real-btn').className = mode==='real' ? active : inactive;
+      document.getElementById('mode-hard-btn').className = mode==='hard' ? active : inactive;
 
       if (mode === 'teach') {
-        if (badge) badge.className = 'bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600';
-        if (badge) badge.innerText = '咒術教學模式';
-        if (teachSec) teachSec.classList.remove('hidden');
-        if (timerBox) timerBox.classList.add('hidden');
-        stopTimer();
-        questionsList = generateTeachingQuestions();
+        badge.innerText = '咒術教學模式'; badge.className = 'bg-amber-500/20 text-amber-300 text-xs px-2.5 py-1 rounded-full font-bold border border-amber-600';
+        document.getElementById('teaching-section').classList.remove('hidden');
+        document.getElementById('test-timer-box').classList.add('hidden');
+        stopTimer(); questionsList = generateTeachingQuestions();
       } else if (mode === 'real') {
-        if (badge) badge.className = 'bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-600';
-        if (badge) badge.innerText = '等級檢定模式';
-        if (teachSec) teachSec.classList.add('hidden');
-        if (timerBox) timerBox.classList.remove('hidden');
-        startTimer();
-        questionsList = generateExamQuestions(false);
-      } else if (mode === 'hard') {
-        if (badge) badge.className = 'bg-rose-500/20 text-rose-300 text-xs px-2.5 py-1 rounded-full font-bold border border-rose-600';
-        if (badge) badge.innerText = '領域展開模式';
-        if (teachSec) teachSec.classList.add('hidden');
-        if (timerBox) timerBox.classList.remove('hidden');
-        startTimer();
-        questionsList = generateExamQuestions(true);
+        badge.innerText = '等級檢定模式'; badge.className = 'bg-emerald-500/20 text-emerald-300 text-xs px-2.5 py-1 rounded-full font-bold border border-emerald-600';
+        document.getElementById('teaching-section').classList.add('hidden');
+        document.getElementById('test-timer-box').classList.remove('hidden');
+        startTimer(); questionsList = generateExamQuestions(false); SoundFX.play('click');
+      } else {
+        badge.innerText = '領域展開模式'; badge.className = 'bg-rose-500/20 text-rose-300 text-xs px-2.5 py-1 rounded-full font-bold border border-rose-600';
+        document.getElementById('teaching-section').classList.add('hidden');
+        document.getElementById('test-timer-box').classList.remove('hidden');
+        startTimer(); questionsList = generateExamQuestions(true); SoundFX.play('domain');
       }
-
-      updateMascot();
-      renderQuestionGrid();
-      loadQuestion(0);
+      updateMascot(); refresh();
     }
 
-    function filterQuestionsByUnit() {
-      const filterVal = document.getElementById('unit-filter').value;
-      currentFilteredUnit = filterVal;
-      let firstMatchIndex = 0;
-      if (filterVal !== 'all') {
-        const matchIdx = questionsList.findIndex(q => q.unit.toString() === filterVal);
-        if (matchIdx !== -1) firstMatchIndex = matchIdx;
-      }
-      currentQuestionIndex = firstMatchIndex;
-      renderQuestionGrid();
-      loadQuestion(currentQuestionIndex);
-    }
-
-    function renderQuestionGrid() {
-      const grid = document.getElementById('question-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
-
-      let answeredCount = Object.keys(userAnswers).length;
-      document.getElementById('progress-text').innerText = `已祓除 ${answeredCount} / ${questionsList.length}`;
-
-      questionsList.forEach((q, idx) => {
-        const isVisible = currentFilteredUnit === 'all' || q.unit.toString() === currentFilteredUnit;
-        const btn = document.createElement('button');
-        btn.innerText = idx + 1;
-
-        let baseStyle = "w-full aspect-square rounded-lg font-bold text-xs flex items-center justify-center transition-all touch-btn border border-black ";
-        if (!isVisible) baseStyle += "opacity-30 ";
-        if (idx === currentQuestionIndex) baseStyle += "ring-2 ring-red-500 ring-offset-1 ring-offset-black ";
-
-        const isAnswered = userAnswers[idx] !== undefined;
-        if (isAnswered) {
-          if (currentMode === 'teach') {
-            baseStyle += (userAnswers[idx] === q.answer) ? "bg-emerald-600 text-white" : "bg-rose-600 text-white";
-          } else {
-            baseStyle += "bg-red-600 text-white";
-          }
-        } else {
-          baseStyle += "bg-neutral-800 hover:bg-neutral-700 text-neutral-300";
-        }
-
-        btn.className = baseStyle;
-        btn.onclick = () => {
-          currentQuestionIndex = idx;
-          renderQuestionGrid();
-          loadQuestion(idx);
-          if (window.innerWidth < 768) closeMobileSidebar();
-        };
-        grid.appendChild(btn);
-      });
-    }
-
-    window.onload = function() {
+    window.onload = async function(){
       document.getElementById('toggle-sidebar-btn').onclick = toggleMobileSidebar;
+      updateSoundIcon(); updateEnergyUI();
+      await loadTeachingData();
       switchMode('teach');
     };
   </script>

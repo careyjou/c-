@@ -38,7 +38,6 @@
         button:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(255, 85, 0, 0.6); }
         button:active { transform: scale(0.98); }
 
-        /* 引導玩家點擊的脈動效果 */
         @keyframes attnPulse {
             0%, 100% { transform: scale(1); box-shadow: 0 0 6px 2px rgba(102,255,153,0.7); }
             50% { transform: scale(1.07); box-shadow: 0 0 20px 7px rgba(102,255,153,0.95); }
@@ -83,7 +82,7 @@
 
         .char-grid {
             display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 12px; margin-bottom: 18px; width: 100%; max-width: 800px;
+            gap: 12px; margin-bottom: 14px; width: 100%; max-width: 800px;
         }
         .char-card {
             background: #252538; border: 2px solid #444466; border-radius: 10px;
@@ -244,10 +243,10 @@
     <!-- 開始畫面 -->
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
-        <p>WASD / 方向鍵 / 🎮左搖桿移動 | Space / Ⓐ 衝刺 | 咒力滿按 Q / Ⓧ 領域展開 | Esc / Start 暫停 | Enter 確認<br>
-        共 20 波、每 5 波 Boss（擊殺後自動回收材料）｜ Boss 也會展開領域，可發動「領域對衝」！</p>
+        <p>←→ 選角色 | M 切換模式 | WASD / 方向鍵 / 🎮左搖桿移動 | Space / Ⓐ 衝刺 | 咒力滿 Q / Ⓧ 領域 | Esc / Start 暫停 | Enter / Ⓐ 確認<br>
+        每 5 波 Boss（擊殺後自動回收材料）｜ Boss 會展開領域，可發動「領域對衝」！</p>
         <div id="record-panel">
-            <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
+            <span>🏆 最佳波次: <b id="rec-wave">0</b></span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
             <span>💀 總擊殺: <b id="rec-kills">0</b></span>
             <span>👑 Boss: <b id="rec-boss">0</b></span>
@@ -257,6 +256,9 @@
             <button id="clear-save-btn">清除存檔</button>
         </div>
         <div class="char-grid" id="char-grid"></div>
+        <div class="menu-btns" style="margin-bottom:12px;">
+            <button id="mode-btn" style="background:linear-gradient(135deg,#554488,#333366);">模式: 一般（20 波）[M]</button>
+        </div>
         <div class="menu-btns">
             <button id="start-btn">開始冒險 (Enter)</button>
             <button id="lab-btn" style="background:linear-gradient(135deg,#00aa88,#0066aa);">🔬 馬鈴薯實驗室</button>
@@ -377,7 +379,7 @@
 </div>
 
 <script>
-    /* ================= 圖片資源（放在 HTML 同目錄；缺失時自動隱藏不影響遊戲） ================= */
+    /* ================= 圖片資源（images/ 目錄；缺失自動降級） ================= */
     const CHAR_IMAGES = {
         RANGER: 'images/ranger.png',
         BERSERKER: 'images/berserker.png',
@@ -385,6 +387,23 @@
         ENTREPRENEUR: 'images/entrepreneur.png'
     };
     const BG_IMAGE = 'images/bg.jpg';
+
+    const IMG = {};
+    function loadImg(key, src) {
+        const im = new Image();
+        im.src = src;
+        IMG[key] = im;
+    }
+    function imgReady(key) {
+        const im = IMG[key];
+        return im && im.complete && im.naturalWidth > 0;
+    }
+    loadImg('arena', 'images/arena.png');
+    loadImg('boom', 'images/boom.png');
+    loadImg('boss_COLOSSUS', 'images/boss_colossus.png');
+    loadImg('boss_QUEEN', 'images/boss_queen.png');
+    loadImg('boss_MECHA', 'images/boss_mecha.png');
+    loadImg('boss_OVERLORD', 'images/boss_overlord.png');
 
     /* ================= 音效（含節流） ================= */
     const AudioEngine = {
@@ -486,13 +505,14 @@
     AudioEngine.enabled = settings.sound;
     let metaDropBonus = 0;
 
+    /* ================= 實驗室（等級上限提昇） ================= */
     const UPGRADE_DEFS = [
-        { id: 'hp',    name: '結實表皮', desc: '每級最大生命 +5',    max: 5, cost: l => (l + 1) * 12, emoji: '🧬' },
-        { id: 'gold',  name: '起始補給', desc: '每級開局材料 +5',    max: 5, cost: l => (l + 1) * 10, emoji: '💰' },
-        { id: 'drop',  name: '拾荒者',   desc: '每級道具掉落率 +1%', max: 5, cost: l => (l + 1) * 15, emoji: '🎁' },
-        { id: 'dmg',   name: '鋒利之刃', desc: '每級傷害 +2%',       max: 5, cost: l => (l + 1) * 15, emoji: '⚔️' },
-        { id: 'speed', name: '迅捷之靴', desc: '每級移動速度 +2%',   max: 5, cost: l => (l + 1) * 12, emoji: '👟' },
-        { id: 'crit',  name: '幸運星',   desc: '每級暴擊率 +1%',     max: 3, cost: l => (l + 1) * 20, emoji: '🍀' }
+        { id: 'hp',    name: '結實表皮', desc: '每級最大生命 +5',    max: 10, cost: l => (l + 1) * 12 + Math.max(0, l - 4) * 10, emoji: '🧬' },
+        { id: 'gold',  name: '起始補給', desc: '每級開局材料 +5',    max: 10, cost: l => (l + 1) * 10 + Math.max(0, l - 4) * 8,  emoji: '💰' },
+        { id: 'drop',  name: '拾荒者',   desc: '每級道具掉落率 +1%', max: 10, cost: l => (l + 1) * 15 + Math.max(0, l - 4) * 12, emoji: '🎁' },
+        { id: 'dmg',   name: '鋒利之刃', desc: '每級傷害 +2%',       max: 10, cost: l => (l + 1) * 15 + Math.max(0, l - 4) * 12, emoji: '⚔️' },
+        { id: 'speed', name: '迅捷之靴', desc: '每級移動速度 +2%',   max: 10, cost: l => (l + 1) * 12 + Math.max(0, l - 4) * 10, emoji: '👟' },
+        { id: 'crit',  name: '幸運星',   desc: '每級暴擊率 +1%',     max: 6,  cost: l => (l + 1) * 20 + Math.max(0, l - 2) * 15, emoji: '🍀' }
     ];
 
     function renderRecords() {
@@ -575,6 +595,12 @@
     function maxWeaponSlots() { return 6 + (player.mutations.arm || 0); }
     function dashMaxCd() { return 1.3 * Math.pow(0.6, player.mutations.legs || 0); }
     function magnetRadius() { return 110 * Math.pow(2, player.mutations.mouth || 0); }
+    function canAffordAnyGene() {
+        return GENE_PARTS.some(p => {
+            const lvl = player.mutations[p.id];
+            return lvl < p.max && player.genes >= p.costs[lvl];
+        });
+    }
 
     function applyMutation(id, newLvl) {
         if (id === 'eye') player.critChance += 0.08;
@@ -712,9 +738,30 @@
     const ctx = canvas.getContext('2d');
 
     const keys = {};
+    const CHAR_KEYS = ['RANGER', 'BERSERKER', 'ENGINEER', 'ENTREPRENEUR'];
+    let selectedMode = 'normal';
+    let gameMode = 'normal';
+
+    function cycleChar(dir) {
+        const i = CHAR_KEYS.indexOf(selectedCharKey);
+        selectedCharKey = CHAR_KEYS[(i + dir + CHAR_KEYS.length) % CHAR_KEYS.length];
+        renderCharGrid();
+    }
+
+    function toggleMode() {
+        selectedMode = selectedMode === 'normal' ? 'endless' : 'normal';
+        document.getElementById('mode-btn').innerText =
+            selectedMode === 'normal' ? '模式: 一般（20 波）[M]' : '模式: 無盡 ∞ [M]';
+    }
+
     window.addEventListener('keydown', e => {
         keys[e.code] = true;
         AudioEngine.init();
+        if (gameState === 'START') {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') cycleChar(-1);
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') cycleChar(1);
+            if (e.code === 'KeyM' && !e.repeat) toggleMode();
+        }
         if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) tryDash(); }
         if (e.code === 'KeyQ' && !e.repeat) tryDomain();
         if (e.code === 'Escape') {
@@ -771,6 +818,12 @@
         if (!gp) { gpPrevButtons = []; return; }
         const pressed = i => gp.buttons[i] && gp.buttons[i].pressed;
         const was = i => gpPrevButtons[i];
+        if (gameState === 'START') {
+            if ((pressed(14) && !was(14)) || (pressed(4) && !was(4))) cycleChar(-1);
+            if ((pressed(15) && !was(15)) || (pressed(5) && !was(5))) cycleChar(1);
+            if (pressed(3) && !was(3)) toggleMode();
+            if (pressed(0) && !was(0)) initGame();
+        }
         if ((pressed(0) || pressed(1)) && !(was(0) || was(1))) tryDash();
         if ((pressed(2) || pressed(5)) && !(was(2) || was(5))) tryDomain();
         if (pressed(9) && !was(9)) togglePause();
@@ -779,6 +832,13 @@
 
     const MAX_WAVE = 20;
     const BOSS_WAVES = { 5: 'COLOSSUS', 10: 'QUEEN', 15: 'MECHA', 20: 'OVERLORD' };
+
+    function getBossId(w) {
+        if (w <= 20) return BOSS_WAVES[w] || null;
+        if (w % 5 !== 0) return null;
+        const cycle = ['COLOSSUS', 'QUEEN', 'MECHA', 'OVERLORD'];
+        return cycle[(Math.floor(w / 5) - 1) % 4];
+    }
 
     const BOSS_DEFS = {
         COLOSSUS: { name: '土豆巨像',   color: '#d64541', radius: 40, hp: 1500, speed: 1.05, damage: 22, skills: ['CHARGE', 'SHOCKWAVE'], skillInterval: 3.8, exp: 20 },
@@ -970,6 +1030,7 @@
 
     function initGame() {
         AudioEngine.init();
+        gameMode = selectedMode;
         saveData.runs++;
         SaveSystem.save(saveData);
         renderRecords();
@@ -1016,9 +1077,9 @@
     }
 
     function getWaveDuration(w) {
-        if (w === MAX_WAVE) return 99999;
-        if (BOSS_WAVES[w]) return 30 + w;
-        return 18 + Math.floor(w * 1.6);
+        if (gameMode === 'normal' && w === MAX_WAVE) return 99999;
+        if (getBossId(w)) return Math.min(60, 30 + w);
+        return Math.min(50, 18 + Math.floor(w * 1.6));
     }
 
     function startWave(wave) {
@@ -1045,10 +1106,12 @@
             document.getElementById(id).classList.add('hidden'));
         document.getElementById('hud').classList.remove('hidden');
 
-        document.getElementById('wave-num').innerText = `${currentWave}/${MAX_WAVE}`;
-        document.getElementById('wave-timer').innerText = (currentWave === MAX_WAVE) ? 'BOSS' : waveTimer;
+        document.getElementById('wave-num').innerText =
+            gameMode === 'normal' ? `${currentWave}/${MAX_WAVE}` : `${currentWave} ∞`;
+        document.getElementById('wave-timer').innerText =
+            (gameMode === 'normal' && currentWave === MAX_WAVE) ? 'BOSS' : waveTimer;
 
-        const bossId = BOSS_WAVES[currentWave];
+        const bossId = getBossId(currentWave);
         if (bossId) {
             announce(`第 ${currentWave} 波`, `⚠ BOSS「${BOSS_DEFS[bossId].name}」來襲！擊殺才能結束本波`);
             spawnEnemy('BOSS');
@@ -1060,11 +1123,11 @@
         timerInterval = setInterval(() => {
             if (gameState === 'PLAYING') {
                 waveStats.elapsed++;
-                const isBossWave = !!BOSS_WAVES[currentWave];
+                const isBossWave = !!getBossId(currentWave);
 
                 if (waveTimer > 0) {
                     waveTimer--;
-                    if (currentWave !== MAX_WAVE) {
+                    if (!(gameMode === 'normal' && currentWave === MAX_WAVE)) {
                         document.getElementById('wave-timer').innerText = waveTimer;
                     }
                 } else if (isBossWave) {
@@ -1134,7 +1197,8 @@
         gameState = 'GAMEOVER';
         clearInterval(timerInterval);
         const earned = finalizeSave(false);
-        document.getElementById('gameover-reason').innerText = `你堅持到了第 ${currentWave} 波！`;
+        document.getElementById('gameover-reason').innerText =
+            `你堅持到了第 ${currentWave} 波！${gameMode === 'endless' ? '（無盡模式）' : ''}`;
         document.getElementById('gameover-stats').innerText =
             `擊殺 ${runStats.kills} · Boss ${runStats.bossKills} · 材料 ${runStats.gems} · 獲得 +${earned} 研究點數`;
         document.getElementById('hud').classList.add('hidden');
@@ -1172,7 +1236,7 @@
         rerollCost = Math.max(5, 8 + currentWave * 2 - (selectedCharKey === 'ENTREPRENEUR' ? 4 : 0));
         document.getElementById('reroll-cost').innerText = rerollCost;
         selectedCombineIndex = null;
-        if (player.genes >= 2 && !genesHintShown) {
+        if (canAffordAnyGene() && !genesHintShown) {
             genesHintShown = true;
             showToast('你持有基因片段！下方的 🧬 基因嫁接 按鈕正在發光');
         }
@@ -1194,10 +1258,9 @@
         document.getElementById('synergy-info').innerHTML = syn.bonuses.length > 0 ? syn.bonuses.join('<br>') : "尚未觸發羈絆";
         document.getElementById('weap-count').innerText = `${player.weapons.length}/${maxWeaponSlots()}`;
 
-        // 基因按鈕引導：顯示持有數並在可用時發光
         const geneBtn = document.getElementById('gene-btn');
         geneBtn.innerText = `🧬 基因嫁接 (${player.genes})`;
-        geneBtn.classList.toggle('btn-attn', player.genes >= 2);
+        geneBtn.classList.toggle('btn-attn', canAffordAnyGene());
 
         const mutTexts = GENE_PARTS
             .filter(p => player.mutations[p.id] > 0)
@@ -1294,7 +1357,7 @@
                 player.gold -= item.price;
                 if (item.isWeapon) addWeapon(item.weaponData, item.tier, item.affix);
                 else item.itemData.apply(player);
-                document.getElementById('shop-gold').innerText = player.gold;   // ← 套用效果後再刷新，+30 立即顯示
+                document.getElementById('shop-gold').innerText = player.gold;
                 card.style.opacity = '0.4';
                 card.style.pointerEvents = 'none';
                 buyBtn.innerText = '已購買';
@@ -1323,6 +1386,7 @@
     document.getElementById('pause-menu-btn').onclick = () => goToMenu();
     document.getElementById('lab-btn').onclick = () => { renderLab(); document.getElementById('lab-screen').classList.remove('hidden'); };
     document.getElementById('lab-back-btn').onclick = () => document.getElementById('lab-screen').classList.add('hidden');
+    document.getElementById('mode-btn').onclick = () => toggleMode();
     document.getElementById('gene-btn').onclick = () => { updateGeneShop(); document.getElementById('gene-screen').classList.remove('hidden'); };
     document.getElementById('gene-back-btn').onclick = () => document.getElementById('gene-screen').classList.add('hidden');
     document.getElementById('clear-save-btn').onclick = () => {
@@ -1396,12 +1460,14 @@
             enemy.color = '#8e44ad';
             enemy.exp = 3;
         } else if (enemyType === 'BOSS') {
-            const bossId = BOSS_WAVES[currentWave] || 'COLOSSUS';
+            const bossId = getBossId(currentWave) || 'COLOSSUS';
             const def = BOSS_DEFS[bossId];
+            const hpScale = wv > 20 ? 1 + (wv - 20) * 0.08 : 1;
+            const hp = Math.round((def.hp + currentWave * 25) * hpScale);
             Object.assign(enemy, {
                 bossId, bossName: def.name,
                 radius: def.radius, speed: def.speed,
-                hp: def.hp + currentWave * 25, maxHp: def.hp + currentWave * 25,
+                hp, maxHp: hp,
                 damage: def.damage, color: def.color, exp: def.exp,
                 skills: def.skills.slice(), skillTimer: 2.2, skillInterval: def.skillInterval,
                 state: 'IDLE', stateTimer: 0, chargeDirX: 0, chargeDirY: 0, enraged: false
@@ -1639,6 +1705,11 @@
         if (!quiet) {
             addFloatingText(damage, enemy.x, enemy.y - 10, isCrit ? '#ffcc00' : '#ffffff', isCrit ? 20 : 14);
             createParticles(enemy.x, enemy.y, enemy.color, 4);
+            particles.push({
+                x: enemy.x, y: enemy.y, vx: 0, vy: 0,
+                radius: enemy.radius * 1.7, alpha: 1,
+                isSpark: true, rot: Math.random() * Math.PI * 2
+            });
         }
 
         if (enemy.hp <= 0) {
@@ -1691,7 +1762,7 @@
             const idx = enemies.indexOf(enemy);
             if (idx !== -1) enemies.splice(idx, 1);
 
-            if (enemy.type === 'BOSS' && BOSS_WAVES[currentWave]) {
+            if (enemy.type === 'BOSS' && getBossId(currentWave)) {
                 gems.forEach(g => g.magnet = true);
                 spawnLocked = true;
                 bossEndTimer = 3;
@@ -1877,7 +1948,7 @@
                     waveStats.goldEarned += g.val;
                 });
                 gems = [];
-                if (currentWave === MAX_WAVE) triggerVictory();
+                if (gameMode === 'normal' && currentWave === MAX_WAVE) triggerVictory();
                 else completeWave();
                 return;
             }
@@ -1894,7 +1965,6 @@
 
         updateSideEffects(dt);
 
-        // 鍵盤 + 手把合併輸入
         const gp = gamepadAxes();
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
@@ -1938,8 +2008,8 @@
         if (!spawnLocked) {
             spawnTimer += dt;
             let spawnInterval = Math.max(0.22, 1.0 - currentWave * 0.035);
-            if (BOSS_WAVES[currentWave]) spawnInterval *= 1.6;
-            if (currentWave === MAX_WAVE) spawnInterval *= 2.2;
+            if (getBossId(currentWave)) spawnInterval *= 1.6;
+            if (gameMode === 'normal' && currentWave === MAX_WAVE) spawnInterval *= 2.2;
             if (spawnTimer >= spawnInterval) {
                 spawnTimer = 0;
                 spawnEnemy();
@@ -2254,7 +2324,7 @@
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy;
-            p.alpha -= dt * 2;
+            p.alpha -= dt * (p.isSpark ? 7 : 2);
             if (p.alpha <= 0) particles.splice(i, 1);
         }
         for (let i = floatingTexts.length - 1; i >= 0; i--) {
@@ -2291,6 +2361,12 @@
     }
 
     function renderBackground() {
+        if (imgReady('arena')) {
+            ctx.drawImage(IMG.arena, 0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(10,10,20,0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
         ctx.fillStyle = '#1c1c28';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.strokeStyle = '#252538';
@@ -2518,9 +2594,10 @@
     function drawPlayerPotato(t) {
         const r = player.radius;
         const m = player.mutations;
+        const gax = gamepadAxes();
         const moving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
                        keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] ||
-                       Math.abs(gamepadAxes().x) > 0 || Math.abs(gamepadAxes().y) > 0;
+                       Math.abs(gax.x) > 0 || Math.abs(gax.y) > 0;
         const bob = moving ? Math.sin(t * 16) * 2.2 : Math.sin(t * 2.5) * 1.2;
         const squash = moving ? Math.sin(t * 16) * 0.05 : 0;
 
@@ -2529,7 +2606,6 @@
         ctx.ellipse(player.x, player.y + r + 5, r * 0.9, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 領域就緒引導：脈衝光圈 + 按鍵提示
         if (player.cursed >= 100 && !player.domainActive && !bossDomain && gameState === 'PLAYING') {
             const pulse = 0.5 + Math.sin(t * 6) * 0.5;
             ctx.strokeStyle = `rgba(196,138,255,${0.35 + 0.4 * pulse})`;
@@ -2719,6 +2795,7 @@
             ctx.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3);
         }
         if (e.type === 'FAST') ctx.scale(1.18, 0.88);
+        ctx.rotate(Math.sin(t * 3 + e.eid) * 0.06);
 
         const flash = e.flashTimer > 0;
         const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.1, 0, 0, r * 1.15);
@@ -2940,6 +3017,25 @@
                 ctx.strokeStyle = 'rgba(255,255,255,0.8)';
                 ctx.lineWidth = 1 + p.alpha * 1.5;
                 ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.tx, p.ty); ctx.stroke();
+            } else if (p.isSpark) {
+                if (imgReady('boom')) {
+                    const sz = p.radius * (2.2 - p.alpha);
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot || 0);
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.drawImage(IMG.boom, -sz / 2, -sz / 2, sz, sz);
+                } else {
+                    ctx.strokeStyle = '#ffdd66';
+                    ctx.lineWidth = 3;
+                    const sz = p.radius * (1.5 - p.alpha * 0.5);
+                    ctx.beginPath();
+                    for (let k = 0; k < 4; k++) {
+                        const a = (Math.PI / 2) * k + 0.4;
+                        ctx.moveTo(p.x + Math.cos(a) * sz * 0.3, p.y + Math.sin(a) * sz * 0.3);
+                        ctx.lineTo(p.x + Math.cos(a) * sz, p.y + Math.sin(a) * sz);
+                    }
+                    ctx.stroke();
+                }
             } else {
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
@@ -2962,6 +3058,13 @@
         const boss = enemies.find(e => e.type === 'BOSS');
         if (boss) {
             const bw = 460, bx = (canvas.width - bw) / 2, by = 52;
+            const pkey = 'boss_' + boss.bossId;
+            if (imgReady(pkey)) {
+                ctx.drawImage(IMG[pkey], bx - 26, by - 12, 44, 44);
+                ctx.strokeStyle = '#ffcc00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(bx - 26, by - 12, 44, 44);
+            }
             ctx.fillStyle = 'rgba(0,0,0,0.6)';
             ctx.fillRect(bx - 4, by - 4, bw + 8, 26);
             ctx.strokeStyle = '#ffcc00';
@@ -3014,7 +3117,6 @@
     }
 
     /* ================= 啟動 ================= */
-    // 主選單背景圖（缺失時僅顯示漸層，不影響遊戲）
     (function () {
         const ss = document.getElementById('start-screen');
         ss.style.backgroundImage = `linear-gradient(rgba(12,12,18,0.80), rgba(12,12,18,0.94)), url('${BG_IMAGE}')`;

@@ -24,7 +24,6 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 10; padding: 20px;
         }
-        /* 覆蓋層級修正：嫁接室與暫停必須蓋在商店之上 */
         #gene-screen { z-index: 12; }
         #pause-screen { z-index: 14; }
         .hidden { display: none !important; }
@@ -41,7 +40,7 @@
 
         #hud {
             position: absolute; top: 10px; left: 10px; right: 10px;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
             pointer-events: none; z-index: 5;
         }
         .hud-box {
@@ -211,7 +210,14 @@
             <span id="hp-text">100/100</span>
         </div>
         <div class="hud-box" style="color: #00ffcc;">
-            第 <span id="wave-num">1/20</span> 波 | 倒數: <span id="wave-timer">30</span> 秒
+            第 <span id="wave-num">1/20</span> 波 | <span id="wave-timer">30</span>
+        </div>
+        <div class="hud-box" style="color:#c48aff;">
+            咒力:
+            <div class="hp-bar-bg" style="width:110px; border-color:#c48aff;">
+                <div id="cursed-fill" style="height:100%; width:0%; background:linear-gradient(90deg,#7d3cff,#c48aff);"></div>
+            </div>
+            <span id="cursed-text">0</span>
         </div>
         <div class="hud-box" style="color: #ffcc00;">
             材料: <span id="gold-count">0</span>
@@ -222,9 +228,8 @@
     <!-- 開始畫面 -->
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
-        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | Esc 暫停 | 武器自動射擊<br>
-        共 20 波、每 5 波 Boss（<b style="color:#ff8866;">必須擊殺 Boss 才能結束 Boss 波</b>）<br>
-        精英與 Boss 掉落 <b style="color:#66ff99;">🧬 基因片段</b>，商店可嫁接突變（外觀會跟著變！）</p>
+        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | <b style="color:#c48aff;">咒力集滿按 Q 領域展開！</b> | Esc 暫停<br>
+        共 20 波、每 5 波 Boss（必須擊殺 Boss 才能結束 Boss 波）｜ 第 10 波起 Boss 也會展開領域，可發動「領域對衝」！</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
@@ -604,6 +609,69 @@
         });
     }
 
+    /* ================= 領域展開系統 ================= */
+    const DOMAIN_DEFS = {
+        RANGER:       { name: '無量薯處',         color: '#7d3cff', bg: '#160b2e', desc: '子彈無限穿透・自動追蹤' },
+        BERSERKER:    { name: '伏薯御廚子',       color: '#ff3355', bg: '#2e0b12', desc: '全屏斬擊・命中吸血' },
+        ENGINEER:     { name: '嵌合薯影庭',       color: '#33ccff', bg: '#0b1e2e', desc: '召喚八座強化炮台矩陣' },
+        ENTREPRENEUR: { name: '金薯自閉圓頓裹',   color: '#ffcc00', bg: '#2e240b', desc: '領域內擊殺材料三倍' }
+    };
+
+    let domainCine = 0;      // 結印儀式動畫計時
+    let bossDomain = null;   // { owner, timer }
+
+    function gainCursed(v) {
+        player.cursed = Math.min(100, player.cursed + v);
+    }
+
+    function tryDomain() {
+        if (gameState !== 'PLAYING' || domainCine > 0) return;
+        if (bossDomain) {
+            if (player.cursed >= 100) domainClash();
+            else showToast('咒力未滿，無法對衝領域！用衝刺無敵幀硬扛！');
+            return;
+        }
+        if (player.domainActive) { showToast('領域已在展開中！'); return; }
+        if (player.cursed < 100) { showToast('咒力未滿！受傷與擊殺可累積咒力'); return; }
+        activateDomain();
+    }
+
+    function activateDomain() {
+        player.cursed = 0;
+        const def = DOMAIN_DEFS[selectedCharKey];
+        player.domainActive = { key: selectedCharKey, name: def.name, color: def.color, bg: def.bg, timer: 8, slashTimer: 0 };
+        domainCine = 1.4;
+        screenShake = 0.5;
+        AudioEngine.playExplosion();
+
+        if (selectedCharKey === 'ENGINEER') {
+            for (let i = 0; i < 8; i++) {
+                const a = Math.PI * 2 / 8 * i;
+                turrets.push({
+                    x: clamp(player.x + Math.cos(a) * 130, 20, canvas.width - 20),
+                    y: clamp(player.y + Math.sin(a) * 130, 20, canvas.height - 20),
+                    lastShot: performance.now(), range: 250, cooldown: 450, angle: 0, domainTurret: true
+                });
+            }
+        }
+    }
+
+    function endDomain() {
+        player.domainActive = null;
+        turrets = turrets.filter(t => !t.domainTurret);
+    }
+
+    function domainClash() {
+        player.cursed = 0;
+        bossDomain = null;
+        const boss = enemies.find(e => e.type === 'BOSS');
+        if (boss) { boss.state = 'CASTING'; boss.stateTimer = 2.5; boss.skillTimer = 5; }
+        announce('領域對衝！！', '雙方領域互相抵消，Boss 陷入暈眩！');
+        screenShake = 0.8;
+        AudioEngine.playExplosion();
+        createParticles(player.x, player.y, '#ffffff', 30);
+    }
+
     /* ================= 基礎 ================= */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -613,6 +681,7 @@
         keys[e.code] = true;
         AudioEngine.init();
         if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) tryDash(); }
+        if (e.code === 'KeyQ' && !e.repeat) tryDomain();
         if (e.code === 'Escape') togglePause();
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
@@ -622,9 +691,9 @@
 
     const BOSS_DEFS = {
         COLOSSUS: { name: '土豆巨像',   color: '#d64541', radius: 40, hp: 1500, speed: 1.05, damage: 22, skills: ['CHARGE', 'SHOCKWAVE'], skillInterval: 3.8, exp: 20 },
-        QUEEN:    { name: '孢子女王',   color: '#9b59b6', radius: 37, hp: 2600, speed: 1.25, damage: 18, skills: ['RING', 'SUMMON'],      skillInterval: 3.5, exp: 26 },
-        MECHA:    { name: '機械馬鈴薯', color: '#95a5a6', radius: 42, hp: 4200, speed: 0.95, damage: 24, skills: ['LASER', 'MORTAR'],     skillInterval: 4.0, exp: 32 },
-        OVERLORD: { name: '土豆霸王',   color: '#6c3483', radius: 46, hp: 7000, speed: 1.10, damage: 26, skills: ['CHARGE', 'SHOCKWAVE', 'RING', 'SUMMON', 'LASER', 'MORTAR'], skillInterval: 3.0, exp: 60 }
+        QUEEN:    { name: '孢子女王',   color: '#9b59b6', radius: 37, hp: 2600, speed: 1.25, damage: 18, skills: ['RING', 'SUMMON', 'DOMAIN'], skillInterval: 3.5, exp: 26 },
+        MECHA:    { name: '機械馬鈴薯', color: '#95a5a6', radius: 42, hp: 4200, speed: 0.95, damage: 24, skills: ['LASER', 'MORTAR', 'DOMAIN'], skillInterval: 4.0, exp: 32 },
+        OVERLORD: { name: '土豆霸王',   color: '#6c3483', radius: 46, hp: 7000, speed: 1.10, damage: 26, skills: ['CHARGE', 'SHOCKWAVE', 'RING', 'SUMMON', 'LASER', 'MORTAR', 'DOMAIN'], skillInterval: 3.0, exp: 60 }
     };
 
     const PICKUP_DEFS = {
@@ -659,7 +728,7 @@
     let waveTimer = 30;
     let timerInterval = null;
     let spawnTimer = 0;
-    let spawnLocked = false;   // Boss 波倒數結束後鎖定刷怪
+    let spawnLocked = false;
     let rerollCost = 10;
     let screenShake = 0;
     let selectedCharKey = 'RANGER';
@@ -682,25 +751,25 @@
     const CHARACTERS = {
         RANGER: {
             name: "🏹 遊俠",
-            desc: "遠程專家。傷害+15%，但最大血量 -10。頭戴綠色兜帽。",
+            desc: "遠程專家。傷害+15%。領域「無量薯處」：子彈穿透追蹤。",
             startWeapon: 'PISTOL',
             apply: (p) => { p.dmgMult += 0.15; p.maxHp -= 10; p.hp = p.maxHp; }
         },
         BERSERKER: {
             name: "⚔️ 狂戰士",
-            desc: "近戰格鬥家。生命偷取+5%，但護甲 -3。綁著紅色頭帶。",
+            desc: "近戰格鬥家。生命偷取+5%。領域「伏薯御廚子」：全屏斬擊吸血。",
             startWeapon: 'SWORD',
             apply: (p) => { p.lifeSteal += 0.05; p.armor -= 3; }
         },
         ENGINEER: {
             name: "🔧 工程師",
-            desc: "建造大師。工程學+10，可定期建造炮台。戴黃色安全帽。",
+            desc: "建造大師。工程學+10。領域「嵌合薯影庭」：召喚炮台矩陣。",
             startWeapon: 'PISTOL',
             apply: (p) => { p.engineering += 10; }
         },
         ENTREPRENEUR: {
             name: "💼 企業家",
-            desc: "經濟巨頭。初始 +50 材料，刷新商店更便宜。戴黑禮帽。",
+            desc: "經濟巨頭。初始+50材料。領域「金薯自閉圓頓裹」：擊殺材料三倍。",
             startWeapon: 'SMG',
             apply: (p) => { p.gold += 50; }
         }
@@ -738,6 +807,7 @@
         critChance: 0.05, armor: 0, engineering: 0, gold: 0,
         shieldTime: 0, rageTime: 0, iFrame: 0,
         dashTime: 0, dashCd: 0, dashDirX: 1, dashDirY: 0, lastDirX: 1, lastDirY: 0,
+        cursed: 0, domainActive: null,
         genes: 0, mutations: defaultMutations(), sideEffects: [],
         freezeTime: 0, confuseTime: 0, driftX: 0, driftY: 0,
         sneezeCd: 0, reverseCd: 0, slipCd: 0, dizzyCd: 0,
@@ -770,7 +840,7 @@
     }
 
     function tryDash() {
-        if (gameState !== 'PLAYING' || player.dashCd > 0 || player.freezeTime > 0) return;
+        if (gameState !== 'PLAYING' || player.dashCd > 0 || player.freezeTime > 0 || domainCine > 0) return;
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
         if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
@@ -814,6 +884,8 @@
         player.speedMult = 1.0; player.gold = 0;
         player.shieldTime = 0; player.rageTime = 0; player.iFrame = 0;
         player.dashTime = 0; player.dashCd = 0;
+        player.cursed = 0; player.domainActive = null;
+        domainCine = 0; bossDomain = null;
         player.genes = 0; player.mutations = defaultMutations(); player.sideEffects = [];
         player.freezeTime = 0; player.confuseTime = 0; player.driftX = 0; player.driftY = 0;
         player.weapons = [];
@@ -857,6 +929,8 @@
         pickups = []; shockwaves = []; mortarTargets = []; lasers = [];
         spawnTimer = 0; screenShake = 0;
         spawnLocked = false;
+        player.domainActive = null;
+        domainCine = 0; bossDomain = null;
         player.shieldTime = 0; player.rageTime = 0;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
         waveStats = { elapsed: 0, kills: 0, damageDealt: 0, damageTaken: 0, goldEarned: 0, weaponDamage: {} };
@@ -895,7 +969,6 @@
                         document.getElementById('wave-timer').innerText = waveTimer;
                     }
                 } else if (isBossWave) {
-                    // Boss 波倒數結束：停止刷怪，等待 Boss 被擊殺
                     document.getElementById('wave-timer').innerText = '擊殺Boss!';
                     if (!spawnLocked) {
                         spawnLocked = true;
@@ -1193,7 +1266,7 @@
             damage: Math.round(6 + wv * 1.3),
             color: '#e74c3c', flashTimer: 0,
             lastShot: performance.now(), exp: 1,
-            elite: null, goldBonus: 0
+            elite: null, goldBonus: 0, domainCd: 0
         };
         enemy.maxHp = enemy.hp;
 
@@ -1253,6 +1326,7 @@
             announce(`⚠ ${e.bossName} 狂暴了！`, '');
             screenShake = 0.6;
         }
+        if (e.domainCd > 0) e.domainCd -= dt;
 
         e.skillTimer -= dt;
         const angle = Math.atan2(player.y - e.y, player.x - e.x);
@@ -1358,6 +1432,15 @@
                 }
                 break;
             }
+            case 'DOMAIN': {
+                if (bossDomain || e.domainCd > 0) break;
+                bossDomain = { owner: e, timer: 6 };
+                e.domainCd = 25;
+                announce(`⚠ ${e.bossName} 展開了領域！`, '咒力全滿時按 Q 對衝，或用衝刺無敵幀硬扛！');
+                AudioEngine.playExplosion();
+                screenShake = 0.6;
+                break;
+            }
         }
     }
 
@@ -1386,6 +1469,7 @@
         const actual = Math.max(1, amount - player.armor * 0.5);
         waveStats.damageTaken += actual;
         player.hp -= actual;
+        gainCursed(actual * 0.12);
         screenShake = Math.max(screenShake, 0.2);
         AudioEngine.playHit();
         if (player.hp <= 0) gameOver();
@@ -1453,6 +1537,7 @@
             AudioEngine.playHit();
             runStats.kills++;
             waveStats.kills++;
+            gainCursed(enemy.type === 'BOSS' ? 10 : enemy.elite ? 6 : 3);
 
             if (enemy.type === 'BOSS') {
                 runStats.bossKills++;
@@ -1486,7 +1571,9 @@
                 tryDropPickup(enemy.x, enemy.y);
             }
 
-            for (let k = 0; k < enemy.exp; k++) {
+            const dom = player.domainActive;
+            const gemMult = (dom && dom.key === 'ENTREPRENEUR') ? 3 : 1;
+            for (let k = 0; k < enemy.exp * gemMult; k++) {
                 gems.push({
                     x: enemy.x + (Math.random() - 0.5) * 24,
                     y: enemy.y + (Math.random() - 0.5) * 24,
@@ -1500,7 +1587,6 @@
                 if (currentWave === MAX_WAVE) {
                     setTimeout(() => { if (gameState === 'PLAYING') triggerVictory(); }, 700);
                 } else {
-                    // Boss 波：擊殺 Boss 立即結束本波
                     setTimeout(() => { if (gameState === 'PLAYING') completeWave(); }, 800);
                 }
             }
@@ -1555,6 +1641,7 @@
         const isCrit = Math.random() < player.critChance;
         const tierBonus = 1 + (weapon.tier - 1) * 0.4;
         const aff = weapon.affix;
+        const dom = player.domainActive;
 
         let baseDmg = weapon.damage * dmgMult * tierBonus;
         if (aff && aff.id === 'POWER') baseDmg *= 1.25;
@@ -1570,9 +1657,9 @@
 
         const bulletAffixProps = {
             src: weapon.name,
-            pierce: (aff && aff.id === 'PIERCE') ? 1 : 0,
+            pierce: Math.max((aff && aff.id === 'PIERCE') ? 1 : 0, (dom && dom.key === 'RANGER') ? 5 : 0),
             ricochet: !!(aff && aff.id === 'RICOCHET'),
-            homing: !!(aff && aff.id === 'HOMING'),
+            homing: !!(aff && aff.id === 'HOMING') || !!(dom && dom.key === 'RANGER'),
             lifesteal: !!(aff && aff.id === 'VAMP'),
             hitSet: null
         };
@@ -1598,7 +1685,6 @@
                 alpha: 0.6, isSlash: true, angle, arc: weapon.arc
             });
         } else if (weapon.beam) {
-            // 雷射：瞬間命中 + 光束特效
             damageEnemy(target, finalDmg, isCrit, 0, 0, weapon.name);
             if (aff && aff.id === 'VAMP' && Math.random() < 0.15) {
                 player.hp = Math.min(player.maxHp, player.hp + 1);
@@ -1671,6 +1757,9 @@
     }
 
     function update(dt) {
+        // 領域結印儀式：全場凍結
+        if (domainCine > 0) { domainCine -= dt; return; }
+
         if (screenShake > 0) screenShake -= dt * 10;
         if (player.shieldTime > 0) player.shieldTime -= dt;
         if (player.rageTime > 0) player.rageTime -= dt;
@@ -1719,7 +1808,6 @@
             player.hp = Math.min(player.maxHp, player.hp + player.hpRegen * dt);
         }
 
-        // Boss 波倒數結束後停止刷怪
         if (!spawnLocked) {
             spawnTimer += dt;
             let spawnInterval = Math.max(0.22, 1.0 - currentWave * 0.035);
@@ -1728,6 +1816,50 @@
             if (spawnTimer >= spawnInterval) {
                 spawnTimer = 0;
                 spawnEnemy();
+            }
+        }
+
+        // 我方領域效果
+        if (player.domainActive) {
+            const d = player.domainActive;
+            d.timer -= dt;
+            if (d.key === 'BERSERKER') {
+                d.slashTimer -= dt;
+                if (d.slashTimer <= 0) {
+                    d.slashTimer = 0.5;
+                    const dmg = 20 + currentWave * 2;
+                    let hits = 0;
+                    [...enemies].forEach(e => {
+                        damageEnemy(e, dmg, false, 0, 0, d.name);
+                        hits++;
+                    });
+                    player.hp = Math.min(player.maxHp, player.hp + Math.min(24, hits * 2));
+                    particles.push({
+                        x: player.x, y: player.y, vx: 0, vy: 0, radius: 520,
+                        color: '#ff3355', alpha: 0.35, isSlash: true,
+                        angle: Math.random() * 6.28, arc: 6.28
+                    });
+                    screenShake = Math.max(screenShake, 0.15);
+                }
+            }
+            if (d.timer <= 0) endDomain();
+        }
+
+        // 敵方領域壓制
+        if (bossDomain) {
+            if (enemies.indexOf(bossDomain.owner) === -1) {
+                bossDomain = null;
+            } else {
+                bossDomain.timer -= dt;
+                if (bossDomain.timer <= 0) {
+                    bossDomain = null;
+                    announce('敵方領域消散了', '');
+                } else if (player.shieldTime <= 0 && player.iFrame <= 0) {
+                    player.hp -= 6 * dt;
+                    waveStats.damageTaken += 6 * dt;
+                    gainCursed(8 * dt);
+                    if (player.hp <= 0) { gameOver(); return; }
+                }
             }
         }
 
@@ -1741,7 +1873,6 @@
             if (weapon.affix && weapon.affix.id === 'RAPID') cd *= 0.85;
             const actualCooldown = cd / finalAtSpeed;
             if (nowMs - weapon.lastShot >= actualCooldown && enemies.length > 0) {
-                // 無人機從自己的環繞位置索敵與射擊
                 let originX = player.x, originY = player.y;
                 if (weapon.type === 'drone') {
                     const wCount = Math.max(1, player.weapons.length);
@@ -1896,6 +2027,7 @@
                     const dmgThisFrame = actualDmg * dt * 2;
                     player.hp -= dmgThisFrame;
                     waveStats.damageTaken += dmgThisFrame;
+                    gainCursed(dmgThisFrame * 0.12);
                     createParticles(player.x, player.y, '#ff0000', 2);
                     screenShake = 0.15;
                     if (e.elite === 'VAMP') {
@@ -1918,6 +2050,7 @@
             if (player.shieldTime <= 0 && player.iFrame <= 0 && distToLaser(player.x, player.y, l) < l.width / 2 + player.radius) {
                 player.hp -= l.damage * dt;
                 waveStats.damageTaken += l.damage * dt;
+                gainCursed(l.damage * dt * 0.12);
                 screenShake = Math.max(screenShake, 0.15);
                 if (player.hp <= 0) { gameOver(); return; }
             }
@@ -2007,6 +2140,8 @@
         document.getElementById('hp-text').innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
         document.getElementById('gold-count').innerText = player.gold;
         document.getElementById('gene-count').innerText = player.genes;
+        document.getElementById('cursed-fill').style.width = player.cursed + '%';
+        document.getElementById('cursed-text').innerText = player.cursed >= 100 ? 'MAX [Q]' : Math.floor(player.cursed);
     }
 
     /* ================= 繪製 ================= */
@@ -2016,6 +2151,11 @@
         const g = clamp(((num >> 8) & 0xff) + amt, 0, 255);
         const b = clamp((num & 0xff) + amt, 0, 255);
         return `rgb(${r},${g},${b})`;
+    }
+
+    function hexA(hex, a) {
+        const num = parseInt(hex.slice(1), 16);
+        return `rgba(${num >> 16},${(num >> 8) & 0xff},${num & 0xff},${a})`;
     }
 
     function renderBackground() {
@@ -2029,6 +2169,102 @@
         for (let y = 0; y < canvas.height; y += 40) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
+    }
+
+    function drawDomainBackground(t) {
+        const d = player.domainActive;
+        ctx.fillStyle = d.bg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+
+        const g = ctx.createRadialGradient(cx, cy, 30, cx, cy, 480);
+        g.addColorStop(0, 'rgba(255,255,255,0.10)');
+        g.addColorStop(0.4, hexA(d.color, 0.13));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = d.color;
+        for (let i = 1; i <= 4; i++) {
+            ctx.globalAlpha = 0.10 + 0.05 * Math.sin(t * 3 + i);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, i * 110 + Math.sin(t * 2 + i) * 8, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        const chars = ['領', '域', '展', '開'];
+        ctx.font = 'bold 42px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < 4; i++) {
+            const a = t * 0.4 + Math.PI * 2 / 4 * i;
+            const x = cx + Math.cos(a) * 300, y = cy + Math.sin(a) * 300;
+            ctx.globalAlpha = 0.22;
+            ctx.fillStyle = d.color;
+            ctx.fillText(chars[i], x, y);
+        }
+        ctx.globalAlpha = 1;
+        ctx.textBaseline = 'alphabetic';
+    }
+
+    function drawDomainCinematic(t) {
+        const def = DOMAIN_DEFS[selectedCharKey];
+        const p = clamp(domainCine / 1.4, 0, 1);
+        ctx.fillStyle = 'rgba(4,4,10,0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawPlayerPotato(t);
+
+        // 結印的雙手
+        ctx.fillStyle = '#e8c07d';
+        ctx.strokeStyle = '#6f4a22';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(player.x - 3, player.y + 6, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(player.x + 3, player.y + 6, 4.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // 擴散結界環
+        const rr = (1 - p) * 420 + 20;
+        ctx.save();
+        ctx.globalAlpha = p;
+        ctx.strokeStyle = def.color;
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(player.x, player.y, rr, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+
+        ctx.textAlign = 'center';
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = def.color;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 46px sans-serif';
+        ctx.fillText(`領域展開「${def.name}」`, canvas.width / 2, 200);
+        ctx.restore();
+        ctx.fillStyle = def.color;
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(def.desc, canvas.width / 2, 240);
+    }
+
+    function drawBossDomainOverlay(t) {
+        const p = bossDomain.timer / 6;
+        const vg = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 180, canvas.width / 2, canvas.height / 2, 540);
+        vg.addColorStop(0, 'rgba(255,0,40,0)');
+        vg.addColorStop(1, 'rgba(255,0,40,0.32)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const rr = 60 + 460 * p;
+        ctx.strokeStyle = `rgba(255,40,60,${0.5 + Math.sin(t * 8) * 0.2})`;
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, rr, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ff4455';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(`⚠ 敵方領域展開中 ${bossDomain.timer.toFixed(1)}s ｜ 咒力全滿時按 Q 對衝！`, canvas.width / 2, 96);
     }
 
     function drawAccessory(charKey, r) {
@@ -2162,6 +2398,12 @@
         ctx.ellipse(player.x, player.y + r + 5, r * 0.9, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // 領域展開時的氣場
+        if (player.domainActive) {
+            ctx.strokeStyle = hexA(player.domainActive.color, 0.6 + Math.sin(t * 6) * 0.2);
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(player.x, player.y, r + 11, 0, Math.PI * 2); ctx.stroke();
+        }
         if (player.shieldTime > 0) {
             ctx.strokeStyle = `rgba(80,180,255,${0.5 + Math.sin(t * 8) * 0.2})`;
             ctx.lineWidth = 3;
@@ -2280,7 +2522,6 @@
         drawAccessory(selectedCharKey, r);
         ctx.restore();
 
-        // 環繞武器（無人機畫成小飛行器）
         const wCount = Math.max(1, player.weapons.length);
         player.weapons.forEach((w, i) => {
             const angle = (Math.PI * 2 / wCount) * i + t * 1.5;
@@ -2404,7 +2645,8 @@
             ctx.translate((Math.random() - 0.5) * screenShake * 12, (Math.random() - 0.5) * screenShake * 12);
         }
 
-        renderBackground();
+        if (player.domainActive) drawDomainBackground(t);
+        else renderBackground();
 
         mortarTargets.forEach(m => {
             const p = m.timer / m.total;
@@ -2492,7 +2734,7 @@
             ctx.save();
             ctx.translate(tr.x, tr.y);
             ctx.rotate(tr.angle);
-            ctx.fillStyle = '#33ccff';
+            ctx.fillStyle = tr.domainTurret ? '#66ddff' : '#33ccff';
             ctx.fillRect(0, -3, 16, 6);
             ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
@@ -2594,6 +2836,13 @@
             ctx.fillText(`${boss.bossName}  ${Math.ceil(boss.hp)} / ${boss.maxHp}`, canvas.width / 2, by + 11);
         }
 
+        if (player.domainActive && domainCine <= 0) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = player.domainActive.color;
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText(`「${player.domainActive.name}」 ${player.domainActive.timer.toFixed(1)}s`, canvas.width / 2, 96);
+        }
+
         if (announcement.timer > 0) {
             const a = Math.min(1, announcement.timer);
             ctx.save();
@@ -2611,6 +2860,10 @@
         }
 
         ctx.restore();
+
+        // 結印儀式覆蓋層（最上層）
+        if (domainCine > 0) drawDomainCinematic(t);
+        if (bossDomain) drawBossDomainOverlay(t);
     }
 
     renderCharGrid();

@@ -38,6 +38,18 @@
         button:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(255, 85, 0, 0.6); }
         button:active { transform: scale(0.98); }
 
+        /* 引導玩家點擊的脈動效果 */
+        @keyframes attnPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 6px 2px rgba(102,255,153,0.7); }
+            50% { transform: scale(1.07); box-shadow: 0 0 20px 7px rgba(102,255,153,0.95); }
+        }
+        .btn-attn { animation: attnPulse 1s infinite; }
+        @keyframes hudReady {
+            0%, 100% { box-shadow: 0 0 4px 1px rgba(196,138,255,0.6); }
+            50% { box-shadow: 0 0 18px 6px rgba(196,138,255,1); }
+        }
+        .hud-ready { animation: hudReady 0.8s infinite; border-color: #c48aff !important; }
+
         #hud {
             position: absolute; top: 10px; left: 10px; right: 10px;
             display: flex; justify-content: space-between; align-items: center; gap: 8px;
@@ -79,6 +91,10 @@
         }
         .char-card:hover, .char-card.selected {
             border-color: #ffcc00; background: #32324e; transform: translateY(-3px);
+        }
+        .char-img {
+            width: 100%; height: 84px; object-fit: cover; border-radius: 6px;
+            margin-bottom: 8px; background: #1a1a28; display: block;
         }
         .char-name { font-size: 17px; font-weight: bold; color: #00ffcc; margin-bottom: 6px; }
         .char-desc { font-size: 12px; color: #aaa; line-height: 1.4; }
@@ -212,7 +228,7 @@
         <div class="hud-box" style="color: #00ffcc;">
             第 <span id="wave-num">1/20</span> 波 | <span id="wave-timer">30</span>
         </div>
-        <div class="hud-box" style="color:#c48aff;">
+        <div class="hud-box" id="cursed-box" style="color:#c48aff;">
             咒力:
             <div class="hp-bar-bg" style="width:110px; border-color:#c48aff;">
                 <div id="cursed-fill" style="height:100%; width:0%; background:linear-gradient(90deg,#7d3cff,#c48aff);"></div>
@@ -228,8 +244,8 @@
     <!-- 開始畫面 -->
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
-        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | <b style="color:#c48aff;">咒力集滿按 Q 領域展開！</b> | Esc 暫停<br>
-        共 20 波、每 5 波 Boss（必須擊殺 Boss 才能結束 Boss 波，擊倒後自動回收材料）｜ Boss 也會展開領域，可發動「領域對衝」！</p>
+        <p>WASD / 方向鍵 / 🎮左搖桿移動 | Space / Ⓐ 衝刺 | 咒力滿按 Q / Ⓧ 領域展開 | Esc / Start 暫停 | Enter 確認<br>
+        共 20 波、每 5 波 Boss（擊殺後自動回收材料）｜ Boss 也會展開領域，可發動「領域對衝」！</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
@@ -242,7 +258,7 @@
         </div>
         <div class="char-grid" id="char-grid"></div>
         <div class="menu-btns">
-            <button id="start-btn">開始冒險</button>
+            <button id="start-btn">開始冒險 (Enter)</button>
             <button id="lab-btn" style="background:linear-gradient(135deg,#00aa88,#0066aa);">🔬 馬鈴薯實驗室</button>
         </div>
     </div>
@@ -277,7 +293,7 @@
             <h2 id="report-title">第 1 波結算報告</h2>
             <div id="report-content"></div>
             <div style="text-align:center; margin-top:14px;">
-                <button id="report-continue-btn">進入商店 →</button>
+                <button id="report-continue-btn">進入商店 → (Enter)</button>
             </div>
         </div>
     </div>
@@ -289,7 +305,7 @@
                 <h2>🧬 基因嫁接室</h2>
                 <div class="item-price">基因片段: <span id="gene-shop-count">0</span> 🧬</div>
             </div>
-            <p style="font-size:12px; margin:0;">精英掉落 +1 🧬、Boss 掉落 +3 🧬 ｜ <span style="color:#ff8866;">同一部位二次嫁接會觸發隨機副作用！</span></p>
+            <p style="font-size:12px; margin:0;">精英掉落 +1 🧬、Boss 掉落 +3 🧬 ｜ <span style="color:#ff8866;">同一部位二次嫁接會觸發隨機副作用！(Esc 返回)</span></p>
             <div class="gene-grid" id="gene-grid"></div>
             <div style="text-align:center;">
                 <button id="gene-back-btn" style="background:#444466;">返回商店</button>
@@ -302,7 +318,7 @@
         <p id="gameover-reason">你堅持到了第 1 波！</p>
         <p id="gameover-stats" style="color:#00ffcc;"></p>
         <div class="menu-btns">
-            <button id="restart-btn">重新開始</button>
+            <button id="restart-btn">重新開始 (Enter)</button>
             <button id="gameover-menu-btn" style="background:#444466;">回主選單</button>
         </div>
     </div>
@@ -312,7 +328,7 @@
         <p>你擊敗了最終 Boss「土豆霸王」，拯救了馬鈴薯王國！</p>
         <p id="victory-stats" style="color:#00ffcc;"></p>
         <div class="menu-btns">
-            <button id="victory-restart-btn">再玩一次</button>
+            <button id="victory-restart-btn">再玩一次 (Enter)</button>
             <button id="victory-menu-btn" style="background:#444466;">回主選單</button>
         </div>
     </div>
@@ -354,13 +370,22 @@
             <div class="shop-footer">
                 <button id="reroll-btn" style="background:#444466; font-size:13px;">刷新商店 (<span id="reroll-cost">10</span> 材料)</button>
                 <button id="gene-btn" style="background:linear-gradient(135deg,#22aa66,#008855); font-size:14px;">🧬 基因嫁接</button>
-                <button id="next-wave-btn">進入下一波戰鬥</button>
+                <button id="next-wave-btn">下一波 (Enter)</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    /* ================= 圖片資源（放在 HTML 同目錄；缺失時自動隱藏不影響遊戲） ================= */
+    const CHAR_IMAGES = {
+        RANGER: 'ranger.png',
+        BERSERKER: 'berserker.png',
+        ENGINEER: 'engineer.png',
+        ENTREPRENEUR: 'entrepreneur.png'
+    };
+    const BG_IMAGE = 'bg.jpg';
+
     /* ================= 音效（含節流） ================= */
     const AudioEngine = {
         ctx: null, master: null, enabled: true, last: {},
@@ -617,12 +642,19 @@
         ENTREPRENEUR: { name: '金薯自閉圓頓裹',   color: '#ffcc00', bg: '#2e240b', desc: '領域內擊殺材料三倍' }
     };
 
-    let domainCine = 0;      // 結印儀式動畫計時
-    let bossDomain = null;   // { owner, timer }
-    let bossEndTimer = 0;    // Boss 擊殺後的結束倒數
+    let domainCine = 0;
+    let bossDomain = null;
+    let bossEndTimer = 0;
+    let cursedNotified = false;
+    let genesHintShown = false;
 
     function gainCursed(v) {
+        const before = player.cursed;
         player.cursed = Math.min(100, player.cursed + v);
+        if (before < 100 && player.cursed >= 100 && !cursedNotified) {
+            cursedNotified = true;
+            showToast('咒力已滿！按 Q（或 Ⓧ／RB）發動領域展開！');
+        }
     }
 
     function tryDomain() {
@@ -639,6 +671,7 @@
 
     function activateDomain() {
         player.cursed = 0;
+        cursedNotified = false;
         const def = DOMAIN_DEFS[selectedCharKey];
         player.domainActive = { key: selectedCharKey, name: def.name, color: def.color, bg: def.bg, timer: 8, slashTimer: 0 };
         domainCine = 1.4;
@@ -664,6 +697,7 @@
 
     function domainClash() {
         player.cursed = 0;
+        cursedNotified = false;
         bossDomain = null;
         const boss = enemies.find(e => e.type === 'BOSS');
         if (boss) { boss.state = 'CASTING'; boss.stateTimer = 2.5; boss.skillTimer = 5; }
@@ -683,9 +717,65 @@
         AudioEngine.init();
         if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) tryDash(); }
         if (e.code === 'KeyQ' && !e.repeat) tryDomain();
-        if (e.code === 'Escape') togglePause();
+        if (e.code === 'Escape') {
+            if (gameState === 'SHOP') {
+                const gs = document.getElementById('gene-screen');
+                if (!gs.classList.contains('hidden')) gs.classList.add('hidden');
+            } else togglePause();
+        }
+        if (e.code === 'Backspace' && gameState === 'SHOP') {
+            document.getElementById('gene-screen').classList.add('hidden');
+        }
+        if (e.code === 'Enter') {
+            if (gameState === 'START') initGame();
+            else if (gameState === 'REPORT') openShop();
+            else if (gameState === 'SHOP') {
+                if (document.getElementById('gene-screen').classList.contains('hidden')) startWave(currentWave + 1);
+            }
+            else if (gameState === 'GAMEOVER' || gameState === 'VICTORY') initGame();
+        }
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
+
+    /* ================= 手把支援 ================= */
+    let gpConnected = false;
+    let gpPrevButtons = [];
+    window.addEventListener('gamepadconnected', () => {
+        gpConnected = true;
+        showToast('🎮 手把已連接：左搖桿移動、Ⓐ衝刺、Ⓧ/RB領域、Start暫停');
+    });
+    window.addEventListener('gamepaddisconnected', () => { gpConnected = false; });
+
+    function readGamepad() {
+        if (!navigator.getGamepads) return null;
+        const pads = navigator.getGamepads();
+        for (const gp of pads) if (gp && gp.connected) return gp;
+        return null;
+    }
+
+    function gamepadAxes() {
+        const gp = readGamepad();
+        if (!gp) return { x: 0, y: 0 };
+        let x = gp.axes[0] || 0, y = gp.axes[1] || 0;
+        if (Math.abs(x) < 0.22) x = 0;
+        if (Math.abs(y) < 0.22) y = 0;
+        if (gp.buttons[14] && gp.buttons[14].pressed) x -= 1;
+        if (gp.buttons[15] && gp.buttons[15].pressed) x += 1;
+        if (gp.buttons[12] && gp.buttons[12].pressed) y -= 1;
+        if (gp.buttons[13] && gp.buttons[13].pressed) y += 1;
+        return { x: clamp(x, -1, 1), y: clamp(y, -1, 1) };
+    }
+
+    function pollGamepadEdges() {
+        const gp = readGamepad();
+        if (!gp) { gpPrevButtons = []; return; }
+        const pressed = i => gp.buttons[i] && gp.buttons[i].pressed;
+        const was = i => gpPrevButtons[i];
+        if ((pressed(0) || pressed(1)) && !(was(0) || was(1))) tryDash();
+        if ((pressed(2) || pressed(5)) && !(was(2) || was(5))) tryDomain();
+        if (pressed(9) && !was(9)) togglePause();
+        gpPrevButtons = gp.buttons.map(b => b.pressed);
+    }
 
     const MAX_WAVE = 20;
     const BOSS_WAVES = { 5: 'COLOSSUS', 10: 'QUEEN', 15: 'MECHA', 20: 'OVERLORD' };
@@ -847,6 +937,10 @@
         if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
         if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
         if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+        if (dx === 0 && dy === 0) {
+            const gp = gamepadAxes();
+            dx = gp.x; dy = gp.y;
+        }
         if (dx === 0 && dy === 0) { dx = player.lastDirX; dy = player.lastDirY; }
         const d = Math.hypot(dx, dy) || 1;
         player.dashDirX = dx / d;
@@ -865,7 +959,10 @@
             const c = CHARACTERS[key];
             const card = document.createElement('div');
             card.className = `char-card ${selectedCharKey === key ? 'selected' : ''}`;
-            card.innerHTML = `<div class="char-name">${c.name}</div><div class="char-desc">${c.desc}</div>`;
+            card.innerHTML = `
+                <img class="char-img" src="${CHAR_IMAGES[key]}" alt="" onerror="this.style.display='none'">
+                <div class="char-name">${c.name}</div>
+                <div class="char-desc">${c.desc}</div>`;
             card.onclick = () => { selectedCharKey = key; renderCharGrid(); };
             grid.appendChild(card);
         });
@@ -887,6 +984,7 @@
         player.dashTime = 0; player.dashCd = 0;
         player.cursed = 0; player.domainActive = null;
         domainCine = 0; bossDomain = null; bossEndTimer = 0;
+        cursedNotified = false; genesHintShown = false;
         player.genes = 0; player.mutations = defaultMutations(); player.sideEffects = [];
         player.freezeTime = 0; player.confuseTime = 0; player.driftX = 0; player.driftY = 0;
         player.weapons = [];
@@ -1074,6 +1172,10 @@
         rerollCost = Math.max(5, 8 + currentWave * 2 - (selectedCharKey === 'ENTREPRENEUR' ? 4 : 0));
         document.getElementById('reroll-cost').innerText = rerollCost;
         selectedCombineIndex = null;
+        if (player.genes >= 2 && !genesHintShown) {
+            genesHintShown = true;
+            showToast('你持有基因片段！下方的 🧬 基因嫁接 按鈕正在發光');
+        }
         updateShopStats();
         generateShopItems();
     }
@@ -1091,6 +1193,11 @@
         document.getElementById('st-engineering').innerText = player.engineering;
         document.getElementById('synergy-info').innerHTML = syn.bonuses.length > 0 ? syn.bonuses.join('<br>') : "尚未觸發羈絆";
         document.getElementById('weap-count').innerText = `${player.weapons.length}/${maxWeaponSlots()}`;
+
+        // 基因按鈕引導：顯示持有數並在可用時發光
+        const geneBtn = document.getElementById('gene-btn');
+        geneBtn.innerText = `🧬 基因嫁接 (${player.genes})`;
+        geneBtn.classList.toggle('btn-attn', player.genes >= 2);
 
         const mutTexts = GENE_PARTS
             .filter(p => player.mutations[p.id] > 0)
@@ -1585,7 +1692,6 @@
             if (idx !== -1) enemies.splice(idx, 1);
 
             if (enemy.type === 'BOSS' && BOSS_WAVES[currentWave]) {
-                // Boss 擊殺：全場材料磁吸 + 停止刷怪 + 3 秒後結束本波
                 gems.forEach(g => g.magnet = true);
                 spawnLocked = true;
                 bossEndTimer = 3;
@@ -1628,6 +1734,7 @@
     function gameLoop(now) {
         const dt = Math.min(0.05, (now - lastTime) / 1000);
         lastTime = now;
+        pollGamepadEdges();
         if (gameState === 'PLAYING') {
             update(dt);
             render(now / 1000);
@@ -1758,10 +1865,8 @@
     }
 
     function update(dt) {
-        // 領域結印儀式：全場凍結
         if (domainCine > 0) { domainCine -= dt; return; }
 
-        // Boss 擊殺結束倒數：勝利無敵 + 強制回收
         if (bossEndTimer > 0) {
             bossEndTimer -= dt;
             player.iFrame = Math.max(player.iFrame, 0.2);
@@ -1789,13 +1894,17 @@
 
         updateSideEffects(dt);
 
+        // 鍵盤 + 手把合併輸入
+        const gp = gamepadAxes();
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
         if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
         if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
         if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+        dx += gp.x; dy += gp.y;
         if (player.confuseTime > 0) { dx = -dx; dy = -dy; }
-        if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+        const ilen = Math.hypot(dx, dy);
+        if (ilen > 1) { dx /= ilen; dy /= ilen; }
 
         if (player.dashTime > 0) {
             player.x += player.dashDirX * 13;
@@ -1837,7 +1946,6 @@
             }
         }
 
-        // 我方領域效果
         if (player.domainActive) {
             const d = player.domainActive;
             d.timer -= dt;
@@ -1863,7 +1971,6 @@
             if (d.timer <= 0) endDomain();
         }
 
-        // 敵方領域壓制
         if (bossDomain) {
             if (enemies.indexOf(bossDomain.owner) === -1) {
                 bossDomain = null;
@@ -2165,6 +2272,8 @@
         document.getElementById('gene-count').innerText = player.genes;
         document.getElementById('cursed-fill').style.width = player.cursed + '%';
         document.getElementById('cursed-text').innerText = player.cursed >= 100 ? 'MAX [Q]' : Math.floor(player.cursed);
+        document.getElementById('cursed-box').classList.toggle('hud-ready',
+            player.cursed >= 100 && !player.domainActive && !bossDomain);
     }
 
     /* ================= 繪製 ================= */
@@ -2410,7 +2519,8 @@
         const r = player.radius;
         const m = player.mutations;
         const moving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
-                       keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'];
+                       keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'] ||
+                       Math.abs(gamepadAxes().x) > 0 || Math.abs(gamepadAxes().y) > 0;
         const bob = moving ? Math.sin(t * 16) * 2.2 : Math.sin(t * 2.5) * 1.2;
         const squash = moving ? Math.sin(t * 16) * 0.05 : 0;
 
@@ -2419,6 +2529,17 @@
         ctx.ellipse(player.x, player.y + r + 5, r * 0.9, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // 領域就緒引導：脈衝光圈 + 按鍵提示
+        if (player.cursed >= 100 && !player.domainActive && !bossDomain && gameState === 'PLAYING') {
+            const pulse = 0.5 + Math.sin(t * 6) * 0.5;
+            ctx.strokeStyle = `rgba(196,138,255,${0.35 + 0.4 * pulse})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(player.x, player.y, r + 16 + pulse * 4, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = '#c48aff';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gpConnected ? '領域 Ⓧ/RB！' : '領域 [Q]！', player.x, player.y - r - 30);
+        }
         if (player.domainActive) {
             ctx.strokeStyle = hexA(player.domainActive.color, 0.6 + Math.sin(t * 6) * 0.2);
             ctx.lineWidth = 3;
@@ -2891,6 +3012,15 @@
         if (domainCine > 0) drawDomainCinematic(t);
         if (bossDomain) drawBossDomainOverlay(t);
     }
+
+    /* ================= 啟動 ================= */
+    // 主選單背景圖（缺失時僅顯示漸層，不影響遊戲）
+    (function () {
+        const ss = document.getElementById('start-screen');
+        ss.style.backgroundImage = `linear-gradient(rgba(12,12,18,0.80), rgba(12,12,18,0.94)), url('${BG_IMAGE}')`;
+        ss.style.backgroundSize = 'cover';
+        ss.style.backgroundPosition = 'center';
+    })();
 
     renderCharGrid();
     renderRecords();

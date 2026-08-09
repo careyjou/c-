@@ -117,6 +117,29 @@
         .lab-desc { font-size: 12px; color: #aaa; min-height: 32px; }
         .lab-lvl { font-size: 13px; color: #ffcc00; font-weight: bold; }
 
+        /* 基因嫁接室 */
+        #gene-modal {
+            width: 780px; height: 590px; background: #181824;
+            border: 2px solid #66ff99; border-radius: 12px; padding: 16px;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .gene-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #2d4236; padding-bottom: 8px;
+        }
+        .gene-header h2 { color: #66ff99; }
+        .gene-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 10px; overflow-y: auto;
+        }
+        .gene-card {
+            background: #1c2a22; border: 1px solid #3a5a48; border-radius: 8px;
+            padding: 12px; text-align: center; display: flex; flex-direction: column;
+            gap: 6px; align-items: center;
+        }
+        .gene-card .lab-desc { min-height: 30px; }
+        .gene-warn { font-size: 11px; color: #ff8866; }
+
         /* 暫停設定 */
         .settings-box {
             display: flex; gap: 24px; background: rgba(255,255,255,0.06);
@@ -150,11 +173,11 @@
             background: #101018; padding: 8px 12px; border-radius: 8px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .weapon-slots { display: flex; gap: 8px; }
+        .weapon-slots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 400px; }
         .weapon-slot {
-            width: 52px; height: 52px; background: #252538; border: 1px solid #444;
+            width: 46px; height: 50px; background: #252538; border: 1px solid #444;
             border-radius: 6px; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; font-size: 10px; position: relative; cursor: pointer;
+            justify-content: center; font-size: 9px; position: relative; cursor: pointer;
         }
         .weapon-slot:hover { border-color: #ffcc00; }
         .weapon-level { position: absolute; top: 2px; right: 4px; font-weight: bold; font-size: 10px; }
@@ -171,7 +194,7 @@
         .item-desc { font-size: 12px; color: #bbb; margin: 4px 0; }
         .item-price { color: #ffcc00; font-weight: bold; font-size: 13px; }
         .shop-footer {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
             border-top: 2px solid #2d2d42; padding-top: 8px;
         }
     </style>
@@ -194,14 +217,15 @@
         </div>
         <div class="hud-box" style="color: #ffcc00;">
             材料: <span id="gold-count">0</span>
+            <span style="color:#66ff99; margin-left:8px;">🧬 <span id="gene-count">0</span></span>
         </div>
     </div>
 
     <!-- 開始畫面 -->
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
-        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺閃避</b> | Esc 暫停 | 武器自動射擊<br>
-        共 20 波、每 5 波 Boss | 精英怪與武器詞綴 | 擊殺敵人會掉落道具 | 最終波擊殺 Boss 通關</p>
+        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | Esc 暫停 | 武器自動射擊<br>
+        共 20 波、每 5 波 Boss | 精英與 Boss 掉落 <b style="color:#66ff99;">🧬 基因片段</b>，商店可嫁接突變（外觀會跟著變！）</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
@@ -254,18 +278,39 @@
         </div>
     </div>
 
+    <!-- 基因嫁接室 -->
+    <div id="gene-screen" class="overlay hidden">
+        <div id="gene-modal">
+            <div class="gene-header">
+                <h2>🧬 基因嫁接室</h2>
+                <div class="item-price">基因片段: <span id="gene-shop-count">0</span> 🧬</div>
+            </div>
+            <p style="font-size:12px; margin:0;">精英掉落 +1 🧬、Boss 掉落 +3 🧬 ｜ <span style="color:#ff8866;">同一部位二次嫁接會觸發隨機副作用！</span></p>
+            <div class="gene-grid" id="gene-grid"></div>
+            <div style="text-align:center;">
+                <button id="gene-back-btn" style="background:#444466;">返回商店</button>
+            </div>
+        </div>
+    </div>
+
     <div id="gameover-screen" class="overlay hidden">
         <h1 style="color: #ff4444; text-shadow: 3px 3px 0 #880000;">遊戲結束</h1>
         <p id="gameover-reason">你堅持到了第 1 波！</p>
         <p id="gameover-stats" style="color:#00ffcc;"></p>
-        <button id="restart-btn">重新開始</button>
+        <div class="menu-btns">
+            <button id="restart-btn">重新開始</button>
+            <button id="gameover-menu-btn" style="background:#444466;">回主選單</button>
+        </div>
     </div>
 
     <div id="victory-screen" class="overlay hidden">
         <h1 style="color: #00ffcc; text-shadow: 3px 3px 0 #008888;">勝利！通關成功！</h1>
         <p>你擊敗了最終 Boss「土豆霸王」，拯救了馬鈴薯王國！</p>
         <p id="victory-stats" style="color:#00ffcc;"></p>
-        <button id="victory-restart-btn">再玩一次</button>
+        <div class="menu-btns">
+            <button id="victory-restart-btn">再玩一次</button>
+            <button id="victory-menu-btn" style="background:#444466;">回主選單</button>
+        </div>
     </div>
 
     <!-- 商店 -->
@@ -289,11 +334,13 @@
                     <div class="stat-row"><span>工程學:</span><span id="st-engineering">0</span></div>
                     <div class="stats-title" style="margin-top:10px;">套裝羈絆加成</div>
                     <div id="synergy-info" style="font-size:11px; color:#00ffcc; line-height:1.4;">無</div>
+                    <div class="stats-title" style="margin-top:10px;">🧬 基因表現</div>
+                    <div id="gene-info" style="font-size:11px; line-height:1.5;">尚無突變</div>
                 </div>
                 <div class="shop-right">
                     <div class="weapons-bar">
                         <div style="font-size:13px; font-weight:bold; color:#ffcc00;">
-                            目前武器 (<span id="weap-count">1</span>/6) <span style="font-size:11px; color:#888;">(點擊兩把相同武器合成升級)</span>
+                            武器 (<span id="weap-count">1/6</span>) <span style="font-size:11px; color:#888;">(相同武器可合成)</span>
                         </div>
                         <div class="weapon-slots" id="weapon-slots"></div>
                     </div>
@@ -302,6 +349,7 @@
             </div>
             <div class="shop-footer">
                 <button id="reroll-btn" style="background:#444466; font-size:13px;">刷新商店 (<span id="reroll-cost">10</span> 材料)</button>
+                <button id="gene-btn" style="background:linear-gradient(135deg,#22aa66,#008855); font-size:14px;">🧬 基因嫁接</button>
                 <button id="next-wave-btn">進入下一波戰鬥</button>
             </div>
         </div>
@@ -408,15 +456,14 @@
     let settings = saveData.settings;
     AudioEngine.enabled = settings.sound;
     let metaDropBonus = 0;
-    let lastEarnedPoints = 0;
 
     const UPGRADE_DEFS = [
-        { id: 'hp',    name: '結實表皮', desc: '每級最大生命 +5',        max: 5, cost: l => (l + 1) * 12, emoji: '🧬' },
-        { id: 'gold',  name: '起始補給', desc: '每級開局材料 +5',        max: 5, cost: l => (l + 1) * 10, emoji: '💰' },
-        { id: 'drop',  name: '拾荒者',   desc: '每級道具掉落率 +1%',     max: 5, cost: l => (l + 1) * 15, emoji: '🎁' },
-        { id: 'dmg',   name: '鋒利之刃', desc: '每級傷害 +2%',           max: 5, cost: l => (l + 1) * 15, emoji: '⚔️' },
-        { id: 'speed', name: '迅捷之靴', desc: '每級移動速度 +2%',       max: 5, cost: l => (l + 1) * 12, emoji: '👟' },
-        { id: 'crit',  name: '幸運星',   desc: '每級暴擊率 +1%',         max: 3, cost: l => (l + 1) * 20, emoji: '🍀' }
+        { id: 'hp',    name: '結實表皮', desc: '每級最大生命 +5',    max: 5, cost: l => (l + 1) * 12, emoji: '🧬' },
+        { id: 'gold',  name: '起始補給', desc: '每級開局材料 +5',    max: 5, cost: l => (l + 1) * 10, emoji: '💰' },
+        { id: 'drop',  name: '拾荒者',   desc: '每級道具掉落率 +1%', max: 5, cost: l => (l + 1) * 15, emoji: '🎁' },
+        { id: 'dmg',   name: '鋒利之刃', desc: '每級傷害 +2%',       max: 5, cost: l => (l + 1) * 15, emoji: '⚔️' },
+        { id: 'speed', name: '迅捷之靴', desc: '每級移動速度 +2%',   max: 5, cost: l => (l + 1) * 12, emoji: '👟' },
+        { id: 'crit',  name: '幸運星',   desc: '每級暴擊率 +1%',     max: 3, cost: l => (l + 1) * 20, emoji: '🍀' }
     ];
 
     function renderRecords() {
@@ -470,6 +517,89 @@
                         showToast(`${u.name} 升級至 Lv ${lvl + 1}！`);
                     } else showToast('研究點數不足！');
                 };
+            }
+            grid.appendChild(card);
+        });
+    }
+
+    /* ================= 基因嫁接系統 ================= */
+    const GENE_PARTS = [
+        { id: 'arm',    emoji: '🦾', name: '第三條手臂', desc: '武器欄 +1（最多 8 把）',        max: 2, costs: [4, 7] },
+        { id: 'eye',    emoji: '👁️', name: '複眼',       desc: '每級暴擊率 +8%',               max: 2, costs: [3, 5] },
+        { id: 'skin',   emoji: '🪨', name: '石皮',       desc: '每級護甲 +5，移速 -5%',        max: 2, costs: [3, 5] },
+        { id: 'legs',   emoji: '🦑', name: '觸足',       desc: '每級衝刺冷卻 -40%',            max: 2, costs: [3, 5] },
+        { id: 'mouth',  emoji: '👄', name: '巨口',       desc: '每級寶石吸取範圍 ×2',          max: 2, costs: [2, 4] },
+        { id: 'spines', emoji: '🌵', name: '尖刺表皮',   desc: '接觸你的敵人每秒受到 8 傷害/級', max: 2, costs: [3, 5] }
+    ];
+
+    const SIDE_EFFECTS = {
+        SNEEZE:   { name: '過敏噴嚏', desc: '偶爾打噴嚏原地僵住', emoji: '🤧' },
+        REVERSE:  { name: '打嗝失調', desc: '偶爾打嗝使操作短暫反向', emoji: '🔄' },
+        SLIPPERY: { name: '濕滑表皮', desc: '偶爾腳滑隨機漂移', emoji: '🫠' },
+        DIZZY:    { name: '輕微眩暈', desc: '偶爾視線搖晃', emoji: '😵' },
+        SLEEPY:   { name: '嗜睡症', desc: '攻擊速度永久 -5%', emoji: '💤' }
+    };
+
+    function defaultMutations() {
+        return { arm: 0, eye: 0, skin: 0, legs: 0, mouth: 0, spines: 0 };
+    }
+    function maxWeaponSlots() { return 6 + (player.mutations.arm || 0); }
+    function dashMaxCd() { return 1.3 * Math.pow(0.6, player.mutations.legs || 0); }
+    function magnetRadius() { return 110 * Math.pow(2, player.mutations.mouth || 0); }
+
+    function applyMutation(id, newLvl) {
+        if (id === 'eye') player.critChance += 0.08;
+        if (id === 'skin') { player.armor += 5; player.speedMult -= 0.05; }
+    }
+
+    function assignSideEffect() {
+        const pool = Object.keys(SIDE_EFFECTS).filter(k => !player.sideEffects.includes(k));
+        if (!pool.length) return;
+        const k = pool[Math.floor(Math.random() * pool.length)];
+        player.sideEffects.push(k);
+        if (k === 'SLEEPY') player.attackSpeedMult *= 0.95;
+        if (k === 'SNEEZE') player.sneezeCd = 5 + Math.random() * 3;
+        if (k === 'REVERSE') player.reverseCd = 8 + Math.random() * 4;
+        if (k === 'SLIPPERY') player.slipCd = 2;
+        if (k === 'DIZZY') player.dizzyCd = 3;
+        showToast(`⚠ 獲得副作用：${SIDE_EFFECTS[k].emoji} ${SIDE_EFFECTS[k].name}！`);
+    }
+
+    function graftPart(id) {
+        const def = GENE_PARTS.find(p => p.id === id);
+        const lvl = player.mutations[id];
+        if (lvl >= def.max) return;
+        const cost = def.costs[lvl];
+        if (player.genes < cost) { showToast('基因片段不足！'); return; }
+        player.genes -= cost;
+        player.mutations[id] = lvl + 1;
+        applyMutation(id, lvl + 1);
+        showToast(`🧬 嫁接成功：${def.name} Lv${lvl + 1}！`);
+        if (lvl + 1 === 2) assignSideEffect();
+        updateGeneShop();
+        updateShopStats();
+    }
+
+    function updateGeneShop() {
+        document.getElementById('gene-shop-count').innerText = player.genes;
+        const grid = document.getElementById('gene-grid');
+        grid.innerHTML = '';
+        GENE_PARTS.forEach(def => {
+            const lvl = player.mutations[def.id];
+            const maxed = lvl >= def.max;
+            const cost = maxed ? 0 : def.costs[lvl];
+            const card = document.createElement('div');
+            card.className = 'gene-card';
+            card.innerHTML = `
+                <div class="lab-head"><span style="font-size:24px;">${def.emoji}</span> <b>${def.name}</b></div>
+                <div class="lab-desc">${def.desc}</div>
+                <div class="lab-lvl">Lv ${lvl} / ${def.max}</div>
+                ${lvl === 1 && !maxed ? '<div class="gene-warn">⚠ 下次嫁接將獲得隨機副作用</div>' : ''}
+                <button style="padding:6px 14px; font-size:13px; ${maxed ? 'background:#444466;cursor:default;' : ''}">
+                    ${maxed ? '已滿級' : '嫁接（' + cost + ' 🧬）'}
+                </button>`;
+            if (!maxed) {
+                card.querySelector('button').onclick = () => graftPart(def.id);
             }
             grid.appendChild(card);
         });
@@ -607,6 +737,9 @@
         critChance: 0.05, armor: 0, engineering: 0, gold: 0,
         shieldTime: 0, rageTime: 0, iFrame: 0,
         dashTime: 0, dashCd: 0, dashDirX: 1, dashDirY: 0, lastDirX: 1, lastDirY: 0,
+        genes: 0, mutations: defaultMutations(), sideEffects: [],
+        freezeTime: 0, confuseTime: 0, driftX: 0, driftY: 0,
+        sneezeCd: 0, reverseCd: 0, slipCd: 0, dizzyCd: 0,
         weapons: []
     };
 
@@ -630,13 +763,13 @@
         clearInterval(timerInterval);
         gameState = 'START';
         renderRecords();
-        ['hud', 'pause-screen', 'shop-screen', 'report-screen', 'gameover-screen', 'victory-screen'].forEach(id =>
+        ['hud', 'pause-screen', 'shop-screen', 'report-screen', 'gameover-screen', 'victory-screen', 'gene-screen'].forEach(id =>
             document.getElementById(id).classList.add('hidden'));
         document.getElementById('start-screen').classList.remove('hidden');
     }
 
     function tryDash() {
-        if (gameState !== 'PLAYING' || player.dashCd > 0) return;
+        if (gameState !== 'PLAYING' || player.dashCd > 0 || player.freezeTime > 0) return;
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
         if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
@@ -648,7 +781,7 @@
         player.dashDirY = dy / d;
         player.dashTime = 0.18;
         player.iFrame = 0.28;
-        player.dashCd = 1.3;
+        player.dashCd = dashMaxCd();
         createParticles(player.x, player.y, '#dda964', 6);
     }
 
@@ -680,11 +813,12 @@
         player.speedMult = 1.0; player.gold = 0;
         player.shieldTime = 0; player.rageTime = 0; player.iFrame = 0;
         player.dashTime = 0; player.dashCd = 0;
+        player.genes = 0; player.mutations = defaultMutations(); player.sideEffects = [];
+        player.freezeTime = 0; player.confuseTime = 0; player.driftX = 0; player.driftY = 0;
         player.weapons = [];
         turrets = [];
         runStats = { kills: 0, gems: 0, bossKills: 0 };
 
-        // 套用實驗室永久強化
         const up = saveData.upgrades || {};
         player.maxHp += 5 * (up.hp || 0);
         player.gold += 5 * (up.gold || 0);
@@ -702,7 +836,7 @@
     }
 
     function addWeapon(template, tier = 1, affix = null) {
-        if (player.weapons.length < 6) {
+        if (player.weapons.length < maxWeaponSlots()) {
             player.weapons.push({ ...template, tier, affix, lastShot: 0 });
             return true;
         }
@@ -732,7 +866,7 @@
             renderRecords();
         }
 
-        ['start-screen', 'shop-screen', 'gameover-screen', 'victory-screen', 'pause-screen', 'report-screen', 'lab-screen'].forEach(id =>
+        ['start-screen', 'shop-screen', 'gameover-screen', 'victory-screen', 'pause-screen', 'report-screen', 'lab-screen', 'gene-screen'].forEach(id =>
             document.getElementById(id).classList.add('hidden'));
         document.getElementById('hud').classList.remove('hidden');
 
@@ -866,7 +1000,16 @@
         document.getElementById('st-armor').innerText = player.armor;
         document.getElementById('st-engineering').innerText = player.engineering;
         document.getElementById('synergy-info').innerHTML = syn.bonuses.length > 0 ? syn.bonuses.join('<br>') : "尚未觸發羈絆";
-        document.getElementById('weap-count').innerText = player.weapons.length;
+        document.getElementById('weap-count').innerText = `${player.weapons.length}/${maxWeaponSlots()}`;
+
+        // 基因狀態
+        const mutTexts = GENE_PARTS
+            .filter(p => player.mutations[p.id] > 0)
+            .map(p => `<span style="color:#66ff99;">${p.emoji}${p.name} Lv${player.mutations[p.id]}</span>`);
+        const seTexts = player.sideEffects
+            .map(k => `<span style="color:#ff8866;">${SIDE_EFFECTS[k].emoji}${SIDE_EFFECTS[k].name}</span>`);
+        document.getElementById('gene-info').innerHTML =
+            mutTexts.concat(seTexts).join('<br>') || '尚無突變';
 
         const slotsEl = document.getElementById('weapon-slots');
         slotsEl.innerHTML = '';
@@ -911,7 +1054,7 @@
         container.innerHTML = '';
         let choices = [];
 
-        if (player.weapons.length < 6) {
+        if (player.weapons.length < maxWeaponSlots()) {
             const wKeys = Object.keys(WEAPON_TYPES);
             const wTemp = WEAPON_TYPES[wKeys[Math.floor(Math.random() * wKeys.length)]];
             const tier = Math.random() < 0.25 ? 2 : 1;
@@ -950,7 +1093,7 @@
                 </div>`;
             const buyBtn = card.querySelector('.buy-btn');
             buyBtn.onclick = () => {
-                if (item.isWeapon && player.weapons.length >= 6) { showToast('武器欄已滿（最多 6 把）！'); return; }
+                if (item.isWeapon && player.weapons.length >= maxWeaponSlots()) { showToast(`武器欄已滿（${maxWeaponSlots()} 把）！`); return; }
                 if (player.gold < item.price) { showToast('材料不足！'); return; }
                 player.gold -= item.price;
                 document.getElementById('shop-gold').innerText = player.gold;
@@ -976,12 +1119,16 @@
     document.getElementById('report-continue-btn').onclick = () => openShop();
     document.getElementById('start-btn').onclick = () => initGame();
     document.getElementById('restart-btn').onclick = () => initGame();
+    document.getElementById('gameover-menu-btn').onclick = () => goToMenu();
     document.getElementById('victory-restart-btn').onclick = () => initGame();
+    document.getElementById('victory-menu-btn').onclick = () => goToMenu();
     document.getElementById('pause-resume-btn').onclick = () => togglePause();
     document.getElementById('pause-restart-btn').onclick = () => initGame();
     document.getElementById('pause-menu-btn').onclick = () => goToMenu();
     document.getElementById('lab-btn').onclick = () => { renderLab(); document.getElementById('lab-screen').classList.remove('hidden'); };
     document.getElementById('lab-back-btn').onclick = () => document.getElementById('lab-screen').classList.add('hidden');
+    document.getElementById('gene-btn').onclick = () => { updateGeneShop(); document.getElementById('gene-screen').classList.remove('hidden'); };
+    document.getElementById('gene-back-btn').onclick = () => document.getElementById('gene-screen').classList.add('hidden');
     document.getElementById('clear-save-btn').onclick = () => {
         if (confirm('確定要清除所有存檔紀錄與強化嗎？')) {
             SaveSystem.reset();
@@ -992,7 +1139,6 @@
         }
     };
 
-    // 設定選項
     document.getElementById('chk-shake').checked = settings.shake;
     document.getElementById('chk-dmg').checked = settings.dmg;
     document.getElementById('chk-sound').checked = settings.sound;
@@ -1066,7 +1212,6 @@
             });
         }
 
-        // 精英判定
         if (enemyType !== 'BOSS' && !forceType && wv >= 3 && Math.random() < 0.06 + wv * 0.002) {
             const ids = Object.keys(ELITE_AFFIXES);
             const a = ids[Math.floor(Math.random() * ids.length)];
@@ -1275,7 +1420,7 @@
         }
     }
 
-    function damageEnemy(enemy, damage, isCrit, kx = 0, ky = 0, src = '未知') {
+    function damageEnemy(enemy, damage, isCrit, kx = 0, ky = 0, src = '未知', quiet = false) {
         const eff = Math.min(enemy.hp, damage);
         waveStats.damageDealt += eff;
         waveStats.weaponDamage[src] = (waveStats.weaponDamage[src] || 0) + eff;
@@ -1284,8 +1429,10 @@
         enemy.flashTimer = 0.1;
         enemy.vx += kx;
         enemy.vy += ky;
-        addFloatingText(damage, enemy.x, enemy.y - 10, isCrit ? '#ffcc00' : '#ffffff', isCrit ? 20 : 14);
-        createParticles(enemy.x, enemy.y, enemy.color, 4);
+        if (!quiet) {
+            addFloatingText(damage, enemy.x, enemy.y - 10, isCrit ? '#ffcc00' : '#ffffff', isCrit ? 20 : 14);
+            createParticles(enemy.x, enemy.y, enemy.color, 4);
+        }
 
         if (enemy.hp <= 0) {
             AudioEngine.playHit();
@@ -1294,9 +1441,13 @@
 
             if (enemy.type === 'BOSS') {
                 runStats.bossKills++;
+                player.genes += 3;
+                addFloatingText('+3 🧬', enemy.x, enemy.y - enemy.radius - 12, '#66ff99', 18);
                 tryDropPickup(enemy.x, enemy.y, true);
                 tryDropPickup(enemy.x, enemy.y, true);
             } else if (enemy.elite) {
+                player.genes += 1;
+                addFloatingText('+1 🧬', enemy.x, enemy.y - enemy.radius - 8, '#66ff99', 14);
                 tryDropPickup(enemy.x, enemy.y, true);
                 for (let k = 0; k < enemy.goldBonus; k++) {
                     gems.push({
@@ -1453,6 +1604,41 @@
         }
     }
 
+    function updateSideEffects(dt) {
+        if (player.sideEffects.includes('SNEEZE')) {
+            player.sneezeCd -= dt;
+            if (player.sneezeCd <= 0) {
+                player.sneezeCd = 6 + Math.random() * 4;
+                player.freezeTime = 0.4;
+                addFloatingText('哈啾！', player.x, player.y - 32, '#aaddff', 16);
+                createParticles(player.x, player.y, '#aaddff', 6);
+            }
+        }
+        if (player.sideEffects.includes('REVERSE')) {
+            player.reverseCd -= dt;
+            if (player.reverseCd <= 0) {
+                player.reverseCd = 10 + Math.random() * 5;
+                player.confuseTime = 1.5;
+                addFloatingText('嗝～操作反向！', player.x, player.y - 32, '#ffaa66', 14);
+            }
+        }
+        if (player.sideEffects.includes('SLIPPERY')) {
+            player.slipCd -= dt;
+            if (player.slipCd <= 0) {
+                player.slipCd = 2.5 + Math.random() * 2;
+                player.driftX += (Math.random() - 0.5) * 5;
+                player.driftY += (Math.random() - 0.5) * 5;
+            }
+        }
+        if (player.sideEffects.includes('DIZZY')) {
+            player.dizzyCd -= dt;
+            if (player.dizzyCd <= 0) {
+                player.dizzyCd = 4 + Math.random() * 3;
+                screenShake = Math.max(screenShake, 0.18);
+            }
+        }
+    }
+
     function update(dt) {
         if (screenShake > 0) screenShake -= dt * 10;
         if (player.shieldTime > 0) player.shieldTime -= dt;
@@ -1460,12 +1646,17 @@
         if (player.iFrame > 0) player.iFrame -= dt;
         if (player.dashCd > 0) player.dashCd -= dt;
         if (player.dashTime > 0) player.dashTime -= dt;
+        if (player.freezeTime > 0) player.freezeTime -= dt;
+        if (player.confuseTime > 0) player.confuseTime -= dt;
+
+        updateSideEffects(dt);
 
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
         if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
         if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
         if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+        if (player.confuseTime > 0) { dx = -dx; dy = -dy; }
         if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
 
         if (player.dashTime > 0) {
@@ -1475,7 +1666,7 @@
                 x: player.x, y: player.y, vx: 0, vy: 0,
                 radius: player.radius * 0.8, color: 'rgba(221,169,100,0.55)', alpha: 0.5
             });
-        } else {
+        } else if (player.freezeTime <= 0) {
             const moveSpeed = player.baseSpeed * player.speedMult;
             player.x += dx * moveSpeed;
             player.y += dy * moveSpeed;
@@ -1485,6 +1676,11 @@
                 player.lastDirY = dy / d;
             }
         }
+
+        player.x += player.driftX;
+        player.y += player.driftY;
+        player.driftX *= 0.88;
+        player.driftY *= 0.88;
         player.x = clamp(player.x, player.radius, canvas.width - player.radius);
         player.y = clamp(player.y, player.radius, canvas.height - player.radius);
 
@@ -1650,6 +1846,10 @@
 
             const dist = Math.hypot(player.x - e.x, player.y - e.y);
             if (dist < player.radius + e.radius) {
+                // 尖刺反傷
+                if (player.mutations.spines > 0) {
+                    damageEnemy(e, 8 * player.mutations.spines * dt * 2, false, 0, 0, '🌵尖刺', true);
+                }
                 if (player.shieldTime <= 0 && player.iFrame <= 0) {
                     const actualDmg = Math.max(1, e.damage - player.armor * 0.5);
                     const dmgThisFrame = actualDmg * dt * 2;
@@ -1726,11 +1926,12 @@
             }
         }
 
-        /* 寶石 */
+        /* 寶石（巨口加大磁吸範圍） */
+        const magnetR = magnetRadius();
         for (let i = gems.length - 1; i >= 0; i--) {
             let g = gems[i];
             const dist = Math.hypot(player.x - g.x, player.y - g.y);
-            if (g.magnet || dist < 110) {
+            if (g.magnet || dist < magnetR) {
                 const angle = Math.atan2(player.y - g.y, player.x - g.x);
                 const spd = g.magnet ? 20 : 7;
                 g.x += Math.cos(angle) * spd;
@@ -1764,6 +1965,7 @@
         document.getElementById('hp-fill').style.width = hpPct + '%';
         document.getElementById('hp-text').innerText = `${Math.ceil(player.hp)}/${player.maxHp}`;
         document.getElementById('gold-count').innerText = player.gold;
+        document.getElementById('gene-count').innerText = player.genes;
     }
 
     /* ================= 繪製 ================= */
@@ -1836,8 +2038,84 @@
         }
     }
 
+    function drawMutations(t, r) {
+        const m = player.mutations;
+
+        // 觸足（畫在身體後方）
+        if (m.legs > 0) {
+            const n = 3 + m.legs * 2;
+            ctx.strokeStyle = '#8e6bb5';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            for (let i = 0; i < n; i++) {
+                const fx = -r * 0.8 + (1.6 * r / (n - 1)) * i;
+                const wig = Math.sin(t * 6 + i * 1.7) * 5;
+                ctx.beginPath();
+                ctx.moveTo(fx * 0.6, r * 0.55);
+                ctx.quadraticCurveTo(fx * 0.8 + wig, r + 7, fx + wig * 1.5, r + 14);
+                ctx.stroke();
+            }
+        }
+    }
+
+    function drawMutationOverlays(t, r) {
+        const m = player.mutations;
+
+        // 尖刺
+        if (m.spines > 0) {
+            const n = 10 + m.spines * 4;
+            ctx.fillStyle = '#7cb342';
+            for (let i = 0; i < n; i++) {
+                const a = (Math.PI * 2 / n) * i;
+                const bx = Math.cos(a) * (r + 1), by = Math.sin(a) * (r * 0.95 + 1);
+                const tx = Math.cos(a) * (r + 8), ty = Math.sin(a) * (r * 0.95 + 8);
+                const px = Math.cos(a + 0.18) * (r - 1), py = Math.sin(a + 0.18) * (r * 0.95 - 1);
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(tx, ty); ctx.lineTo(bx, by);
+                ctx.closePath(); ctx.fill();
+            }
+        }
+
+        // 岩石斑塊
+        if (m.skin > 0) {
+            ctx.fillStyle = 'rgba(115,125,135,0.55)';
+            const patches = [[-r * 0.5, -r * 0.2, 5], [r * 0.4, r * 0.15, 6], [r * 0.05, -r * 0.5, 4]];
+            if (m.skin > 1) patches.push([-r * 0.15, r * 0.45, 5], [r * 0.6, -r * 0.35, 4]);
+            patches.forEach(([px, py, pr]) => {
+                ctx.beginPath();
+                for (let k = 0; k < 6; k++) {
+                    const a = (Math.PI * 2 / 6) * k;
+                    const rr = pr * (k % 2 ? 1.25 : 0.85);
+                    const x = px + Math.cos(a) * rr, y = py + Math.sin(a) * rr;
+                    k === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.closePath(); ctx.fill();
+            });
+        }
+
+        // 額外手臂
+        if (m.arm > 0) {
+            ctx.fillStyle = '#d9a55f';
+            ctx.strokeStyle = '#6f4a22';
+            ctx.lineWidth = 2;
+            ctx.save();
+            ctx.translate(r + 4, 2);
+            ctx.rotate(0.5 + Math.sin(t * 4) * 0.15);
+            ctx.beginPath(); ctx.ellipse(4, 0, 6, 3.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.restore();
+            if (m.arm > 1) {
+                ctx.save();
+                ctx.translate(-r - 4, 2);
+                ctx.rotate(-0.5 - Math.sin(t * 4) * 0.15);
+                ctx.beginPath(); ctx.ellipse(-4, 0, 6, 3.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.restore();
+            }
+        }
+    }
+
     function drawPlayerPotato(t) {
         const r = player.radius;
+        const m = player.mutations;
         const moving = keys['KeyW'] || keys['KeyS'] || keys['KeyA'] || keys['KeyD'] ||
                        keys['ArrowUp'] || keys['ArrowDown'] || keys['ArrowLeft'] || keys['ArrowRight'];
         const bob = moving ? Math.sin(t * 16) * 2.2 : Math.sin(t * 2.5) * 1.2;
@@ -1864,22 +2142,35 @@
         ctx.translate(player.x, player.y + bob);
         ctx.scale(1 + squash, 1 - squash);
 
+        drawMutations(t, r);
+
+        const skinned = m.skin > 0;
         const grad = ctx.createRadialGradient(-r * 0.35, -r * 0.45, r * 0.15, 0, 0, r * 1.25);
-        grad.addColorStop(0, '#f6d796');
-        grad.addColorStop(0.55, '#dda964');
-        grad.addColorStop(1, '#a9713a');
+        if (skinned) {
+            grad.addColorStop(0, '#d8dde2');
+            grad.addColorStop(0.55, '#a8b0b8');
+            grad.addColorStop(1, '#707a84');
+        } else {
+            grad.addColorStop(0, '#f6d796');
+            grad.addColorStop(0.55, '#dda964');
+            grad.addColorStop(1, '#a9713a');
+        }
         ctx.fillStyle = grad;
-        ctx.strokeStyle = '#6f4a22';
+        ctx.strokeStyle = skinned ? '#4a5560' : '#6f4a22';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.ellipse(0, 0, r + 3, r, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = 'rgba(111,74,34,0.45)';
-        [[-r * 0.62, r * 0.3], [r * 0.58, -r * 0.1], [r * 0.25, r * 0.55]].forEach(([fx, fy]) => {
-            ctx.beginPath(); ctx.arc(fx, fy, 1.8, 0, Math.PI * 2); ctx.fill();
-        });
+        if (!skinned) {
+            ctx.fillStyle = 'rgba(111,74,34,0.45)';
+            [[-r * 0.62, r * 0.3], [r * 0.58, -r * 0.1], [r * 0.25, r * 0.55]].forEach(([fx, fy]) => {
+                ctx.beginPath(); ctx.arc(fx, fy, 1.8, 0, Math.PI * 2); ctx.fill();
+            });
+        }
+
+        drawMutationOverlays(t, r);
 
         let lookX = 0, lookY = 0, nearest = null, md = Infinity;
         enemies.forEach(e => {
@@ -1910,16 +2201,46 @@
             ctx.beginPath(); ctx.arc(6.8 + lookX, -4.8 + lookY, 0.8, 0, Math.PI * 2); ctx.fill();
         }
 
+        // 第三隻眼（複眼突變）
+        if (m.eye > 0) {
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.ellipse(0, -11, 3.2, 3.8, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#5a2ea0';
+            ctx.beginPath(); ctx.arc(lookX * 0.8, -11 + lookY * 0.8, 1.6, 0, Math.PI * 2); ctx.fill();
+            if (m.eye > 1) {
+                [[-12, -8], [12, -8]].forEach(([ex, ey]) => {
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(ex, ey, 2.4, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#5a2ea0';
+                    ctx.beginPath(); ctx.arc(ex + lookX * 0.5, ey + lookY * 0.5, 1.1, 0, Math.PI * 2); ctx.fill();
+                });
+            }
+        }
+
         ctx.fillStyle = 'rgba(255,110,110,0.35)';
         ctx.beginPath(); ctx.arc(-11, 3, 3, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(11, 3, 3, 0, Math.PI * 2); ctx.fill();
 
-        ctx.strokeStyle = '#4a2f12';
-        ctx.lineWidth = 2;
-        if (player.hp / player.maxHp > 0.3) {
-            ctx.beginPath(); ctx.arc(0, 4, 5, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+        // 嘴巴（巨口突變覆蓋）
+        if (m.mouth > 0) {
+            ctx.fillStyle = '#5a1f1f';
+            ctx.beginPath();
+            ctx.ellipse(0, 6, 7, 4.5 + (moving ? Math.abs(Math.sin(t * 10)) * 1.5 : 0), 0, 0, Math.PI * 2);
+            ctx.fill();
+            if (m.mouth > 1) {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-5, 3, 2.5, 2);
+                ctx.fillRect(-1.25, 3, 2.5, 2);
+                ctx.fillRect(2.5, 3, 2.5, 2);
+            }
         } else {
-            ctx.beginPath(); ctx.arc(0, 10, 5, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+            ctx.strokeStyle = '#4a2f12';
+            ctx.lineWidth = 2;
+            if (player.hp / player.maxHp > 0.3) {
+                ctx.beginPath(); ctx.arc(0, 4, 5, Math.PI * 0.15, Math.PI * 0.85); ctx.stroke();
+            } else {
+                ctx.beginPath(); ctx.arc(0, 10, 5, Math.PI * 1.2, Math.PI * 1.8); ctx.stroke();
+            }
         }
 
         drawAccessory(selectedCharKey, r);
@@ -1942,13 +2263,14 @@
         ctx.textAlign = 'center';
         if (player.shieldTime > 0) ctx.fillText('🛡️' + Math.ceil(player.shieldTime), player.x - 18, player.y - r - 14);
         if (player.rageTime > 0) ctx.fillText('🔥' + Math.ceil(player.rageTime), player.x + 18, player.y - r - 14);
+        if (player.confuseTime > 0) ctx.fillText('💫', player.x, player.y - r - 16);
 
-        // 衝刺冷卻條
-        const dashP = player.dashCd > 0 ? 1 - player.dashCd / 1.3 : 1;
+        const maxCd = dashMaxCd();
+        const dashP = player.dashCd > 0 ? 1 - player.dashCd / maxCd : 1;
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(player.x - 16, player.y + r + 12, 32, 4);
+        ctx.fillRect(player.x - 16, player.y + r + 16, 32, 4);
         ctx.fillStyle = dashP >= 1 ? '#00ffcc' : '#777';
-        ctx.fillRect(player.x - 16, player.y + r + 12, 32 * dashP, 4);
+        ctx.fillRect(player.x - 16, player.y + r + 16, 32 * dashP, 4);
     }
 
     function drawEnemySprite(e, t) {

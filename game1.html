@@ -81,6 +81,51 @@
         .char-name { font-size: 17px; font-weight: bold; color: #00ffcc; margin-bottom: 6px; }
         .char-desc { font-size: 12px; color: #aaa; line-height: 1.4; }
 
+        .menu-btns { display: flex; gap: 14px; }
+
+        /* 結算報告 */
+        #report-modal {
+            width: 640px; background: #181824; border: 2px solid #00ffcc;
+            border-radius: 12px; padding: 20px;
+        }
+        #report-modal h2 { color: #00ffcc; margin-bottom: 12px; text-align: center; }
+        .rep-summary {
+            display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center;
+            font-size: 14px; color: #ccc; margin-bottom: 16px;
+            background: #101018; border-radius: 8px; padding: 10px;
+        }
+        .rep-summary b { color: #ffcc00; }
+        .rep-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+        .rep-name { width: 90px; text-align: right; color: #eee; font-weight: bold; }
+        .rep-bar-bg { flex: 1; height: 14px; background: #252538; border-radius: 7px; overflow: hidden; }
+        .rep-bar { height: 100%; background: linear-gradient(90deg, #00ffcc, #3399ff); }
+        .rep-val { width: 120px; color: #aaa; }
+
+        /* 實驗室 */
+        .lab-points { font-size: 16px; color: #00ffcc; font-weight: bold; margin-bottom: 12px; }
+        .lab-points b { color: #ffcc00; font-size: 20px; }
+        .lab-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; width: 100%; max-width: 760px; margin-bottom: 18px;
+        }
+        .lab-card {
+            background: #252538; border: 2px solid #444466; border-radius: 10px;
+            padding: 12px; text-align: center; display: flex; flex-direction: column;
+            gap: 6px; align-items: center;
+        }
+        .lab-head { font-size: 15px; color: #00ffcc; }
+        .lab-desc { font-size: 12px; color: #aaa; min-height: 32px; }
+        .lab-lvl { font-size: 13px; color: #ffcc00; font-weight: bold; }
+
+        /* 暫停設定 */
+        .settings-box {
+            display: flex; gap: 24px; background: rgba(255,255,255,0.06);
+            border-radius: 10px; padding: 14px 22px; margin-bottom: 18px; font-size: 14px;
+        }
+        .settings-box label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .settings-box input { width: 16px; height: 16px; cursor: pointer; }
+
+        /* 商店 */
         #shop-modal {
             width: 900px; height: 600px; background: #181824;
             border: 2px solid #ffcc00; border-radius: 12px; padding: 16px;
@@ -107,7 +152,7 @@
         }
         .weapon-slots { display: flex; gap: 8px; }
         .weapon-slot {
-            width: 48px; height: 48px; background: #252538; border: 1px solid #444;
+            width: 52px; height: 52px; background: #252538; border: 1px solid #444;
             border-radius: 6px; display: flex; flex-direction: column; align-items: center;
             justify-content: center; font-size: 10px; position: relative; cursor: pointer;
         }
@@ -152,21 +197,61 @@
         </div>
     </div>
 
+    <!-- 開始畫面 -->
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
-        <p>WASD / 方向鍵移動 | 武器自動瞄準射擊 | 共 20 波，每 5 波 Boss 來襲<br>
-        擊殺敵人會掉落 ❤️💰🧲💣🛡️🔥 道具 | 最終波擊殺 Boss 即通關！</p>
+        <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺閃避</b> | Esc 暫停 | 武器自動射擊<br>
+        共 20 波、每 5 波 Boss | 精英怪與武器詞綴 | 擊殺敵人會掉落道具 | 最終波擊殺 Boss 通關</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
             <span>💀 總擊殺: <b id="rec-kills">0</b></span>
-            <span>👑 Boss擊殺: <b id="rec-boss">0</b></span>
+            <span>👑 Boss: <b id="rec-boss">0</b></span>
             <span>💎 總材料: <b id="rec-gems">0</b></span>
             <span>🎮 局數: <b id="rec-runs">0</b></span>
+            <span>🔬 研究點數: <b id="rec-points">0</b></span>
             <button id="clear-save-btn">清除存檔</button>
         </div>
         <div class="char-grid" id="char-grid"></div>
-        <button id="start-btn">開始冒險</button>
+        <div class="menu-btns">
+            <button id="start-btn">開始冒險</button>
+            <button id="lab-btn" style="background:linear-gradient(135deg,#00aa88,#0066aa);">🔬 馬鈴薯實驗室</button>
+        </div>
+    </div>
+
+    <!-- 實驗室 -->
+    <div id="lab-screen" class="overlay hidden">
+        <h1>🔬 馬鈴薯實驗室</h1>
+        <p>永久強化跨局保留 | 每局結算獲得研究點數 = 波次 + 擊殺÷20 + Boss×5 + 通關×20</p>
+        <div class="lab-points">研究點數: <b id="lab-points">0</b></div>
+        <div class="lab-grid" id="lab-grid"></div>
+        <button id="lab-back-btn" style="background:#444466;">返回主選單</button>
+    </div>
+
+    <!-- 暫停 -->
+    <div id="pause-screen" class="overlay hidden">
+        <h1>⏸ 暫停中</h1>
+        <div class="settings-box">
+            <label><input type="checkbox" id="chk-shake"> 螢幕震動</label>
+            <label><input type="checkbox" id="chk-dmg"> 傷害數字</label>
+            <label><input type="checkbox" id="chk-sound"> 音效</label>
+        </div>
+        <div class="menu-btns">
+            <button id="pause-resume-btn">繼續遊戲</button>
+            <button id="pause-restart-btn" style="background:#444466;">重新開始</button>
+            <button id="pause-menu-btn" style="background:#444466;">回主選單</button>
+        </div>
+    </div>
+
+    <!-- 波次結算 -->
+    <div id="report-screen" class="overlay hidden">
+        <div id="report-modal">
+            <h2 id="report-title">第 1 波結算報告</h2>
+            <div id="report-content"></div>
+            <div style="text-align:center; margin-top:14px;">
+                <button id="report-continue-btn">進入商店 →</button>
+            </div>
+        </div>
     </div>
 
     <div id="gameover-screen" class="overlay hidden">
@@ -183,6 +268,7 @@
         <button id="victory-restart-btn">再玩一次</button>
     </div>
 
+    <!-- 商店 -->
     <div id="shop-screen" class="overlay hidden">
         <div id="shop-modal">
             <div class="shop-header">
@@ -204,11 +290,10 @@
                     <div class="stats-title" style="margin-top:10px;">套裝羈絆加成</div>
                     <div id="synergy-info" style="font-size:11px; color:#00ffcc; line-height:1.4;">無</div>
                 </div>
-
                 <div class="shop-right">
                     <div class="weapons-bar">
                         <div style="font-size:13px; font-weight:bold; color:#ffcc00;">
-                            目前武器 (<span id="weap-count">1</span>/6) <span style="font-size:11px; color:#888;">(點擊兩把相同武器進行合成升級)</span>
+                            目前武器 (<span id="weap-count">1</span>/6) <span style="font-size:11px; color:#888;">(點擊兩把相同武器合成升級)</span>
                         </div>
                         <div class="weapon-slots" id="weapon-slots"></div>
                     </div>
@@ -224,79 +309,115 @@
 </div>
 
 <script>
-    /* ================= 音效 ================= */
+    /* ================= 音效（含節流） ================= */
     const AudioEngine = {
-        ctx: null,
+        ctx: null, master: null, enabled: true, last: {},
         init() {
-            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+            if (!this.ctx) {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.master = this.ctx.createGain();
+                this.master.gain.value = 0.9;
+                this.master.connect(this.ctx.destination);
+            }
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+        },
+        gate(name, minGap) {
+            if (!this.ctx || !this.enabled) return false;
+            const n = performance.now();
+            if (this.last[name] && n - this.last[name] < minGap) return false;
+            this.last[name] = n;
+            return true;
         },
         playShoot() {
-            if (!this.ctx) return;
+            if (!this.gate('shoot', 45)) return;
+            const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(400, this.ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
-            gain.gain.setValueAtTime(0.10, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+            osc.frequency.setValueAtTime(400, t);
+            osc.frequency.exponentialRampToValueAtTime(80, t + 0.08);
+            gain.gain.setValueAtTime(0.10, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+            osc.connect(gain); gain.connect(this.master);
+            osc.start(); osc.stop(t + 0.08);
         },
         playHit() {
-            if (!this.ctx) return;
+            if (!this.gate('hit', 40)) return;
+            const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'square';
-            osc.frequency.setValueAtTime(150, this.ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.06);
-            gain.gain.setValueAtTime(0.13, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(); osc.stop(this.ctx.currentTime + 0.06);
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.06);
+            gain.gain.setValueAtTime(0.13, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.06);
+            osc.connect(gain); gain.connect(this.master);
+            osc.start(); osc.stop(t + 0.06);
         },
         playExplosion() {
-            if (!this.ctx) return;
+            if (!this.gate('boom', 80)) return;
+            const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-            osc.frequency.linearRampToValueAtTime(30, this.ctx.currentTime + 0.25);
-            gain.gain.setValueAtTime(0.28, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+            osc.frequency.setValueAtTime(120, t);
+            osc.frequency.linearRampToValueAtTime(30, t + 0.25);
+            gain.gain.setValueAtTime(0.28, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+            osc.connect(gain); gain.connect(this.master);
+            osc.start(); osc.stop(t + 0.25);
         },
         playGem() {
-            if (!this.ctx) return;
+            if (!this.gate('gem', 60)) return;
+            const t = this.ctx.currentTime;
             const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-            osc.frequency.setValueAtTime(1200, this.ctx.currentTime + 0.04);
-            gain.gain.setValueAtTime(0.07, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-            osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+            osc.frequency.setValueAtTime(800, t);
+            osc.frequency.setValueAtTime(1200, t + 0.04);
+            gain.gain.setValueAtTime(0.07, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+            osc.connect(gain); gain.connect(this.master);
+            osc.start(); osc.stop(t + 0.08);
         }
     };
 
     /* ================= 存檔系統 ================= */
     const SaveSystem = {
-        KEY: 'brotato_pro_save_v1',
+        KEY: 'brotato_pro_save_v2',
         defaults() {
-            return { bestWave: 0, wins: 0, runs: 0, totalKills: 0, totalBossKills: 0, totalMaterials: 0 };
+            return {
+                bestWave: 0, wins: 0, runs: 0,
+                totalKills: 0, totalBossKills: 0, totalMaterials: 0,
+                points: 0,
+                upgrades: { hp: 0, gold: 0, drop: 0, dmg: 0, speed: 0, crit: 0 },
+                settings: { shake: true, dmg: true, sound: true }
+            };
         },
         load() {
             try {
                 const d = JSON.parse(localStorage.getItem(this.KEY));
-                return d ? Object.assign(this.defaults(), d) : this.defaults();
+                if (!d) return this.defaults();
+                const base = this.defaults();
+                return Object.assign(base, d, {
+                    upgrades: Object.assign(base.upgrades, d.upgrades || {}),
+                    settings: Object.assign(base.settings, d.settings || {})
+                });
             } catch (e) { return this.defaults(); }
         },
-        save(data) {
-            try { localStorage.setItem(this.KEY, JSON.stringify(data)); } catch (e) {}
-        },
-        reset() {
-            try { localStorage.removeItem(this.KEY); } catch (e) {}
-        }
+        save(data) { try { localStorage.setItem(this.KEY, JSON.stringify(data)); } catch (e) {} },
+        reset() { try { localStorage.removeItem(this.KEY); } catch (e) {} }
     };
     let saveData = SaveSystem.load();
+    let settings = saveData.settings;
+    AudioEngine.enabled = settings.sound;
+    let metaDropBonus = 0;
+    let lastEarnedPoints = 0;
+
+    const UPGRADE_DEFS = [
+        { id: 'hp',    name: '結實表皮', desc: '每級最大生命 +5',        max: 5, cost: l => (l + 1) * 12, emoji: '🧬' },
+        { id: 'gold',  name: '起始補給', desc: '每級開局材料 +5',        max: 5, cost: l => (l + 1) * 10, emoji: '💰' },
+        { id: 'drop',  name: '拾荒者',   desc: '每級道具掉落率 +1%',     max: 5, cost: l => (l + 1) * 15, emoji: '🎁' },
+        { id: 'dmg',   name: '鋒利之刃', desc: '每級傷害 +2%',           max: 5, cost: l => (l + 1) * 15, emoji: '⚔️' },
+        { id: 'speed', name: '迅捷之靴', desc: '每級移動速度 +2%',       max: 5, cost: l => (l + 1) * 12, emoji: '👟' },
+        { id: 'crit',  name: '幸運星',   desc: '每級暴擊率 +1%',         max: 3, cost: l => (l + 1) * 20, emoji: '🍀' }
+    ];
 
     function renderRecords() {
         document.getElementById('rec-wave').innerText = saveData.bestWave;
@@ -305,6 +426,7 @@
         document.getElementById('rec-boss').innerText = saveData.totalBossKills;
         document.getElementById('rec-gems').innerText = saveData.totalMaterials;
         document.getElementById('rec-runs').innerText = saveData.runs;
+        document.getElementById('rec-points').innerText = saveData.points || 0;
     }
 
     function finalizeSave(won) {
@@ -313,8 +435,44 @@
         saveData.totalKills += runStats.kills;
         saveData.totalBossKills += runStats.bossKills;
         saveData.totalMaterials += runStats.gems;
+        const earned = currentWave + Math.floor(runStats.kills / 20) + runStats.bossKills * 5 + (won ? 20 : 0);
+        saveData.points = (saveData.points || 0) + earned;
         SaveSystem.save(saveData);
         renderRecords();
+        return earned;
+    }
+
+    function renderLab() {
+        document.getElementById('lab-points').innerText = saveData.points || 0;
+        const grid = document.getElementById('lab-grid');
+        grid.innerHTML = '';
+        UPGRADE_DEFS.forEach(u => {
+            const lvl = saveData.upgrades[u.id] || 0;
+            const maxed = lvl >= u.max;
+            const cost = u.cost(lvl);
+            const card = document.createElement('div');
+            card.className = 'lab-card';
+            card.innerHTML = `
+                <div class="lab-head"><span style="font-size:20px;">${u.emoji}</span> <b>${u.name}</b></div>
+                <div class="lab-desc">${u.desc}</div>
+                <div class="lab-lvl">Lv ${lvl} / ${u.max}</div>
+                <button style="padding:6px 14px; font-size:13px; ${maxed ? 'background:#444466;cursor:default;' : ''}">
+                    ${maxed ? '已滿級' : '升級（' + cost + ' 點）'}
+                </button>`;
+            if (!maxed) {
+                card.querySelector('button').onclick = () => {
+                    if ((saveData.points || 0) >= cost) {
+                        saveData.points -= cost;
+                        saveData.upgrades[u.id] = lvl + 1;
+                        SaveSystem.save(saveData);
+                        renderLab();
+                        renderRecords();
+                        showToast(`${u.name} 升級至 Lv ${lvl + 1}！`);
+                    } else showToast('研究點數不足！');
+                };
+            }
+            grid.appendChild(card);
+        });
     }
 
     /* ================= 基礎 ================= */
@@ -322,7 +480,12 @@
     const ctx = canvas.getContext('2d');
 
     const keys = {};
-    window.addEventListener('keydown', e => { keys[e.code] = true; AudioEngine.init(); });
+    window.addEventListener('keydown', e => {
+        keys[e.code] = true;
+        AudioEngine.init();
+        if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) tryDash(); }
+        if (e.code === 'Escape') togglePause();
+    });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
     const MAX_WAVE = 20;
@@ -344,6 +507,24 @@
         RAGE:   { emoji: '🔥', name: '狂暴 8 秒' }
     };
 
+    const ELITE_AFFIXES = {
+        BOMBER: { name: '爆彈', emoji: '💀' },
+        VAMP:   { name: '吸血', emoji: '🩸' },
+        SWIFT:  { name: '迅捷', emoji: '⚡' },
+        TITAN:  { name: '巨獸', emoji: '🛡️' },
+        GILDED: { name: '鍍金', emoji: '💎' }
+    };
+
+    const WEAPON_AFFIXES = [
+        { id: 'PIERCE',   name: '穿透',   desc: '子彈可穿透 1 個敵人',       color: '#66ccff' },
+        { id: 'RICOCHET', name: '彈射',   desc: '命中後彈向附近的另一個敵人', color: '#ffaa33' },
+        { id: 'HOMING',   name: '追蹤',   desc: '子彈會微微追蹤敵人',         color: '#cc66ff' },
+        { id: 'VAMP',     name: '吸血',   desc: '命中時 15% 機率回復 1 HP',   color: '#ff6666' },
+        { id: 'BRUTAL',   name: '暴傷',   desc: '暴擊傷害倍率 ×3',            color: '#ffcc00' },
+        { id: 'RAPID',    name: '急速',   desc: '此武器冷卻 -15%',            color: '#66ff99' },
+        { id: 'POWER',    name: '強力',   desc: '此武器傷害 +25%',            color: '#ff9966' }
+    ];
+
     let gameState = 'START';
     let currentWave = 1;
     let waveTimer = 30;
@@ -354,6 +535,8 @@
     let selectedCharKey = 'RANGER';
     let announcement = { text: '', sub: '', timer: 0 };
     let runStats = { kills: 0, gems: 0, bossKills: 0 };
+    let waveStats = { elapsed: 0, kills: 0, damageDealt: 0, damageTaken: 0, goldEarned: 0, weaponDamage: {} };
+    let eidCounter = 0;
 
     let toastTimer = null;
     function showToast(msg) {
@@ -363,11 +546,7 @@
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => t.classList.add('hidden'), 1800);
     }
-
-    function announce(text, sub = '') {
-        announcement = { text, sub, timer: 2.6 };
-    }
-
+    function announce(text, sub = '') { announcement = { text, sub, timer: 2.6 }; }
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
     const CHARACTERS = {
@@ -426,13 +605,52 @@
         hp: 100, maxHp: 100, hpRegen: 0.2,
         lifeSteal: 0, dmgMult: 1.0, attackSpeedMult: 1.0,
         critChance: 0.05, armor: 0, engineering: 0, gold: 0,
-        shieldTime: 0, rageTime: 0,
+        shieldTime: 0, rageTime: 0, iFrame: 0,
+        dashTime: 0, dashCd: 0, dashDirX: 1, dashDirY: 0, lastDirX: 1, lastDirY: 0,
         weapons: []
     };
 
     let enemies = [], bullets = [], gems = [], particles = [], floatingTexts = [];
     let turrets = [], pickups = [], shockwaves = [], mortarTargets = [], lasers = [];
     let selectedCombineIndex = null;
+
+    /* ================= 暫停 / 衝刺 ================= */
+    function togglePause() {
+        if (gameState === 'PLAYING') {
+            gameState = 'PAUSED';
+            document.getElementById('pause-screen').classList.remove('hidden');
+        } else if (gameState === 'PAUSED') {
+            gameState = 'PLAYING';
+            document.getElementById('pause-screen').classList.add('hidden');
+            lastTime = performance.now();
+        }
+    }
+
+    function goToMenu() {
+        clearInterval(timerInterval);
+        gameState = 'START';
+        renderRecords();
+        ['hud', 'pause-screen', 'shop-screen', 'report-screen', 'gameover-screen', 'victory-screen'].forEach(id =>
+            document.getElementById(id).classList.add('hidden'));
+        document.getElementById('start-screen').classList.remove('hidden');
+    }
+
+    function tryDash() {
+        if (gameState !== 'PLAYING' || player.dashCd > 0) return;
+        let dx = 0, dy = 0;
+        if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+        if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+        if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+        if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+        if (dx === 0 && dy === 0) { dx = player.lastDirX; dy = player.lastDirY; }
+        const d = Math.hypot(dx, dy) || 1;
+        player.dashDirX = dx / d;
+        player.dashDirY = dy / d;
+        player.dashTime = 0.18;
+        player.iFrame = 0.28;
+        player.dashCd = 1.3;
+        createParticles(player.x, player.y, '#dda964', 6);
+    }
 
     /* ================= 初始化 ================= */
     function renderCharGrid() {
@@ -460,22 +678,32 @@
         player.lifeSteal = 0; player.dmgMult = 1.0; player.attackSpeedMult = 1.0;
         player.critChance = 0.05; player.armor = 0; player.engineering = 0;
         player.speedMult = 1.0; player.gold = 0;
-        player.shieldTime = 0; player.rageTime = 0;
+        player.shieldTime = 0; player.rageTime = 0; player.iFrame = 0;
+        player.dashTime = 0; player.dashCd = 0;
         player.weapons = [];
         turrets = [];
         runStats = { kills: 0, gems: 0, bossKills: 0 };
 
+        // 套用實驗室永久強化
+        const up = saveData.upgrades || {};
+        player.maxHp += 5 * (up.hp || 0);
+        player.gold += 5 * (up.gold || 0);
+        player.dmgMult += 0.02 * (up.dmg || 0);
+        player.speedMult += 0.02 * (up.speed || 0);
+        player.critChance += 0.01 * (up.crit || 0);
+        metaDropBonus = 0.01 * (up.drop || 0);
+        player.hp = player.maxHp;
+
         const charDef = CHARACTERS[selectedCharKey];
-        addWeapon(WEAPON_TYPES[charDef.startWeapon], 1);
+        addWeapon(WEAPON_TYPES[charDef.startWeapon], 1, null);
         charDef.apply(player);
-        player.hp = Math.min(player.hp, player.maxHp);
 
         startWave(1);
     }
 
-    function addWeapon(template, tier = 1) {
+    function addWeapon(template, tier = 1, affix = null) {
         if (player.weapons.length < 6) {
-            player.weapons.push({ ...template, tier, lastShot: 0 });
+            player.weapons.push({ ...template, tier, affix, lastShot: 0 });
             return true;
         }
         return false;
@@ -495,6 +723,7 @@
         spawnTimer = 0; screenShake = 0;
         player.shieldTime = 0; player.rageTime = 0;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
+        waveStats = { elapsed: 0, kills: 0, damageDealt: 0, damageTaken: 0, goldEarned: 0, weaponDamage: {} };
         gameState = 'PLAYING';
 
         if (currentWave > saveData.bestWave) {
@@ -503,10 +732,8 @@
             renderRecords();
         }
 
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('shop-screen').classList.add('hidden');
-        document.getElementById('gameover-screen').classList.add('hidden');
-        document.getElementById('victory-screen').classList.add('hidden');
+        ['start-screen', 'shop-screen', 'gameover-screen', 'victory-screen', 'pause-screen', 'report-screen', 'lab-screen'].forEach(id =>
+            document.getElementById(id).classList.add('hidden'));
         document.getElementById('hud').classList.remove('hidden');
 
         document.getElementById('wave-num').innerText = `${currentWave}/${MAX_WAVE}`;
@@ -524,6 +751,7 @@
         timerInterval = setInterval(() => {
             if (gameState === 'PLAYING') {
                 waveTimer--;
+                waveStats.elapsed++;
                 if (currentWave !== MAX_WAVE) {
                     document.getElementById('wave-timer').innerText = waveTimer;
                 }
@@ -546,29 +774,58 @@
     }
 
     function completeWave() {
-        gameState = 'SHOP';
+        gameState = 'REPORT';
         document.getElementById('hud').classList.add('hidden');
-        openShop();
+        showReport();
+    }
+
+    function showReport() {
+        const c = document.getElementById('report-content');
+        const dps = waveStats.elapsed > 0 ? Math.round(waveStats.damageDealt / waveStats.elapsed) : 0;
+        const total = waveStats.damageDealt || 1;
+        const rows = Object.entries(waveStats.weaponDamage)
+            .sort((a, b) => b[1] - a[1])
+            .map(([name, dmg]) => {
+                const pct = Math.max(1, Math.round(dmg / total * 100));
+                return `<div class="rep-row">
+                    <span class="rep-name">${name}</span>
+                    <div class="rep-bar-bg"><div class="rep-bar" style="width:${pct}%"></div></div>
+                    <span class="rep-val">${dmg}（${Math.round(dmg / total * 100)}%）</span>
+                </div>`;
+            }).join('') || '<div style="color:#888; text-align:center;">本波無傷害紀錄</div>';
+
+        c.innerHTML = `
+            <div class="rep-summary">
+                <span>⏱️ 耗時 <b>${waveStats.elapsed}</b> 秒</span>
+                <span>💀 擊殺 <b>${waveStats.kills}</b></span>
+                <span>⚔️ 總輸出 <b>${waveStats.damageDealt}</b>（DPS ${dps}）</span>
+                <span>🩸 承受傷害 <b>${Math.round(waveStats.damageTaken)}</b></span>
+                <span>💰 獲得材料 <b>+${waveStats.goldEarned}</b></span>
+            </div>
+            <div>${rows}</div>`;
+        document.getElementById('report-title').innerText = `第 ${currentWave} 波結算報告`;
+        document.getElementById('report-screen').classList.remove('hidden');
     }
 
     function gameOver() {
         player.hp = 0;
         gameState = 'GAMEOVER';
         clearInterval(timerInterval);
-        finalizeSave(false);
+        const earned = finalizeSave(false);
         document.getElementById('gameover-reason').innerText = `你堅持到了第 ${currentWave} 波！`;
         document.getElementById('gameover-stats').innerText =
-            `本局擊殺 ${runStats.kills} 個敵人 · Boss ${runStats.bossKills} 隻 · 收集 ${runStats.gems} 材料`;
+            `擊殺 ${runStats.kills} · Boss ${runStats.bossKills} · 材料 ${runStats.gems} · 獲得 +${earned} 研究點數`;
         document.getElementById('hud').classList.add('hidden');
+        document.getElementById('pause-screen').classList.add('hidden');
         document.getElementById('gameover-screen').classList.remove('hidden');
     }
 
     function triggerVictory() {
         gameState = 'VICTORY';
         clearInterval(timerInterval);
-        finalizeSave(true);
+        const earned = finalizeSave(true);
         document.getElementById('victory-stats').innerText =
-            `本局擊殺 ${runStats.kills} 個敵人 · 收集 ${runStats.gems} 材料`;
+            `擊殺 ${runStats.kills} · 材料 ${runStats.gems} · 獲得 +${earned} 研究點數`;
         document.getElementById('hud').classList.add('hidden');
         document.getElementById('victory-screen').classList.remove('hidden');
     }
@@ -585,6 +842,8 @@
     }
 
     function openShop() {
+        gameState = 'SHOP';
+        document.getElementById('report-screen').classList.add('hidden');
         document.getElementById('shop-screen').classList.remove('hidden');
         document.getElementById('shop-wave-title').innerText = currentWave;
         document.getElementById('shop-gold').innerText = player.gold;
@@ -616,8 +875,10 @@
             slot.className = 'weapon-slot';
             if (selectedCombineIndex === idx) slot.style.borderColor = '#ff0055';
             slot.style.borderLeft = `4px solid ${TIER_COLORS[w.tier - 1]}`;
+            slot.title = `${w.name} T${w.tier}` + (w.affix ? `｜${w.affix.name}：${w.affix.desc}` : '');
             slot.innerHTML = `
                 <div style="color:${w.color}; font-weight:bold;">${w.name}</div>
+                ${w.affix ? `<div style="color:${w.affix.color}; font-size:8px;">${w.affix.name}</div>` : ''}
                 <div class="weapon-level" style="color:${TIER_COLORS[w.tier - 1]}">T${w.tier}</div>`;
             slot.onclick = () => handleWeaponClick(idx);
             slotsEl.appendChild(slot);
@@ -654,11 +915,13 @@
             const wKeys = Object.keys(WEAPON_TYPES);
             const wTemp = WEAPON_TYPES[wKeys[Math.floor(Math.random() * wKeys.length)]];
             const tier = Math.random() < 0.25 ? 2 : 1;
+            const affix = (tier === 2 || Math.random() < 0.55)
+                ? WEAPON_AFFIXES[Math.floor(Math.random() * WEAPON_AFFIXES.length)] : null;
             choices.push({
-                isWeapon: true, weaponData: wTemp, tier,
-                name: `武器: ${wTemp.name} (T${tier})`,
-                desc: `${wTemp.desc} [${wTemp.tag}]`,
-                price: (28 + currentWave * 5) * tier,
+                isWeapon: true, weaponData: wTemp, tier, affix,
+                name: `武器: ${wTemp.name} (T${tier})${affix ? '「' + affix.name + '」' : ''}`,
+                desc: `${wTemp.desc} [${wTemp.tag}]${affix ? '<br>詞綴：' + affix.desc : ''}`,
+                price: (28 + currentWave * 5) * tier + (affix ? 10 : 0),
                 tierColor: TIER_COLORS[tier - 1]
             });
         }
@@ -691,7 +954,7 @@
                 if (player.gold < item.price) { showToast('材料不足！'); return; }
                 player.gold -= item.price;
                 document.getElementById('shop-gold').innerText = player.gold;
-                if (item.isWeapon) addWeapon(item.weaponData, item.tier);
+                if (item.isWeapon) addWeapon(item.weaponData, item.tier, item.affix);
                 else item.itemData.apply(player);
                 card.style.opacity = '0.4';
                 card.style.pointerEvents = 'none';
@@ -710,17 +973,32 @@
         } else showToast('材料不足！');
     };
     document.getElementById('next-wave-btn').onclick = () => startWave(currentWave + 1);
+    document.getElementById('report-continue-btn').onclick = () => openShop();
     document.getElementById('start-btn').onclick = () => initGame();
     document.getElementById('restart-btn').onclick = () => initGame();
     document.getElementById('victory-restart-btn').onclick = () => initGame();
+    document.getElementById('pause-resume-btn').onclick = () => togglePause();
+    document.getElementById('pause-restart-btn').onclick = () => initGame();
+    document.getElementById('pause-menu-btn').onclick = () => goToMenu();
+    document.getElementById('lab-btn').onclick = () => { renderLab(); document.getElementById('lab-screen').classList.remove('hidden'); };
+    document.getElementById('lab-back-btn').onclick = () => document.getElementById('lab-screen').classList.add('hidden');
     document.getElementById('clear-save-btn').onclick = () => {
-        if (confirm('確定要清除所有存檔紀錄嗎？')) {
+        if (confirm('確定要清除所有存檔紀錄與強化嗎？')) {
             SaveSystem.reset();
             saveData = SaveSystem.defaults();
+            settings = saveData.settings;
             renderRecords();
             showToast('存檔已清除');
         }
     };
+
+    // 設定選項
+    document.getElementById('chk-shake').checked = settings.shake;
+    document.getElementById('chk-dmg').checked = settings.dmg;
+    document.getElementById('chk-sound').checked = settings.sound;
+    document.getElementById('chk-shake').onchange = e => { settings.shake = e.target.checked; SaveSystem.save(saveData); };
+    document.getElementById('chk-dmg').onchange = e => { settings.dmg = e.target.checked; SaveSystem.save(saveData); };
+    document.getElementById('chk-sound').onchange = e => { settings.sound = e.target.checked; AudioEngine.enabled = settings.sound; SaveSystem.save(saveData); };
 
     /* ================= 敵人 / Boss ================= */
     function spawnEnemy(forceType = null, fx = null, fy = null) {
@@ -747,12 +1025,14 @@
         }
 
         let enemy = {
+            eid: ++eidCounter,
             x, y, type: enemyType, vx: 0, vy: 0,
             radius: 14, speed: 1.7 + Math.min(1.2, wv * 0.04),
             hp: Math.round(18 + wv * 9 + wv * wv * 0.5),
             damage: Math.round(6 + wv * 1.3),
             color: '#e74c3c', flashTimer: 0,
-            lastShot: performance.now(), exp: 1
+            lastShot: performance.now(), exp: 1,
+            elite: null, goldBonus: 0
         };
         enemy.maxHp = enemy.hp;
 
@@ -784,6 +1064,22 @@
                 skills: def.skills.slice(), skillTimer: 2.2, skillInterval: def.skillInterval,
                 state: 'IDLE', stateTimer: 0, chargeDirX: 0, chargeDirY: 0, enraged: false
             });
+        }
+
+        // 精英判定
+        if (enemyType !== 'BOSS' && !forceType && wv >= 3 && Math.random() < 0.06 + wv * 0.002) {
+            const ids = Object.keys(ELITE_AFFIXES);
+            const a = ids[Math.floor(Math.random() * ids.length)];
+            enemy.elite = a;
+            enemy.exp += 2;
+            enemy.goldBonus = 2;
+            if (a === 'SWIFT') { enemy.speed *= 1.6; }
+            else if (a === 'TITAN') {
+                enemy.radius = Math.round(enemy.radius * 1.5);
+                enemy.hp = Math.round(enemy.hp * 2.5);
+                enemy.maxHp = enemy.hp;
+                enemy.goldBonus = 4;
+            } else if (a === 'GILDED') { enemy.goldBonus = 3; }
         }
 
         enemies.push(enemy);
@@ -837,8 +1133,7 @@
 
         if (e.skillTimer <= 0) {
             e.skillTimer = e.skillInterval;
-            const skill = e.skills[Math.floor(Math.random() * e.skills.length)];
-            castBossSkill(e, skill, angle);
+            castBossSkill(e, e.skills[Math.floor(Math.random() * e.skills.length)], angle);
         }
     }
 
@@ -870,7 +1165,7 @@
                     bullets.push({
                         x: e.x, y: e.y,
                         vx: Math.cos(a) * 3.4, vy: Math.sin(a) * 3.4,
-                        radius: 6, damage: 12, isEnemy: true, color: '#d183ff', life: 4
+                        radius: 6, damage: 12, isEnemy: true, color: '#d183ff', life: 4, src: 'Boss'
                     });
                 }
                 break;
@@ -888,7 +1183,7 @@
             }
             case 'LASER':
                 lasers.push({
-                    owner: e, angle: angle,
+                    owner: e, angle,
                     sweep: (Math.random() < 0.5 ? -1 : 1) * 1.5,
                     telegraph: 0.9, duration: 2.4, width: 16, damage: 35
                 });
@@ -914,11 +1209,22 @@
         return Math.hypot(px - (ox + dx * t), py - (oy + dy * t));
     }
 
+    function findNearestEnemyExcept(x, y, range, exceptEid) {
+        let best = null, bd = range;
+        enemies.forEach(e => {
+            if (e.eid === exceptEid) return;
+            const d = Math.hypot(e.x - x, e.y - y);
+            if (d < bd) { bd = d; best = e; }
+        });
+        return best;
+    }
+
     /* ================= 傷害 / 掉落 ================= */
     function applyDamageToPlayer(amount) {
         if (gameState !== 'PLAYING') return;
-        if (player.shieldTime > 0) return;
+        if (player.shieldTime > 0 || player.iFrame > 0) return;
         const actual = Math.max(1, amount - player.armor * 0.5);
+        waveStats.damageTaken += actual;
         player.hp -= actual;
         screenShake = Math.max(screenShake, 0.2);
         AudioEngine.playHit();
@@ -926,7 +1232,7 @@
     }
 
     function tryDropPickup(x, y, guaranteed = false) {
-        if (!guaranteed && Math.random() > 0.045) return;
+        if (!guaranteed && Math.random() > 0.045 + metaDropBonus) return;
         const types = ['HEAL', 'HEAL', 'GOLD', 'MAGNET', 'SHIELD', 'RAGE', 'NUKE'];
         pickups.push({
             x, y, type: types[Math.floor(Math.random() * types.length)],
@@ -944,6 +1250,7 @@
                 break;
             case 'GOLD':
                 player.gold += 15;
+                waveStats.goldEarned += 15;
                 addFloatingText('+15 材料', player.x, player.y - 22, '#ffcc00', 16);
                 break;
             case 'MAGNET':
@@ -954,8 +1261,7 @@
                 addFloatingText('全場轟炸!', player.x, player.y - 22, '#ff5500', 20);
                 screenShake = 0.8;
                 AudioEngine.playExplosion();
-                const targets = [...enemies];
-                targets.forEach(e => damageEnemy(e, 80, false, (e.x - player.x) * 0.02, (e.y - player.y) * 0.02));
+                [...enemies].forEach(e => damageEnemy(e, 80, false, (e.x - player.x) * 0.02, (e.y - player.y) * 0.02, '💣轟炸'));
                 break;
             }
             case 'SHIELD':
@@ -969,7 +1275,11 @@
         }
     }
 
-    function damageEnemy(enemy, damage, isCrit, kx = 0, ky = 0) {
+    function damageEnemy(enemy, damage, isCrit, kx = 0, ky = 0, src = '未知') {
+        const eff = Math.min(enemy.hp, damage);
+        waveStats.damageDealt += eff;
+        waveStats.weaponDamage[src] = (waveStats.weaponDamage[src] || 0) + eff;
+
         enemy.hp -= damage;
         enemy.flashTimer = 0.1;
         enemy.vx += kx;
@@ -980,13 +1290,36 @@
         if (enemy.hp <= 0) {
             AudioEngine.playHit();
             runStats.kills++;
+            waveStats.kills++;
+
             if (enemy.type === 'BOSS') {
                 runStats.bossKills++;
                 tryDropPickup(enemy.x, enemy.y, true);
                 tryDropPickup(enemy.x, enemy.y, true);
+            } else if (enemy.elite) {
+                tryDropPickup(enemy.x, enemy.y, true);
+                for (let k = 0; k < enemy.goldBonus; k++) {
+                    gems.push({
+                        x: enemy.x + (Math.random() - 0.5) * 24,
+                        y: enemy.y + (Math.random() - 0.5) * 24,
+                        radius: 5, val: 1, magnet: false
+                    });
+                }
+                if (enemy.elite === 'BOMBER') {
+                    createParticles(enemy.x, enemy.y, '#ff8800', 18);
+                    AudioEngine.playExplosion();
+                    shockwaves.push({
+                        x: enemy.x, y: enemy.y, radius: 10, speed: 420, maxRadius: 95,
+                        damage: 0, hit: true, color: '#ff8800', delay: 0
+                    });
+                    if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < 95) {
+                        applyDamageToPlayer(10 + currentWave * 2);
+                    }
+                }
             } else {
                 tryDropPickup(enemy.x, enemy.y);
             }
+
             for (let k = 0; k < enemy.exp; k++) {
                 gems.push({
                     x: enemy.x + (Math.random() - 0.5) * 24,
@@ -1003,14 +1336,14 @@
         }
     }
 
-    function createExplosion(x, y, radius, damage) {
+    function createExplosion(x, y, radius, damage, src = '爆炸') {
         screenShake = 0.4;
         AudioEngine.playExplosion();
         createParticles(x, y, '#ff5500', 20);
         enemies.forEach(e => {
             const dist = Math.hypot(e.x - x, e.y - y);
             if (dist <= radius + e.radius) {
-                damageEnemy(e, Math.round(damage * 0.8), false, (e.x - x) * 0.1, (e.y - y) * 0.1);
+                damageEnemy(e, Math.round(damage * 0.8), false, (e.x - x) * 0.1, (e.y - y) * 0.1, src);
             }
         });
     }
@@ -1028,6 +1361,7 @@
     }
 
     function addFloatingText(text, x, y, color, size = 14) {
+        if (!settings.dmg && typeof text === 'number') return;
         floatingTexts.push({ text, x, y, color, size, alpha: 1.0 });
     }
 
@@ -1039,7 +1373,7 @@
         if (gameState === 'PLAYING') {
             update(dt);
             render(now / 1000);
-        } else {
+        } else if (gameState !== 'PAUSED' && gameState !== 'REPORT') {
             renderBackground();
         }
         requestAnimationFrame(gameLoop);
@@ -1049,7 +1383,12 @@
         const angle = Math.atan2(target.y - player.y, target.x - player.x);
         const isCrit = Math.random() < player.critChance;
         const tierBonus = 1 + (weapon.tier - 1) * 0.4;
-        const finalDmg = Math.round(isCrit ? weapon.damage * dmgMult * tierBonus * 2 : weapon.damage * dmgMult * tierBonus);
+        const aff = weapon.affix;
+
+        let baseDmg = weapon.damage * dmgMult * tierBonus;
+        if (aff && aff.id === 'POWER') baseDmg *= 1.25;
+        const critMult = (aff && aff.id === 'BRUTAL') ? 3 : 2;
+        const finalDmg = Math.round(isCrit ? baseDmg * critMult : baseDmg);
 
         AudioEngine.playShoot();
 
@@ -1057,6 +1396,15 @@
             player.hp = Math.min(player.maxHp, player.hp + 1);
             addFloatingText("+1 HP", player.x, player.y - 15, '#00ffcc');
         }
+
+        const bulletAffixProps = {
+            src: weapon.name,
+            pierce: (aff && aff.id === 'PIERCE') ? 1 : 0,
+            ricochet: !!(aff && aff.id === 'RICOCHET'),
+            homing: !!(aff && aff.id === 'HOMING'),
+            lifesteal: !!(aff && aff.id === 'VAMP'),
+            hitSet: null
+        };
 
         if (weapon.type === 'melee') {
             enemies.forEach(e => {
@@ -1066,7 +1414,10 @@
                     let diff = Math.abs(eAngle - angle);
                     if (diff > Math.PI) diff = Math.PI * 2 - diff;
                     if (diff <= weapon.arc / 2) {
-                        damageEnemy(e, finalDmg, isCrit, Math.cos(angle) * 4, Math.sin(angle) * 4);
+                        damageEnemy(e, finalDmg, isCrit, Math.cos(angle) * 4, Math.sin(angle) * 4, weapon.name);
+                        if (aff && aff.id === 'VAMP' && Math.random() < 0.15) {
+                            player.hp = Math.min(player.maxHp, player.hp + 1);
+                        }
                     }
                 }
             });
@@ -1083,7 +1434,8 @@
                     vx: Math.cos(spreadAngle) * weapon.bulletSpeed,
                     vy: Math.sin(spreadAngle) * weapon.bulletSpeed,
                     radius: 4, damage: Math.round(finalDmg * 0.7),
-                    isCrit, color: weapon.color, life: 0.6
+                    isCrit, color: weapon.color, life: 0.6,
+                    ...bulletAffixProps
                 });
             }
         } else {
@@ -1095,7 +1447,8 @@
                 radius: isRocket ? 7 : 4,
                 damage: finalDmg, isCrit,
                 isAoe: isRocket, aoeRadius: weapon.aoeRadius || 0,
-                color: weapon.color, life: 1.5
+                color: weapon.color, life: 1.5,
+                ...bulletAffixProps
             });
         }
     }
@@ -1104,6 +1457,9 @@
         if (screenShake > 0) screenShake -= dt * 10;
         if (player.shieldTime > 0) player.shieldTime -= dt;
         if (player.rageTime > 0) player.rageTime -= dt;
+        if (player.iFrame > 0) player.iFrame -= dt;
+        if (player.dashCd > 0) player.dashCd -= dt;
+        if (player.dashTime > 0) player.dashTime -= dt;
 
         let dx = 0, dy = 0;
         if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
@@ -1112,9 +1468,25 @@
         if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
         if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
 
-        const moveSpeed = player.baseSpeed * player.speedMult;
-        player.x = clamp(player.x + dx * moveSpeed, player.radius, canvas.width - player.radius);
-        player.y = clamp(player.y + dy * moveSpeed, player.radius, canvas.height - player.radius);
+        if (player.dashTime > 0) {
+            player.x += player.dashDirX * 13;
+            player.y += player.dashDirY * 13;
+            particles.push({
+                x: player.x, y: player.y, vx: 0, vy: 0,
+                radius: player.radius * 0.8, color: 'rgba(221,169,100,0.55)', alpha: 0.5
+            });
+        } else {
+            const moveSpeed = player.baseSpeed * player.speedMult;
+            player.x += dx * moveSpeed;
+            player.y += dy * moveSpeed;
+            if (dx !== 0 || dy !== 0) {
+                const d = Math.hypot(dx, dy);
+                player.lastDirX = dx / d;
+                player.lastDirY = dy / d;
+            }
+        }
+        player.x = clamp(player.x, player.radius, canvas.width - player.radius);
+        player.y = clamp(player.y, player.radius, canvas.height - player.radius);
 
         if (player.hp < player.maxHp) {
             player.hp = Math.min(player.maxHp, player.hp + player.hpRegen * dt);
@@ -1135,7 +1507,9 @@
         const nowMs = performance.now();
 
         player.weapons.forEach(weapon => {
-            const actualCooldown = (weapon.cooldown / Math.pow(1.2, weapon.tier - 1)) / finalAtSpeed;
+            let cd = weapon.cooldown / Math.pow(1.2, weapon.tier - 1);
+            if (weapon.affix && weapon.affix.id === 'RAPID') cd *= 0.85;
+            const actualCooldown = cd / finalAtSpeed;
             if (nowMs - weapon.lastShot >= actualCooldown && enemies.length > 0) {
                 let nearest = null, minDist = weapon.range;
                 enemies.forEach(e => {
@@ -1163,7 +1537,7 @@
                         x: t.x, y: t.y,
                         vx: Math.cos(t.angle) * 8, vy: Math.sin(t.angle) * 8,
                         radius: 4, damage: 15 + player.engineering * 2,
-                        isCrit: false, color: '#33ccff', life: 1.2
+                        isCrit: false, color: '#33ccff', life: 1.2, src: '炮台'
                     });
                     AudioEngine.playShoot();
                 }
@@ -1173,6 +1547,26 @@
         /* 子彈 */
         for (let i = bullets.length - 1; i >= 0; i--) {
             let b = bullets[i];
+
+            if (b.homing && !b.isEnemy && enemies.length) {
+                let nearest = null, md = 220;
+                enemies.forEach(e => {
+                    const d = Math.hypot(e.x - b.x, e.y - b.y);
+                    if (d < md) { md = d; nearest = e; }
+                });
+                if (nearest) {
+                    const want = Math.atan2(nearest.y - b.y, nearest.x - b.x);
+                    const cur = Math.atan2(b.vy, b.vx);
+                    let diff = want - cur;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    const na = cur + clamp(diff, -0.12, 0.12);
+                    const sp = Math.hypot(b.vx, b.vy);
+                    b.vx = Math.cos(na) * sp;
+                    b.vy = Math.sin(na) * sp;
+                }
+            }
+
             b.x += b.vx; b.y += b.vy;
             b.life -= dt;
 
@@ -1184,18 +1578,43 @@
                     continue;
                 }
             } else {
-                let hit = false;
+                let consumed = false;
                 for (let j = enemies.length - 1; j >= 0; j--) {
-                    let e = enemies[j];
+                    const e = enemies[j];
+                    if (b.hitSet && b.hitSet[e.eid]) continue;
                     const dist = Math.hypot(b.x - e.x, b.y - e.y);
                     if (dist < b.radius + e.radius) {
-                        hit = true;
-                        damageEnemy(e, b.damage, b.isCrit, b.vx * 0.15, b.vy * 0.15);
-                        if (b.isAoe) createExplosion(b.x, b.y, b.aoeRadius, b.damage);
+                        damageEnemy(e, b.damage, b.isCrit, b.vx * 0.15, b.vy * 0.15, b.src || '未知');
+                        if (b.lifesteal && Math.random() < 0.15) {
+                            player.hp = Math.min(player.maxHp, player.hp + 1);
+                        }
+                        if (b.isAoe) createExplosion(b.x, b.y, b.aoeRadius, b.damage, b.src || '爆炸');
+
+                        if (b.pierce > 0) {
+                            b.pierce--;
+                            if (!b.hitSet) b.hitSet = {};
+                            b.hitSet[e.eid] = true;
+                            continue;
+                        }
+                        if (b.ricochet) {
+                            b.ricochet = false;
+                            const next = findNearestEnemyExcept(b.x, b.y, 180, e.eid);
+                            if (next) {
+                                const a = Math.atan2(next.y - b.y, next.x - b.x);
+                                const sp = Math.hypot(b.vx, b.vy);
+                                b.vx = Math.cos(a) * sp;
+                                b.vy = Math.sin(a) * sp;
+                                b.life = 0.6;
+                                if (!b.hitSet) b.hitSet = {};
+                                b.hitSet[e.eid] = true;
+                                break;
+                            }
+                        }
+                        consumed = true;
                         break;
                     }
                 }
-                if (hit || b.life <= 0 || b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+                if (consumed || b.life <= 0 || b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
                     bullets.splice(i, 1);
                 }
             }
@@ -1220,7 +1639,7 @@
                         bullets.push({
                             x: e.x, y: e.y,
                             vx: Math.cos(angle) * 4.5, vy: Math.sin(angle) * 4.5,
-                            radius: 5, damage: Math.round(6 + currentWave), isEnemy: true, color: '#e74c3c', life: 2.0
+                            radius: 5, damage: Math.round(6 + currentWave), isEnemy: true, color: '#e74c3c', life: 2.0, src: '敵人'
                         });
                     }
                 } else {
@@ -1231,11 +1650,16 @@
 
             const dist = Math.hypot(player.x - e.x, player.y - e.y);
             if (dist < player.radius + e.radius) {
-                if (player.shieldTime <= 0) {
+                if (player.shieldTime <= 0 && player.iFrame <= 0) {
                     const actualDmg = Math.max(1, e.damage - player.armor * 0.5);
-                    player.hp -= actualDmg * dt * 2;
+                    const dmgThisFrame = actualDmg * dt * 2;
+                    player.hp -= dmgThisFrame;
+                    waveStats.damageTaken += dmgThisFrame;
                     createParticles(player.x, player.y, '#ff0000', 2);
                     screenShake = 0.15;
+                    if (e.elite === 'VAMP') {
+                        e.hp = Math.min(e.maxHp, e.hp + dmgThisFrame * 0.6);
+                    }
                     if (player.hp <= 0) { gameOver(); return; }
                 } else if (Math.random() < 0.2) {
                     createParticles(player.x + (Math.random() - 0.5) * 30, player.y + (Math.random() - 0.5) * 30, '#33ccff', 1);
@@ -1250,8 +1674,9 @@
             if (l.telegraph > 0) { l.telegraph -= dt; continue; }
             l.angle += l.sweep * dt;
             l.duration -= dt;
-            if (player.shieldTime <= 0 && distToLaser(player.x, player.y, l) < l.width / 2 + player.radius) {
+            if (player.shieldTime <= 0 && player.iFrame <= 0 && distToLaser(player.x, player.y, l) < l.width / 2 + player.radius) {
                 player.hp -= l.damage * dt;
+                waveStats.damageTaken += l.damage * dt;
                 screenShake = Math.max(screenShake, 0.15);
                 if (player.hp <= 0) { gameOver(); return; }
             }
@@ -1263,11 +1688,13 @@
             const s = shockwaves[i];
             if (s.delay > 0) { s.delay -= dt; continue; }
             s.radius += s.speed * dt;
-            const dist = Math.hypot(player.x - s.x, player.y - s.y);
-            if (!s.hit && Math.abs(dist - s.radius) < 16) {
-                s.hit = true;
-                applyDamageToPlayer(s.damage);
-                screenShake = 0.3;
+            if (s.damage > 0) {
+                const dist = Math.hypot(player.x - s.x, player.y - s.y);
+                if (!s.hit && Math.abs(dist - s.radius) < 16) {
+                    s.hit = true;
+                    applyDamageToPlayer(s.damage);
+                    screenShake = 0.3;
+                }
             }
             if (s.radius > s.maxRadius) shockwaves.splice(i, 1);
         }
@@ -1312,6 +1739,7 @@
             if (dist < player.radius + g.radius) {
                 player.gold += g.val;
                 runStats.gems += g.val;
+                waveStats.goldEarned += g.val;
                 AudioEngine.playGem();
                 createParticles(g.x, g.y, '#00ffcc', 3);
                 gems.splice(i, 1);
@@ -1432,6 +1860,7 @@
         }
 
         ctx.save();
+        if (player.iFrame > 0) ctx.globalAlpha = 0.55;
         ctx.translate(player.x, player.y + bob);
         ctx.scale(1 + squash, 1 - squash);
 
@@ -1513,6 +1942,13 @@
         ctx.textAlign = 'center';
         if (player.shieldTime > 0) ctx.fillText('🛡️' + Math.ceil(player.shieldTime), player.x - 18, player.y - r - 14);
         if (player.rageTime > 0) ctx.fillText('🔥' + Math.ceil(player.rageTime), player.x + 18, player.y - r - 14);
+
+        // 衝刺冷卻條
+        const dashP = player.dashCd > 0 ? 1 - player.dashCd / 1.3 : 1;
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(player.x - 16, player.y + r + 12, 32, 4);
+        ctx.fillStyle = dashP >= 1 ? '#00ffcc' : '#777';
+        ctx.fillRect(player.x - 16, player.y + r + 12, 32 * dashP, 4);
     }
 
     function drawEnemySprite(e, t) {
@@ -1576,11 +2012,22 @@
             ctx.fill();
         }
         ctx.restore();
+
+        if (e.elite) {
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, r + 4, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.font = '13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(ELITE_AFFIXES[e.elite].emoji, e.x, e.y - r - 8);
+        }
     }
 
     function render(t) {
         ctx.save();
-        if (screenShake > 0) {
+        if (settings.shake && screenShake > 0) {
             ctx.translate((Math.random() - 0.5) * screenShake * 12, (Math.random() - 0.5) * screenShake * 12);
         }
 

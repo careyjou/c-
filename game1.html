@@ -24,6 +24,9 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 10; padding: 20px;
         }
+        /* 覆蓋層級修正：嫁接室與暫停必須蓋在商店之上 */
+        #gene-screen { z-index: 12; }
+        #pause-screen { z-index: 14; }
         .hidden { display: none !important; }
         h1 { font-size: 38px; color: #ffcc00; text-shadow: 3px 3px 0 #996600; margin-bottom: 8px; }
         p { font-size: 14px; color: #bbb; margin-bottom: 14px; text-align: center; line-height: 1.5; }
@@ -83,7 +86,6 @@
 
         .menu-btns { display: flex; gap: 14px; }
 
-        /* 結算報告 */
         #report-modal {
             width: 640px; background: #181824; border: 2px solid #00ffcc;
             border-radius: 12px; padding: 20px;
@@ -101,7 +103,6 @@
         .rep-bar { height: 100%; background: linear-gradient(90deg, #00ffcc, #3399ff); }
         .rep-val { width: 120px; color: #aaa; }
 
-        /* 實驗室 */
         .lab-points { font-size: 16px; color: #00ffcc; font-weight: bold; margin-bottom: 12px; }
         .lab-points b { color: #ffcc00; font-size: 20px; }
         .lab-grid {
@@ -117,7 +118,6 @@
         .lab-desc { font-size: 12px; color: #aaa; min-height: 32px; }
         .lab-lvl { font-size: 13px; color: #ffcc00; font-weight: bold; }
 
-        /* 基因嫁接室 */
         #gene-modal {
             width: 780px; height: 590px; background: #181824;
             border: 2px solid #66ff99; border-radius: 12px; padding: 16px;
@@ -140,7 +140,6 @@
         .gene-card .lab-desc { min-height: 30px; }
         .gene-warn { font-size: 11px; color: #ff8866; }
 
-        /* 暫停設定 */
         .settings-box {
             display: flex; gap: 24px; background: rgba(255,255,255,0.06);
             border-radius: 10px; padding: 14px 22px; margin-bottom: 18px; font-size: 14px;
@@ -148,7 +147,6 @@
         .settings-box label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .settings-box input { width: 16px; height: 16px; cursor: pointer; }
 
-        /* 商店 */
         #shop-modal {
             width: 900px; height: 600px; background: #181824;
             border: 2px solid #ffcc00; border-radius: 12px; padding: 16px;
@@ -225,7 +223,8 @@
     <div id="start-screen" class="overlay">
         <h1>土豆大戰 Brotato Pro</h1>
         <p>WASD 移動 | <b style="color:#00ffcc;">Space 衝刺</b> | Esc 暫停 | 武器自動射擊<br>
-        共 20 波、每 5 波 Boss | 精英與 Boss 掉落 <b style="color:#66ff99;">🧬 基因片段</b>，商店可嫁接突變（外觀會跟著變！）</p>
+        共 20 波、每 5 波 Boss（<b style="color:#ff8866;">必須擊殺 Boss 才能結束 Boss 波</b>）<br>
+        精英與 Boss 掉落 <b style="color:#66ff99;">🧬 基因片段</b>，商店可嫁接突變（外觀會跟著變！）</p>
         <div id="record-panel">
             <span>🏆 最佳波次: <b id="rec-wave">0</b>/20</span>
             <span>🎖️ 通關: <b id="rec-wins">0</b></span>
@@ -660,6 +659,7 @@
     let waveTimer = 30;
     let timerInterval = null;
     let spawnTimer = 0;
+    let spawnLocked = false;   // Boss 波倒數結束後鎖定刷怪
     let rerollCost = 10;
     let screenShake = 0;
     let selectedCharKey = 'RANGER';
@@ -695,7 +695,7 @@
         ENGINEER: {
             name: "🔧 工程師",
             desc: "建造大師。工程學+10，可定期建造炮台。戴黃色安全帽。",
-            startWeapon: 'WRENCH',
+            startWeapon: 'PISTOL',
             apply: (p) => { p.engineering += 10; }
         },
         ENTREPRENEUR: {
@@ -714,7 +714,8 @@
         SMG:     { name: "衝鋒槍",     tag: "槍械", type: "ranged", damage: 7,  cooldown: 160,  range: 250, bulletSpeed: 10,  color: "#ffdd00", desc: "極高射速衝鋒槍" },
         SWORD:   { name: "巨劍",       tag: "近戰", type: "melee",  damage: 38, cooldown: 700,  range: 85,  arc: Math.PI * 0.75, color: "#ff3366", desc: "近距離弧形揮砍" },
         ROCKET:  { name: "火箭發射器", tag: "重型", type: "ranged", damage: 45, cooldown: 1350, range: 360, bulletSpeed: 7.0, aoeRadius: 65, color: "#ff4400", desc: "範圍爆炸火箭" },
-        WRENCH:  { name: "扳手",       tag: "工程", type: "melee",  damage: 20, cooldown: 650,  range: 75,  arc: Math.PI * 0.6, color: "#33ccff", desc: "近戰敲擊；工程學>0時定期出現炮台" }
+        LASER:   { name: "雷射槍",     tag: "科技", type: "ranged", beam: true, damage: 24, cooldown: 550, range: 350, color: "#ff55ff", desc: "瞬間命中目標的能量光束" },
+        DRONE:   { name: "無人機",     tag: "科技", type: "drone",  damage: 9,  cooldown: 380, range: 240, bulletSpeed: 7, color: "#66ddff", desc: "環繞飛行，從自身位置自動射擊" }
     };
 
     const SHOP_ITEMS = [
@@ -855,6 +856,7 @@
         enemies = []; bullets = []; gems = []; particles = []; floatingTexts = [];
         pickups = []; shockwaves = []; mortarTargets = []; lasers = [];
         spawnTimer = 0; screenShake = 0;
+        spawnLocked = false;
         player.shieldTime = 0; player.rageTime = 0;
         player.x = canvas.width / 2; player.y = canvas.height / 2;
         waveStats = { elapsed: 0, kills: 0, damageDealt: 0, damageTaken: 0, goldEarned: 0, weaponDamage: {} };
@@ -875,7 +877,7 @@
 
         const bossId = BOSS_WAVES[currentWave];
         if (bossId) {
-            announce(`第 ${currentWave} 波`, `⚠ BOSS「${BOSS_DEFS[bossId].name}」來襲！`);
+            announce(`第 ${currentWave} 波`, `⚠ BOSS「${BOSS_DEFS[bossId].name}」來襲！擊殺才能結束本波`);
             spawnEnemy('BOSS');
         } else {
             announce(`第 ${currentWave} 波`, '');
@@ -884,12 +886,24 @@
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if (gameState === 'PLAYING') {
-                waveTimer--;
                 waveStats.elapsed++;
-                if (currentWave !== MAX_WAVE) {
-                    document.getElementById('wave-timer').innerText = waveTimer;
+                const isBossWave = !!BOSS_WAVES[currentWave];
+
+                if (waveTimer > 0) {
+                    waveTimer--;
+                    if (currentWave !== MAX_WAVE) {
+                        document.getElementById('wave-timer').innerText = waveTimer;
+                    }
+                } else if (isBossWave) {
+                    // Boss 波倒數結束：停止刷怪，等待 Boss 被擊殺
+                    document.getElementById('wave-timer').innerText = '擊殺Boss!';
+                    if (!spawnLocked) {
+                        spawnLocked = true;
+                        announce('⚠ 消滅 Boss 才能結束本波！', '');
+                    }
                 }
-                if (player.engineering > 0 && waveTimer % 10 === 0) {
+
+                if (player.engineering > 0 && waveTimer > 0 && waveTimer % 10 === 0) {
                     const maxTurrets = Math.min(8, 1 + Math.floor(player.engineering / 5));
                     if (turrets.length < maxTurrets) {
                         turrets.push({
@@ -899,7 +913,8 @@
                         });
                     }
                 }
-                if (waveTimer <= 0 && currentWave < MAX_WAVE) {
+
+                if (waveTimer <= 0 && !isBossWave) {
                     clearInterval(timerInterval);
                     completeWave();
                 }
@@ -908,6 +923,7 @@
     }
 
     function completeWave() {
+        clearInterval(timerInterval);
         gameState = 'REPORT';
         document.getElementById('hud').classList.add('hidden');
         showReport();
@@ -971,7 +987,7 @@
         let bonuses = [], extraDmg = 0, extraAtSpeed = 0;
         if ((counts['槍械'] || 0) >= 3) { extraAtSpeed += 0.20; bonuses.push("槍械x3: 攻速+20%"); }
         if ((counts['近戰'] || 0) >= 2) { extraDmg += 0.15; bonuses.push("近戰x2: 傷害+15%"); }
-        if ((counts['工程'] || 0) >= 2) { bonuses.push("工程x2: 建築射速+30%"); }
+        if ((counts['科技'] || 0) >= 2) { extraDmg += 0.10; bonuses.push("科技x2: 傷害+10%"); }
         return { bonuses, extraDmg, extraAtSpeed };
     }
 
@@ -1002,7 +1018,6 @@
         document.getElementById('synergy-info').innerHTML = syn.bonuses.length > 0 ? syn.bonuses.join('<br>') : "尚未觸發羈絆";
         document.getElementById('weap-count').innerText = `${player.weapons.length}/${maxWeaponSlots()}`;
 
-        // 基因狀態
         const mutTexts = GENE_PARTS
             .filter(p => player.mutations[p.id] > 0)
             .map(p => `<span style="color:#66ff99;">${p.emoji}${p.name} Lv${player.mutations[p.id]}</span>`);
@@ -1481,8 +1496,13 @@
             const idx = enemies.indexOf(enemy);
             if (idx !== -1) enemies.splice(idx, 1);
 
-            if (enemy.type === 'BOSS' && currentWave === MAX_WAVE) {
-                setTimeout(() => { if (gameState === 'PLAYING') triggerVictory(); }, 700);
+            if (enemy.type === 'BOSS' && BOSS_WAVES[currentWave]) {
+                if (currentWave === MAX_WAVE) {
+                    setTimeout(() => { if (gameState === 'PLAYING') triggerVictory(); }, 700);
+                } else {
+                    // Boss 波：擊殺 Boss 立即結束本波
+                    setTimeout(() => { if (gameState === 'PLAYING') completeWave(); }, 800);
+                }
             }
         }
     }
@@ -1530,8 +1550,8 @@
         requestAnimationFrame(gameLoop);
     }
 
-    function fireWeapon(weapon, target, dmgMult) {
-        const angle = Math.atan2(target.y - player.y, target.x - player.x);
+    function fireWeapon(weapon, target, dmgMult, ox = player.x, oy = player.y) {
+        const angle = Math.atan2(target.y - oy, target.x - ox);
         const isCrit = Math.random() < player.critChance;
         const tierBonus = 1 + (weapon.tier - 1) * 0.4;
         const aff = weapon.affix;
@@ -1577,11 +1597,22 @@
                 radius: weapon.range, color: weapon.color,
                 alpha: 0.6, isSlash: true, angle, arc: weapon.arc
             });
+        } else if (weapon.beam) {
+            // 雷射：瞬間命中 + 光束特效
+            damageEnemy(target, finalDmg, isCrit, 0, 0, weapon.name);
+            if (aff && aff.id === 'VAMP' && Math.random() < 0.15) {
+                player.hp = Math.min(player.maxHp, player.hp + 1);
+            }
+            particles.push({
+                x: ox, y: oy, tx: target.x, ty: target.y, vx: 0, vy: 0,
+                radius: 0, color: weapon.color, alpha: 0.9, isBeam: true
+            });
+            createParticles(target.x, target.y, weapon.color, 3);
         } else if (weapon.pellets) {
             for (let i = 0; i < weapon.pellets; i++) {
                 const spreadAngle = angle + (Math.random() - 0.5) * weapon.spread;
                 bullets.push({
-                    x: player.x, y: player.y,
+                    x: ox, y: oy,
                     vx: Math.cos(spreadAngle) * weapon.bulletSpeed,
                     vy: Math.sin(spreadAngle) * weapon.bulletSpeed,
                     radius: 4, damage: Math.round(finalDmg * 0.7),
@@ -1592,7 +1623,7 @@
         } else {
             const isRocket = !!weapon.aoeRadius;
             bullets.push({
-                x: player.x, y: player.y,
+                x: ox, y: oy,
                 vx: Math.cos(angle) * weapon.bulletSpeed,
                 vy: Math.sin(angle) * weapon.bulletSpeed,
                 radius: isRocket ? 7 : 4,
@@ -1688,13 +1719,16 @@
             player.hp = Math.min(player.maxHp, player.hp + player.hpRegen * dt);
         }
 
-        spawnTimer += dt;
-        let spawnInterval = Math.max(0.22, 1.0 - currentWave * 0.035);
-        if (BOSS_WAVES[currentWave]) spawnInterval *= 1.6;
-        if (currentWave === MAX_WAVE) spawnInterval *= 2.2;
-        if (spawnTimer >= spawnInterval) {
-            spawnTimer = 0;
-            spawnEnemy();
+        // Boss 波倒數結束後停止刷怪
+        if (!spawnLocked) {
+            spawnTimer += dt;
+            let spawnInterval = Math.max(0.22, 1.0 - currentWave * 0.035);
+            if (BOSS_WAVES[currentWave]) spawnInterval *= 1.6;
+            if (currentWave === MAX_WAVE) spawnInterval *= 2.2;
+            if (spawnTimer >= spawnInterval) {
+                spawnTimer = 0;
+                spawnEnemy();
+            }
         }
 
         const syn = getSynergies();
@@ -1702,19 +1736,27 @@
         const finalAtSpeed = player.attackSpeedMult + syn.extraAtSpeed;
         const nowMs = performance.now();
 
-        player.weapons.forEach(weapon => {
+        player.weapons.forEach((weapon, wIdx) => {
             let cd = weapon.cooldown / Math.pow(1.2, weapon.tier - 1);
             if (weapon.affix && weapon.affix.id === 'RAPID') cd *= 0.85;
             const actualCooldown = cd / finalAtSpeed;
             if (nowMs - weapon.lastShot >= actualCooldown && enemies.length > 0) {
+                // 無人機從自己的環繞位置索敵與射擊
+                let originX = player.x, originY = player.y;
+                if (weapon.type === 'drone') {
+                    const wCount = Math.max(1, player.weapons.length);
+                    const ang = (Math.PI * 2 / wCount) * wIdx + nowMs / 1000 * 1.5;
+                    originX = player.x + Math.cos(ang) * (player.radius + 14);
+                    originY = player.y + Math.sin(ang) * (player.radius + 14);
+                }
                 let nearest = null, minDist = weapon.range;
                 enemies.forEach(e => {
-                    const dist = Math.hypot(e.x - player.x, e.y - player.y);
+                    const dist = Math.hypot(e.x - originX, e.y - originY);
                     if (dist < minDist) { minDist = dist; nearest = e; }
                 });
                 if (nearest) {
                     weapon.lastShot = nowMs;
-                    fireWeapon(weapon, nearest, finalDmgMult);
+                    fireWeapon(weapon, nearest, finalDmgMult, originX, originY);
                 }
             }
         });
@@ -1846,7 +1888,6 @@
 
             const dist = Math.hypot(player.x - e.x, player.y - e.y);
             if (dist < player.radius + e.radius) {
-                // 尖刺反傷
                 if (player.mutations.spines > 0) {
                     damageEnemy(e, 8 * player.mutations.spines * dt * 2, false, 0, 0, '🌵尖刺', true);
                 }
@@ -1867,7 +1908,7 @@
             }
         }
 
-        /* 雷射 */
+        /* 雷射（Boss） */
         for (let i = lasers.length - 1; i >= 0; i--) {
             const l = lasers[i];
             if (enemies.indexOf(l.owner) === -1) { lasers.splice(i, 1); continue; }
@@ -1926,7 +1967,7 @@
             }
         }
 
-        /* 寶石（巨口加大磁吸範圍） */
+        /* 寶石 */
         const magnetR = magnetRadius();
         for (let i = gems.length - 1; i >= 0; i--) {
             let g = gems[i];
@@ -2040,8 +2081,6 @@
 
     function drawMutations(t, r) {
         const m = player.mutations;
-
-        // 觸足（畫在身體後方）
         if (m.legs > 0) {
             const n = 3 + m.legs * 2;
             ctx.strokeStyle = '#8e6bb5';
@@ -2061,7 +2100,6 @@
     function drawMutationOverlays(t, r) {
         const m = player.mutations;
 
-        // 尖刺
         if (m.spines > 0) {
             const n = 10 + m.spines * 4;
             ctx.fillStyle = '#7cb342';
@@ -2076,7 +2114,6 @@
             }
         }
 
-        // 岩石斑塊
         if (m.skin > 0) {
             ctx.fillStyle = 'rgba(115,125,135,0.55)';
             const patches = [[-r * 0.5, -r * 0.2, 5], [r * 0.4, r * 0.15, 6], [r * 0.05, -r * 0.5, 4]];
@@ -2093,7 +2130,6 @@
             });
         }
 
-        // 額外手臂
         if (m.arm > 0) {
             ctx.fillStyle = '#d9a55f';
             ctx.strokeStyle = '#6f4a22';
@@ -2201,7 +2237,6 @@
             ctx.beginPath(); ctx.arc(6.8 + lookX, -4.8 + lookY, 0.8, 0, Math.PI * 2); ctx.fill();
         }
 
-        // 第三隻眼（複眼突變）
         if (m.eye > 0) {
             ctx.fillStyle = '#fff';
             ctx.beginPath(); ctx.ellipse(0, -11, 3.2, 3.8, 0, 0, Math.PI * 2); ctx.fill();
@@ -2221,7 +2256,6 @@
         ctx.beginPath(); ctx.arc(-11, 3, 3, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(11, 3, 3, 0, Math.PI * 2); ctx.fill();
 
-        // 嘴巴（巨口突變覆蓋）
         if (m.mouth > 0) {
             ctx.fillStyle = '#5a1f1f';
             ctx.beginPath();
@@ -2246,6 +2280,7 @@
         drawAccessory(selectedCharKey, r);
         ctx.restore();
 
+        // 環繞武器（無人機畫成小飛行器）
         const wCount = Math.max(1, player.weapons.length);
         player.weapons.forEach((w, i) => {
             const angle = (Math.PI * 2 / wCount) * i + t * 1.5;
@@ -2253,9 +2288,25 @@
             const wy = player.y + bob + Math.sin(angle) * (r + 14);
             ctx.save();
             ctx.translate(wx, wy);
-            ctx.rotate(angle);
-            ctx.fillStyle = w.color;
-            ctx.fillRect(0, -3, 12, 6);
+            if (w.type === 'drone') {
+                ctx.fillStyle = '#2a3a4a';
+                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = w.color;
+                ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = 'rgba(150,220,255,0.8)';
+                ctx.lineWidth = 2;
+                const ra = t * 20;
+                [[-7, -7], [7, -7], [-7, 7], [7, 7]].forEach(([rx, ry]) => {
+                    ctx.beginPath();
+                    ctx.moveTo(rx - Math.cos(ra) * 4, ry - Math.sin(ra) * 4);
+                    ctx.lineTo(rx + Math.cos(ra) * 4, ry + Math.sin(ra) * 4);
+                    ctx.stroke();
+                });
+            } else {
+                ctx.rotate(angle);
+                ctx.fillStyle = w.color;
+                ctx.fillRect(0, -3, 12, 6);
+            }
             ctx.restore();
         });
 
@@ -2499,6 +2550,13 @@
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, p.angle - (p.arc || 1) / 2, p.angle + (p.arc || 1) / 2);
                 ctx.stroke();
+            } else if (p.isBeam) {
+                ctx.strokeStyle = p.color;
+                ctx.lineWidth = 2 + p.alpha * 4;
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.tx, p.ty); ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 1 + p.alpha * 1.5;
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.tx, p.ty); ctx.stroke();
             } else {
                 ctx.fillStyle = p.color;
                 ctx.beginPath();

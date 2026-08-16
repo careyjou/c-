@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>合數巨神兵：質因數大拆解 - 國小五年級數學 3D 冒險遊戲</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
+        body { background-color: #0b0f19; color: #ffffff; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; width: 100vw; height: 100vh; }
+        #game-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; z-index: 1; }
+        #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
+        .interactive { pointer-events: auto; }
+        .top-hud { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 800px; margin: 0 auto; background: rgba(15, 23, 42, 0.85); border: 2px solid rgba(56, 189, 248, 0.4); border-radius: 16px; padding: 12px 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); }
+        .boss-header { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px; }
+        .boss-title { font-size: 20px; font-weight: bold; color: #f43f5e; display: flex; align-items: center; gap: 8px; }
+        .boss-value-box { font-size: 24px; font-weight: 900; color: #fbbf24; background: #1e1b4b; padding: 4px 16px; border-radius: 999px; border: 2px solid #f59e0b; }
+        .hp-bar-container { width: 100%; height: 16px; background: #334155; border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+        .hp-bar-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #f43f5e, #fb923c); transition: width 0.3s; }
+        .factor-history { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #cbd5e1; }
+        .factor-tag { background: #3b82f6; color: #ffffff; padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 13px; }
+        .center-alert { position: absolute; top: 25%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 10px; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .center-alert.active { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        .alert-banner { background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(185, 28, 28, 0.95)); border: 3px solid #fef08a; border-radius: 12px; padding: 12px 28px; font-size: 20px; font-weight: 900; color: #ffffff; }
+        .alert-sub { background: rgba(15, 23, 42, 0.9); padding: 8px 16px; border-radius: 8px; font-size: 16px; color: #fef08a; border: 1px solid #eab308; }
+        .toast-msg { position: absolute; top: 180px; left: 50%; transform: translateX(-50%); padding: 10px 24px; border-radius: 999px; font-size: 18px; font-weight: bold; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 20; }
+        .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+        .toast-success { background: rgba(16, 185, 129, 0.95); color: white; }
+        .toast-error { background: rgba(239, 68, 68, 0.95); color: white; }
+        .toast-gcd { background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; }
+        .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; max-width: 1000px; margin: 0 auto; gap: 16px; }
+        .player-status-card { background: rgba(15, 23, 42, 0.85); padding: 12px 18px; border-radius: 14px; border: 1px solid #475569; min-width: 200px; }
+        .player-hp-bar { width: 100%; height: 12px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-top: 6px; }
+        .player-hp-fill { height: 100%; width: 100%; background: #10b981; transition: width 0.2s; }
+        .prime-deck { display: flex; gap: 12px; background: rgba(15, 23, 42, 0.9); padding: 10px 16px; border-radius: 18px; border: 2px solid rgba(148, 163, 184, 0.3); }
+        .prime-btn { width: 66px; height: 72px; border-radius: 14px; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #1e293b; color: white; }
+        .prime-btn.active { border-color: #fef08a; transform: translateY(-4px); box-shadow: 0 0 16px rgba(254, 240, 138, 0.6); }
+        .prime-btn[data-prime="2"] { background: linear-gradient(180deg, #0284c7, #0369a1); }
+        .prime-btn[data-prime="3"] { background: linear-gradient(180deg, #10b981, #047857); }
+        .prime-btn[data-prime="5"] { background: linear-gradient(180deg, #f59e0b, #d97706); }
+        .prime-btn[data-prime="7"] { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }
+        .action-cluster { display: flex; gap: 10px; }
+        .action-btn { width: 66px; height: 66px; border-radius: 50%; background: #3b82f6; color: white; border: 2px solid #93c5fd; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .action-btn.shoot-btn { background: linear-gradient(135deg, #ef4444, #dc2626); border-color: #fca5a5; width: 72px; height: 72px; }
+        .modal-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 15, 30, 0.9); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-card { background: #1e293b; border: 2px solid #38bdf8; border-radius: 20px; padding: 28px; max-width: 580px; width: 100%; text-align: center; display: flex; flex-direction: column; gap: 16px; }
+        .difficulty-group { display: flex; gap: 10px; justify-content: center; margin-top: 6px; }
+        .diff-btn { flex: 1; padding: 10px; border-radius: 10px; background: #334155; color: #e2e8f0; border: none; cursor: pointer; font-weight: bold; }
+        .diff-btn.selected { background: #0284c7; border: 2px solid #38bdf8; color: white; }
+        .play-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 14px; padding: 14px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .top-right-tools { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; z-index: 30; }
+        .tool-icon-btn { width: 40px; height: 40px; border-radius: 10px; background: rgba(15, 23, 42, 0.8); border: 1px solid #475569; color: #94a3b8; font-size: 18px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <canvas id="game-canvas"></canvas>
+    <div class="top-right-tools">
+        <button class="tool-icon-btn interactive" id="btn-sound">🔊</button>
+        <button class="tool-icon-btn interactive" id="btn-help">❓</button>
+    </div>
+    <div id="ui-container">
+        <div class="top-hud interactive">
+            <div class="boss-header">
+                <div class="boss-title"><span>👾</span><span>合數巨神兵</span></div>
+                <div class="boss-value-box" id="boss-val-display">HP: 180</div>
+            </div>
+            <div class="hp-bar-container"><div class="hp-bar-fill" id="boss-hp-fill"></div></div>
+            <div class="factor-history" id="factor-tree-bar"><span>質因數拆解歷程：</span><span class="factor-tag">180</span></div>
+        </div>
+        <div class="center-alert" id="gcd-alert">
+            <div class="alert-banner" id="gcd-banner-text">⚡ 巨神兵雙拳震地！跳躍躲避衝擊波！</div>
+            <div class="alert-sub" id="gcd-sub-text">請計算雙拳最大公因數 GCD(45, 75) 並踩上正確踏板！</div>
+        </div>
+        <div class="toast-msg toast-success" id="toast-msg">180 ÷ 2 = 90 (分解成功！)</div>
+        <div class="bottom-hud">
+            <div class="player-status-card interactive">
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold;">
+                    <span>🐣 蛋仔戰士</span><span id="player-hp-text">HP: 100 / 100</span>
+                </div>
+                <div class="player-hp-bar"><div class="player-hp-fill" id="player-hp-fill"></div></div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">移動: WASD / 方向鍵 | 跳躍: 空白鍵</div>
+            </div>
+            <div class="prime-deck interactive">
+                <div class="prime-btn active" data-prime="2"><span style="font-size: 24px; font-weight: 900;">2</span><span style="font-size: 11px;">[鍵 1]</span></div>
+                <div class="prime-btn" data-prime="3"><span style="font-size: 24px; font-weight: 900;">3</span><span style="font-size: 11px;">[鍵 2]</span></div>
+                <div class="prime-btn" data-prime="5"><span style="font-size: 24px; font-weight: 900;">5</span><span style="font-size: 11px;">[鍵 3]</span></div>
+                <div class="prime-btn" data-prime="7"><span style="font-size: 24px; font-weight: 900;">7</span><span style="font-size: 11px;">[鍵 4]</span></div>
+            </div>
+            <div class="action-cluster interactive">
+                <button class="action-btn" id="btn-jump">跳躍<br><span style="font-size: 11px;">[Space]</span></button>
+                <button class="action-btn shoot-btn" id="btn-shoot">發射<br><span style="font-size: 11px;">[點擊/F]</span></button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-screen interactive" id="start-modal">
+        <div class="modal-card">
+            <h1 style="font-size: 26px; color: #38bdf8;">⚔️ 合數巨神兵：質因數大拆解 ⚔️</h1>
+            <p style="color: #93c5fd; font-size: 14px;">國小五年級數學 3D 動作冒險單人戰役</p>
+            <div style="background: #0f172a; padding: 14px; border-radius: 12px; text-align: left; font-size: 14px; line-height: 1.6; color: #cbd5e1;">
+                <div>🎯 <b>質因數射擊</b>：切換 2, 3, 5, 7 質數光束射擊 Boss。能整除數值才可削減裝甲！</div>
+                <div style="margin-top: 6px;">⚡ <b>GCD 雙拳震地</b>：Boss 砸地釋放衝擊波（按空白鍵跳躍避開），計算雙拳 GCD 踩地面踏板破盾！</div>
+            </div>
+            <div>
+                <label style="font-size: 14px; color: #94a3b8;">選擇難度：</label>
+                <div class="difficulty-group">
+                    <button class="diff-btn" data-val="72">初階 (72)</button>
+                    <button class="diff-btn selected" data-val="180">中階 (180)</button>
+                    <button class="diff-btn" data-val="420">進階 (420)</button>
+                    <button class="diff-btn" data-val="756">極限 (756)</button>
+                </div>
+            </div>
+            <button class="play-btn" id="btn-start-game">開始戰鬥！</button>
+        </div>
+    </div>
+    <div class="modal-screen interactive" id="victory-modal" style="display: none;">
+        <div class="modal-card">
+            <h1 style="font-size: 26px; color: #4ade80;">🎉 討伐成功！巨神兵完全分解！</h1>
+            <div id="victory-math-summary" style="background: #0f172a; border: 2px dashed #f59e0b; border-radius: 12px; padding: 12px; font-size: 18px; color: #fef08a; font-family: monospace;">180 = 2 × 2 × 3 × 3 × 5</div>
+            <button class="play-btn" id="btn-restart-game" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">再戰一局！</button>
+        </div>
+    </div>
+    <div class="modal-screen interactive" id="gameover-modal" style="display: none;">
+        <div class="modal-card">
+            <h1 style="font-size: 26px; color: #ef4444;">💥 戰鬥失敗！</h1>
+            <p style="color: #cbd5e1;">注意觀察地面衝擊波並及時按 [空白鍵] 跳躍避開！</p>
+            <button class="play-btn" id="btn-retry-game" style="background: linear-gradient(135deg, #ef4444, #b91c1c);">重新挑戰</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    class SoundEngine {
+        constructor() { this.ctx = null; this.enabled = true; }
+        init() {
+            if (!this.ctx) { const AudioCtx = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioCtx(); }
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+        }
+        toggle() { this.enabled = !this.enabled; return this.enabled; }
+        playShoot(prime) {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            const freqs = { 2: 329.63, 3: 440.0, 5: 587.33, 7: 783.99 };
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freqs[prime] || 440, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.18);
+            gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.2);
+        }
+        playHitSuccess() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime;
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                gain.gain.setValueAtTime(0.25, now + idx * 0.06); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.06 + 0.2);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now + idx * 0.06); osc.stop(now + idx * 0.06 + 0.22);
+            });
+        }
+        playDeflect() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(130, now);
+            gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.28);
+        }
+        playJump() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(220, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+            gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.18);
+        }
+        playSlam() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.5);
+            gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.65);
+        }
+        playThunder() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime; const bufferSize = this.ctx.sampleRate * 0.8;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate); const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            const noise = this.ctx.createBufferSource(); noise.buffer = buffer;
+            const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.7);
+            const gain = this.ctx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.75);
+            noise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination); noise.start(now); noise.stop(now + 0.8);
+        }
+        playVictory() {
+            if (!this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime;
+            [{ f: 523.25, d: 0.15 }, { f: 659.25, d: 0.15 }, { f: 783.99, d: 0.15 }, { f: 1046.50, d: 0.5 }].forEach((item, idx) => {
+                const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(item.f, now + idx * 0.18);
+                gain.gain.setValueAtTime(0.3, now + idx * 0.18); gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.18 + item.d);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now + idx * 0.18); osc.stop(now + idx * 0.18 + item.d + 0.05);
+            });
+        }
+    }
+    const audio = new SoundEngine();
+
+    const canvas = document.getElementById('game-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0f1d);
+    scene.fog = new THREE.FogExp2(0x0a0f1d, 0.018);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 14, 28);
+    scene.add(new THREE.AmbientLight(0x475569, 1.2));
+    const dirLight = new THREE.DirectionalLight(0x93c5fd, 1.5);
+    dirLight.position.set(20, 40, 20); dirLight.castShadow = true; scene.add(dirLight);
+
+    const arenaRadius = 32;
+    const arenaMesh = new THREE.Mesh(new THREE.CylinderGeometry(arenaRadius, arenaRadius + 2, 3, 64), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }));
+    arenaMesh.position.y = -1.5; arenaMesh.receiveShadow = true; scene.add(arenaMesh);
+    scene.add(new THREE.PolarGridHelper(arenaRadius - 1, 16, 8, 64, 0x0284c7, 0x1e3a8a));
+
+    const playerGroup = new THREE.Group(); scene.add(playerGroup);
+    const eggBody = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.3 }));
+    eggBody.scale.set(1, 1.25, 1); eggBody.position.y = 1.3; eggBody.castShadow = true; playerGroup.add(eggBody);
+
+    const eyeGeo = new THREE.SphereGeometry(0.18, 16, 16); const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+    const leftEye = new THREE.Mesh(eyeGeo, eyeMat); leftEye.position.set(-0.35, 1.6, 0.95);
+    const rightEye = new THREE.Mesh(eyeGeo, eyeMat); rightEye.position.set(0.35, 1.6, 0.95);
+    playerGroup.add(leftEye, rightEye);
+
+    const player = { group: playerGroup, pos: new THREE.Vector3(0, 0, 16), vel: new THREE.Vector3(0, 0, 0), hp: 100, maxHp: 100, speed: 18, jumpForce: 14, isGrounded: true, currentPrime: 2 };
+    playerGroup.position.copy(player.pos);
+
+    const bossGroup = new THREE.Group(); scene.add(bossGroup); bossGroup.position.set(0, 5, -8);
+    const bossCoreMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(2.8, 2), new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0x9f1239, emissiveIntensity: 0.8 }));
+    bossGroup.add(bossCoreMesh);
+
+    const ring1 = new THREE.Mesh(new THREE.TorusGeometry(4.2, 0.15, 8, 32), new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true }));
+    const ring2 = new THREE.Mesh(new THREE.TorusGeometry(4.8, 0.15, 8, 32), new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true }));
+    bossGroup.add(ring1, ring2);
+
+    const armorPlates = [];
+    for (let i = 0; i < 8; i++) {
+        const plate = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.2, 0.6), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 }));
+        const angle = (i / 8) * Math.PI * 2;
+        plate.position.set(Math.cos(angle) * 3.6, Math.sin(angle) * 1.5, Math.sin(angle) * 3.6);
+        plate.rotation.y = -angle; bossGroup.add(plate); armorPlates.push(plate);
+    }
+
+    function createFist() {
+        const g = new THREE.Group();
+        g.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.8, 2.6), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7 })));
+        return g;
+    }
+    const leftFist = createFist(); leftFist.position.set(-8, 2, 2); bossGroup.add(leftFist);
+    const rightFist = createFist(); rightFist.position.set(8, 2, 2); bossGroup.add(rightFist);
+
+    function makeTextSprite(text, color = '#fef08a') {
+        const cvs = document.createElement('canvas'); cvs.width = 512; cvs.height = 256;
+        const ctx = cvs.getContext('2d');
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'; ctx.fillRect(10, 10, 492, 236);
+        ctx.lineWidth = 8; ctx.strokeStyle = color; ctx.stroke();
+        ctx.font = 'bold 88px monospace'; ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, 256, 128);
+        return new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvs) }));
+    }
+
+    let bossTextSprite = makeTextSprite('180'); bossTextSprite.position.set(0, 5.5, 0); bossTextSprite.scale.set(6, 3, 1); bossGroup.add(bossTextSprite);
+    let leftFistSprite = makeTextSprite('45', '#38bdf8'); leftFistSprite.position.set(0, 3, 0); leftFistSprite.scale.set(4, 2, 1); leftFistSprite.visible = false; leftFist.add(leftFistSprite);
+    let rightFistSprite = makeTextSprite('75', '#38bdf8'); rightFistSprite.position.set(0, 3, 0); rightFistSprite.scale.set(4, 2, 1); rightFistSprite.visible = false; rightFist.add(rightFistSprite);
+
+    const boss = { group: bossGroup, initialVal: 180, currentVal: 180, state: 'NORMAL', stateTimer: 0, gcdNumbers: { a: 45, b: 75, trueGCD: 15 }, factorHistory: [180] };
+
+    const gcdPedestals = []; const pedestalGroup = new THREE.Group(); scene.add(pedestalGroup); pedestalGroup.visible = false;
+    const padPositions = [new THREE.Vector3(-12, 0.1, 4), new THREE.Vector3(-4, 0.1, 8), new THREE.Vector3(4, 0.1, 8), new THREE.Vector3(12, 0.1, 4)];
+    for (let i = 0; i < 4; i++) {
+        const padMesh = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.6, 0.3, 32), new THREE.MeshStandardMaterial({ color: 0x1e1b4b }));
+        padMesh.position.copy(padPositions[i]); pedestalGroup.add(padMesh);
+        const sprite = makeTextSprite('?', '#38bdf8'); sprite.position.set(padPositions[i].x, 2.2, padPositions[i].z); sprite.scale.set(3, 1.5, 1);
+        pedestalGroup.add(sprite);
+        gcdPedestals.push({ mesh: padMesh, sprite, pos: padPositions[i], value: 0, isCorrect: false });
+    }
+
+    const projectiles = []; const shockwaves = []; const particles = [];
+    const primeColors = { 2: 0x0284c7, 3: 0x10b981, 5: 0xf59e0b, 7: 0x8b5cf6 };
+
+    function shootPrime(prime) {
+        audio.playShoot(prime);
+        const pMesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshBasicMaterial({ color: primeColors[prime] }));
+        pMesh.position.copy(player.group.position); pMesh.position.y += 1.5; scene.add(pMesh);
+        const targetPos = new THREE.Vector3().copy(boss.group.position).add(bossCoreMesh.position);
+        const dir = new THREE.Vector3().subVectors(targetPos, pMesh.position).normalize();
+        projectiles.push({ mesh: pMesh, prime, vel: dir.multiplyScalar(32), life: 2.0 });
+    }
+
+    function createExplosion(pos, colorHex, count = 25) {
+        for (let i = 0; i < count; i++) {
+            const p = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ color: colorHex }));
+            p.position.copy(pos); scene.add(p);
+            particles.push({ mesh: p, vel: new THREE.Vector3((Math.random() - 0.5) * 14, (Math.random() - 0.2) * 14, (Math.random() - 0.5) * 14), life: 0.6 });
+        }
+    }
+
+    function createShockwave(pos) {
+        const wave = new THREE.Mesh(new THREE.RingGeometry(0.5, 1.2, 32), new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+        wave.rotation.x = -Math.PI / 2; wave.position.copy(pos); wave.position.y = 0.1; scene.add(wave);
+        shockwaves.push({ mesh: wave, radius: 0.5, maxRadius: 28, speed: 16, hasDamagedPlayer: false });
+    }
+
+    const bossValDisplay = document.getElementById('boss-val-display');
+    const bossHpFill = document.getElementById('boss-hp-fill');
+    const factorTreeBar = document.getElementById('factor-tree-bar');
+    const playerHpFill = document.getElementById('player-hp-fill');
+    const playerHpText = document.getElementById('player-hp-text');
+    const toastMsg = document.getElementById('toast-msg');
+    const gcdAlert = document.getElementById('gcd-alert');
+
+    function showToast(text, type = 'toast-success') {
+        toastMsg.className = `toast-msg ${type} show`; toastMsg.innerText = text;
+        clearTimeout(toastMsg._timer);
+        toastMsg._timer = setTimeout(() => toastMsg.classList.remove('show'), 2200);
+    }
+
+    function updateBossHUD() {
+        bossValDisplay.innerText = `HP: ${boss.currentVal}`;
+        bossHpFill.style.width = `${Math.round(Math.max(0, boss.currentVal / boss.initialVal) * 100)}%`;
+        bossGroup.remove(bossTextSprite);
+        bossTextSprite = makeTextSprite(boss.currentVal.toString());
+        bossTextSprite.position.set(0, 5.5, 0); bossTextSprite.scale.set(6, 3, 1); bossGroup.add(bossTextSprite);
+        factorTreeBar.innerHTML = '<span>質因數拆解歷程：</span>' + boss.factorHistory.map(v => `<span class="factor-tag">${v}</span>`).join('<span style="color:#94a3b8;font-weight:bold;"> ÷ </span>');
+    }
+
+    function updatePlayerHUD() {
+        playerHpFill.style.width = `${Math.round(Math.max(0, player.hp / player.maxHp) * 100)}%`;
+        playerHpText.innerText = `HP: ${Math.max(0, player.hp)} / ${player.maxHp}`;
+    }
+
+    let gameActive = false; let slamCooldown = 12;
+
+    function setDifficulty(targetVal) {
+        boss.initialVal = targetVal; boss.currentVal = targetVal; boss.factorHistory = [targetVal];
+        updateBossHUD(); armorPlates.forEach(p => p.visible = true);
+    }
+
+    function triggerGCDSlam() {
+        boss.state = 'SLAM_CHARGING'; boss.stateTimer = 2.0;
+        const candidates = [{ a: 45, b: 75, gcd: 15 }, { a: 36, b: 60, gcd: 12 }, { a: 48, b: 72, gcd: 24 }, { a: 60, b: 90, gcd: 30 }];
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        boss.gcdNumbers = { a: pick.a, b: pick.b, trueGCD: pick.gcd };
+        gcdAlert.classList.add('active');
+        document.getElementById('gcd-sub-text').innerText = `計算雙拳 GCD(${pick.a}, ${pick.b}) 踩下正確踏板！`;
+        leftFist.remove(leftFistSprite); leftFistSprite = makeTextSprite(pick.a.toString(), '#38bdf8'); leftFistSprite.position.set(0, 3, 0); leftFistSprite.scale.set(4, 2, 1); leftFistSprite.visible = true; leftFist.add(leftFistSprite);
+        rightFist.remove(rightFistSprite); rightFistSprite = makeTextSprite(pick.b.toString(), '#38bdf8'); rightFistSprite.position.set(0, 3, 0); rightFistSprite.scale.set(4, 2, 1); rightFistSprite.visible = true; rightFist.add(rightFistSprite);
+    }
+
+    function onFistsImpact() {
+        audio.playSlam(); boss.state = 'FISTS_STUCK'; boss.stateTimer = 9.0;
+        const lPos = new THREE.Vector3(); leftFist.getWorldPosition(lPos); createShockwave(lPos);
+        const rPos = new THREE.Vector3(); rightFist.getWorldPosition(rPos); createShockwave(rPos);
+        const trueGCD = boss.gcdNumbers.trueGCD;
+        const vals = [trueGCD, trueGCD + 3, Math.max(2, trueGCD - 4), trueGCD * 2].sort(() => Math.random() - 0.5);
+        gcdPedestals.forEach((ped, idx) => {
+            ped.value = vals[idx]; ped.isCorrect = (vals[idx] === trueGCD);
+            ped.sprite.material.map = makeTextSprite(vals[idx].toString(), ped.isCorrect ? '#fef08a' : '#38bdf8').material.map;
+        });
+        pedestalGroup.visible = true;
+    }
+
+    function onGCDSuccess() {
+        audio.playThunder();
+        showToast(`⚡ 破盾成功！GCD(${boss.gcdNumbers.a}, ${boss.gcdNumbers.b}) = ${boss.gcdNumbers.trueGCD}`, 'toast-gcd');
+        boss.state = 'STUNNED'; boss.stateTimer = 5.0; pedestalGroup.visible = false; gcdAlert.classList.remove('active');
+        leftFistSprite.visible = false; rightFistSprite.visible = false;
+        for (let p of [2, 3, 5, 7]) {
+            if (boss.currentVal % p === 0) {
+                const oldVal = boss.currentVal; boss.currentVal /= p; boss.factorHistory.push(p);
+                updateBossHUD(); showToast(`💥 天雷附贈分解：${oldVal} ÷ ${p} = ${boss.currentVal}！`, 'toast-gcd');
+                break;
+            }
+        }
+        checkVictory();
+    }
+
+    function checkVictory() {
+        if (boss.currentVal === 1) {
+            gameActive = false; audio.playVictory();
+            const factors = boss.factorHistory.slice(1);
+            document.getElementById('victory-math-summary').innerText = `${boss.initialVal} = ${factors.join(' × ')}`;
+            document.getElementById('victory-modal').style.display = 'flex';
+        }
+    }
+
+    function checkGameOver() {
+        if (player.hp <= 0 && gameActive) { gameActive = false; document.getElementById('gameover-modal').style.display = 'flex'; }
+    }
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (e.key === '1') selectPrime(2); if (e.key === '2') selectPrime(3); if (e.key === '3') selectPrime(5); if (e.key === '4') selectPrime(7);
+        if (e.code === 'KeyF' && gameActive) shootPrime(player.currentPrime);
+    });
+    window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function selectPrime(p) {
+        player.currentPrime = p;
+        document.querySelectorAll('.prime-btn').forEach(btn => btn.classList.toggle('active', parseInt(btn.getAttribute('data-prime')) === p));
+    }
+    document.querySelectorAll('.prime-btn').forEach(btn => btn.addEventListener('click', () => selectPrime(parseInt(btn.getAttribute('data-prime')))));
+    document.getElementById('btn-jump').addEventListener('click', () => { if (player.isGrounded && gameActive) { player.vel.y = player.jumpForce; player.isGrounded = false; audio.playJump(); } });
+    document.getElementById('btn-shoot').addEventListener('click', () => { if (gameActive) shootPrime(player.currentPrime); });
+    window.addEventListener('pointerdown', (e) => { if (e.target === canvas && gameActive) { audio.init(); shootPrime(player.currentPrime); } });
+
+    document.getElementById('btn-sound').addEventListener('click', () => { document.getElementById('btn-sound').innerText = audio.toggle() ? '🔊' : '🔇'; });
+    document.getElementById('btn-help').addEventListener('click', () => document.getElementById('start-modal').style.display = 'flex');
+
+    let selectedInitialVal = 180;
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected'); selectedInitialVal = parseInt(btn.getAttribute('data-val'));
+        });
+    });
+
+    document.getElementById('btn-start-game').addEventListener('click', () => { audio.init(); document.getElementById('start-modal').style.display = 'none'; startGame(selectedInitialVal); });
+    document.getElementById('btn-restart-game').addEventListener('click', () => { document.getElementById('victory-modal').style.display = 'none'; startGame(selectedInitialVal); });
+    document.getElementById('btn-retry-game').addEventListener('click', () => { document.getElementById('gameover-modal').style.display = 'none'; startGame(selectedInitialVal); });
+
+    function startGame(val) {
+        player.hp = player.maxHp; player.pos.set(0, 0, 16); player.vel.set(0, 0, 0); player.isGrounded = true;
+        playerGroup.position.copy(player.pos);
+        boss.state = 'NORMAL'; boss.stateTimer = 0; slamCooldown = 10;
+        pedestalGroup.visible = false; gcdAlert.classList.remove('active');
+        leftFistSprite.visible = false; rightFistSprite.visible = false;
+        setDifficulty(val); updatePlayerHUD(); gameActive = true;
+    }
+
+    let lastTime = performance.now();
+    function animate() {
+        requestAnimationFrame(animate);
+        const now = performance.now(); const delta = Math.min((now - lastTime) / 1000, 0.1); lastTime = now;
+        if (gameActive) {
+            const moveDir = new THREE.Vector3(0, 0, 0);
+            if (keys['KeyW'] || keys['ArrowUp']) moveDir.z -= 1; if (keys['KeyS'] || keys['ArrowDown']) moveDir.z += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveDir.x -= 1; if (keys['KeyD'] || keys['ArrowRight']) moveDir.x += 1;
+            if (moveDir.lengthSq() > 0) {
+                moveDir.normalize(); player.pos.x += moveDir.x * player.speed * delta; player.pos.z += moveDir.z * player.speed * delta;
+                playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z); eggBody.rotation.z = Math.sin(now * 0.015) * 0.15;
+            } else eggBody.rotation.z = 0;
+
+            if (keys['Space'] && player.isGrounded) { player.vel.y = player.jumpForce; player.isGrounded = false; audio.playJump(); }
+            if (!player.isGrounded) {
+                player.vel.y -= 38 * delta; player.pos.y += player.vel.y * delta;
+                if (player.pos.y <= 0) { player.pos.y = 0; player.vel.y = 0; player.isGrounded = true; }
+            }
+            const distCenter = Math.sqrt(player.pos.x * player.pos.x + player.pos.z * player.pos.z);
+            if (distCenter > arenaRadius - 2) {
+                const angle = Math.atan2(player.pos.z, player.pos.x);
+                player.pos.x = Math.cos(angle) * (arenaRadius - 2); player.pos.z = Math.sin(angle) * (arenaRadius - 2);
+            }
+            playerGroup.position.copy(player.pos);
+            camera.position.lerp(new THREE.Vector3(player.pos.x * 0.6, 12, player.pos.z + 18), 0.08);
+            camera.lookAt(player.pos.x * 0.3, 4, player.pos.z * 0.3 - 4);
+
+            ring1.rotation.x += 0.8 * delta; ring1.rotation.y += 1.2 * delta;
+            ring2.rotation.y -= 0.9 * delta; ring2.rotation.z += 1.1 * delta;
+
+            if (boss.state === 'NORMAL') {
+                bossGroup.position.y = 5 + Math.sin(now * 0.003) * 0.8;
+                leftFist.position.y = 2 + Math.sin(now * 0.004) * 0.5; rightFist.position.y = 2 + Math.cos(now * 0.004) * 0.5;
+                slamCooldown -= delta; if (slamCooldown <= 0) triggerGCDSlam();
+            } else if (boss.state === 'SLAM_CHARGING') {
+                boss.stateTimer -= delta;
+                leftFist.position.y = THREE.MathUtils.lerp(leftFist.position.y, 9, 0.1);
+                rightFist.position.y = THREE.MathUtils.lerp(rightFist.position.y, 9, 0.1);
+                if (boss.stateTimer <= 0) { leftFist.position.y = -0.5; rightFist.position.y = -0.5; onFistsImpact(); }
+            } else if (boss.state === 'FISTS_STUCK') {
+                boss.stateTimer -= delta;
+                if (pedestalGroup.visible) {
+                    gcdPedestals.forEach(ped => {
+                        if (player.pos.distanceTo(ped.pos) < 2.4 && player.isGrounded) {
+                            if (ped.isCorrect) onGCDSuccess();
+                            else {
+                                audio.playDeflect(); player.hp -= 15; updatePlayerHUD();
+                                showToast(`❌ 答錯了！${ped.value} 不是最大公因數！`, 'toast-error');
+                                createExplosion(player.pos, 0xef4444, 15); checkGameOver();
+                            }
+                        }
+                    });
+                }
+                if (boss.stateTimer <= 0 && boss.state === 'FISTS_STUCK') {
+                    boss.state = 'NORMAL'; slamCooldown = 12; pedestalGroup.visible = false; gcdAlert.classList.remove('active');
+                    leftFistSprite.visible = false; rightFistSprite.visible = false;
+                }
+            } else if (boss.state === 'STUNNED') {
+                boss.stateTimer -= delta; bossGroup.position.y = 3.5; bossCoreMesh.rotation.y += 4 * delta;
+                if (boss.stateTimer <= 0) { boss.state = 'NORMAL'; slamCooldown = 12; }
+            }
+
+            for (let i = projectiles.length - 1; i >= 0; i--) {
+                const proj = projectiles[i];
+                proj.mesh.position.addScaledVector(proj.vel, delta); proj.life -= delta;
+                const targetWorldPos = new THREE.Vector3(); bossCoreMesh.getWorldPosition(targetWorldPos);
+                if (proj.mesh.position.distanceTo(targetWorldPos) < 3.2) {
+                    const prime = proj.prime; const curVal = boss.currentVal;
+                    if (curVal % prime === 0) {
+                        audio.playHitSuccess(); const nextVal = curVal / prime;
+                        boss.currentVal = nextVal; boss.factorHistory.push(prime);
+                        updateBossHUD(); createExplosion(proj.mesh.position, primeColors[prime], 30);
+                        showToast(`🎯 命中分解！${curVal} ÷ ${prime} = ${nextVal}`, 'toast-success');
+                        const vis = armorPlates.filter(p => p.visible); if (vis.length > 0) vis[0].visible = false;
+                        checkVictory();
+                    } else {
+                        audio.playDeflect(); createExplosion(proj.mesh.position, 0xef4444, 15);
+                        showToast(`🛡️ 無法整除！${curVal} 不能被 ${prime} 整除！`, 'toast-error');
+                    }
+                    scene.remove(proj.mesh); projectiles.splice(i, 1); continue;
+                }
+                if (proj.life <= 0) { scene.remove(proj.mesh); projectiles.splice(i, 1); }
+            }
+
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                const wave = shockwaves[i];
+                wave.radius += wave.speed * delta; wave.mesh.scale.set(wave.radius, wave.radius, 1);
+                wave.mesh.material.opacity = Math.max(0, 1 - (wave.radius / wave.maxRadius));
+                const wavePos = new THREE.Vector3(); wave.mesh.getWorldPosition(wavePos);
+                if (!wave.hasDamagedPlayer && Math.abs(player.pos.distanceTo(wavePos) - wave.radius) < 1.8) {
+                    if (player.pos.y < 0.8) {
+                        player.hp -= 20; wave.hasDamagedPlayer = true; audio.playDeflect();
+                        createExplosion(player.pos, 0xef4444, 20); updatePlayerHUD();
+                        showToast(`💥 被衝擊波擊中！請按 [空白鍵] 跳躍躲避！`, 'toast-error'); checkGameOver();
+                    }
+                }
+                if (wave.radius >= wave.maxRadius) { scene.remove(wave.mesh); shockwaves.splice(i, 1); }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i]; p.mesh.position.addScaledVector(p.vel, delta); p.life -= delta;
+                if (p.life <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
+            }
+        }
+        renderer.render(scene, camera);
+    }
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+    animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>認識 C++ vector — 會自動變大的神奇盒子（優化版）</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc/chinese-traditional-400-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc/chinese-traditional-500-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc/chinese-traditional-700-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-tc/chinese-traditional-900-normal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono/700.css">
+<style>
+  :root {
+    --bg:#0a0a14; --panel:rgba(20,22,38,.92); --border:#34345a;
+    --vector:#ff9966; --array:#66ddff; --ghost:#55ee99; --gold:#ffcc66;
+    --danger:#ff6688; --text:#e6e6f0; --muted:#8b8fa8; --radius:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+  code,pre,.mono{font-family:"JetBrains Mono","Courier New",monospace;}
+  button{font-family:inherit;}
+
+  /* 載入畫面 */
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .5s;}
+  #loader.hidden{opacity:0;pointer-events:none;}
+  .spinner{width:44px;height:44px;border:4px solid #2a2c48;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #loader-msg{color:var(--muted);font-size:14px;}
+
+  header{text-align:center;padding:24px 16px 10px;background:radial-gradient(ellipse at top,rgba(255,153,102,.1),transparent 60%);}
+  header h1{font-size:26px;font-weight:900;letter-spacing:2px;}
+  header h1 .hl{color:var(--gold);}
+  header p{margin-top:8px;color:var(--muted);font-size:14px;}
+  .header-actions{margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .pill-btn{background:linear-gradient(135deg,#7a5a20,#4c3a14);border:1px solid #c0954d;color:#fff;padding:8px 20px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+  .pill-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(200,150,70,.35);}
+  .pill-btn.speed{background:linear-gradient(135deg,#2a5a8a,#1a3a5c);border-color:#4d8ac0;}
+  .pill-btn.speed.active{background:linear-gradient(135deg,#c0954d,#7a5a20);border-color:#ffcc66;}
+
+  /* 導覽卡片 */
+  #tutorial-card{max-width:740px;margin:14px auto 0;background:linear-gradient(135deg,rgba(46,40,74,.97),rgba(24,26,44,.97));border:2px solid var(--gold);border-radius:18px;padding:18px 26px 20px;box-shadow:0 12px 44px rgba(0,0,0,.55);position:relative;z-index:20;}
+  #tutorial-card.hidden{display:none;}
+  #tut-top{display:flex;justify-content:space-between;align-items:center;}
+  #tut-step{color:var(--gold);font-weight:900;font-size:13px;letter-spacing:1px;}
+  #tut-title{font-size:21px;font-weight:900;margin-top:8px;display:flex;align-items:center;gap:10px;}
+  #tut-title .tut-emoji{font-size:26px;}
+  #tut-text{font-size:15px;line-height:1.9;color:#d8dae8;margin-top:8px;}
+  #tut-text b{color:var(--gold);}
+  #tut-text .term{color:#8be9fd;font-weight:700;}
+  .tut-dots{display:flex;gap:7px;margin:14px 0 12px;}
+  .tut-dot{width:10px;height:10px;border-radius:50%;background:#3a3c5e;transition:background .3s,transform .3s;}
+  .tut-dot.done{background:#7a6a3a;}
+  .tut-dot.active{background:var(--gold);transform:scale(1.3);}
+  .tut-buttons{display:flex;gap:10px;justify-content:flex-end;}
+  .tut-btn{padding:9px 22px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid;transition:transform .15s,opacity .2s;}
+  .tut-btn:hover:not(:disabled){transform:translateY(-2px);}
+  .tut-btn:disabled{opacity:.45;cursor:not-allowed;}
+  .tut-btn.skip{background:transparent;border-color:#55587a;color:var(--muted);}
+  .tut-btn.next{background:linear-gradient(135deg,#ffcc66,#ff9966);border-color:#ffcc66;color:#2a1a08;}
+
+  /* 說明列 */
+  #desc-bar{display:flex;align-items:center;gap:12px;max-width:1180px;margin:12px auto 0;padding:10px 18px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);min-height:54px;}
+  #desc-bar .icon{flex:0 0 auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.05);border-radius:9px;}
+  #desc-title{font-weight:700;color:#ffd9a0;font-size:14px;white-space:nowrap;}
+  .chip{flex:0 0 auto;padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid;}
+  .chip.c-green{color:#66ff99;background:rgba(102,255,153,.1);border-color:rgba(102,255,153,.4);}
+  .chip.c-orange{color:#ffcc66;background:rgba(255,204,102,.1);border-color:rgba(255,204,102,.4);}
+  .chip.c-red{color:#ff6688;background:rgba(255,102,136,.12);border-color:rgba(255,102,136,.45);}
+  .chip.c-blue{color:#66ddff;background:rgba(102,221,255,.1);border-color:rgba(102,221,255,.4);}
+  .chip.c-gray{color:#aab0c8;background:rgba(170,176,200,.08);border-color:rgba(170,176,200,.3);}
+  #desc-text{font-size:13.5px;color:#c6c9dc;line-height:1.55;}
+  #desc-bar.flash{animation:descFlash .6s ease;}
+  @keyframes descFlash{0%{background:rgba(255,153,102,.16);border-color:#ff9966;}100%{background:var(--panel);border-color:var(--border);}}
+
+  /* 程式碼同步提示 */
+  #code-toast{position:absolute;top:52px;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(14,16,30,.95);border:1px solid var(--gold);border-radius:10px;padding:9px 16px;font-size:14px;z-index:15;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap;}
+  #code-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #code-toast .ct-code{color:#8be9fd;font-family:"JetBrains Mono",monospace;font-weight:700;}
+  #code-toast .ct-cmt{color:var(--muted);font-size:12px;margin-left:8px;}
+
+  /* 3D 舞台 */
+  #stage{position:relative;width:100%;height:62vh;min-height:470px;margin-top:12px;overflow:hidden;}
+  #stage canvas{position:absolute;inset:0;display:block;cursor:grab;touch-action:none;}
+  .overlay{position:absolute;pointer-events:none;}
+  #flash-overlay{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;}
+  #flash-overlay.red{animation:flashAnim .8s ease;background:radial-gradient(ellipse at center,transparent 30%,rgba(255,40,70,.42));}
+  #flash-overlay.yellow{animation:flashAnim .8s ease;background:radial-gradient(ellipse at center,transparent 30%,rgba(255,200,80,.35));}
+  #flash-overlay.green{animation:flashAnim .6s ease;background:radial-gradient(ellipse at center,transparent 40%,rgba(80,255,140,.25));}
+  @keyframes flashAnim{0%{opacity:1;}100%{opacity:0;}}
+
+  .half-label{top:10px;transform:translateX(-50%);font-size:14px;font-weight:900;letter-spacing:.5px;padding:6px 18px;border-radius:999px;backdrop-filter:blur(6px);white-space:nowrap;}
+  #label-vector{left:25%;color:var(--vector);background:rgba(255,153,102,.1);border:1px solid rgba(255,153,102,.45);}
+  #label-array{left:75%;color:var(--array);background:rgba(102,221,255,.1);border:1px solid rgba(102,221,255,.45);}
+  #divider{left:50%;top:56px;bottom:150px;border-left:1px dashed rgba(130,130,190,.28);}
+
+  .info-panel{width:238px;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;backdrop-filter:blur(8px);font-size:12.5px;box-shadow:0 6px 24px rgba(0,0,0,.45);}
+  #vector-info{top:54px;left:14px;}
+  #array-info{top:54px;right:14px;}
+  .info-panel h3{font-size:13.5px;margin-bottom:8px;letter-spacing:.5px;}
+  #vector-info h3{color:var(--vector);}
+  #array-info h3{color:var(--array);}
+  .big-stat{display:flex;align-items:baseline;gap:6px;margin:2px 0 6px;}
+  .big-num{font-size:30px;font-weight:900;line-height:1;}
+  #vector-info .big-num{color:var(--gold);}
+  #array-info .big-num{color:var(--array);}
+  .big-unit{color:var(--muted);font-size:13px;}
+  .stat-row{margin:4px 0;color:#c6c9dc;}
+  .stat-row b{color:#66ff99;}
+  .mini-stats{margin-top:8px;padding-top:7px;border-top:1px dashed rgba(80,84,120,.4);color:var(--muted);font-size:11px;line-height:1.7;}
+  .mini-stats .mono{color:#9aa0c8;}
+  .addr-flash{animation:addrGlow 1.3s ease;}
+  @keyframes addrGlow{0%{color:#fff;text-shadow:0 0 14px #ff6688;}100%{text-shadow:none;}}
+  #v-warning{display:none;margin-top:8px;background:rgba(255,102,136,.12);border:1px solid rgba(255,102,136,.5);color:#ffb3c0;border-radius:8px;padding:6px 9px;font-size:11.5px;font-weight:700;animation:meterBlink 1s infinite alternate;}
+  #v-warning.show{display:block;}
+  .meter-wrap{margin-top:9px;}
+  .meter{height:9px;background:#1a1c2e;border:1px solid #2c2e4a;border-radius:999px;overflow:hidden;}
+  .meter-fill{height:100%;width:0%;border-radius:999px;transition:width .45s ease,background .45s ease;}
+  .meter-fill.ok{background:linear-gradient(90deg,#44cc88,#66ff99);}
+  .meter-fill.warn{background:linear-gradient(90deg,#dd9933,#ffcc66);}
+  .meter-fill.full{background:linear-gradient(90deg,#cc3355,#ff6688);animation:meterBlink 1s infinite alternate;}
+  .meter-fill.fixed{background:linear-gradient(90deg,#3399ff,#66ddff);width:100%!important;}
+  @keyframes meterBlink{from{opacity:1;}to{opacity:.55;}}
+  .legend{display:flex;gap:12px;margin-top:9px;padding-top:8px;border-top:1px dashed rgba(80,84,120,.4);flex-wrap:wrap;}
+  .legend-item{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:10.5px;}
+  .legend-swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .swatch-solid{background:linear-gradient(135deg,#ffaa66,#ff6644);}
+  .swatch-ghost{border:1.5px dashed var(--ghost);}
+  .swatch-array{background:linear-gradient(135deg,#66ddff,#3377ff);}
+
+  #log-panel{left:14px;bottom:150px;width:254px;max-height:140px;overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px 13px;font-size:11px;pointer-events:auto;backdrop-filter:blur(8px);}
+  #log-panel h4{font-size:12px;color:var(--vector);margin-bottom:6px;letter-spacing:1px;}
+  .log-entry{padding:3px 0;border-bottom:1px dashed rgba(80,84,120,.35);color:#aab0c8;font-size:10.5px;line-height:1.5;font-family:"JetBrains Mono",monospace;}
+  .log-entry.realloc{color:#ff8899;}
+  .log-entry.ok{color:#8affbb;}
+
+  #controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:12px 18px;backdrop-filter:blur(10px);box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:97%;z-index:5;}
+  #controls.glow{animation:controlsGlow 1.1s ease 2;}
+  @keyframes controlsGlow{0%,100%{box-shadow:0 8px 30px rgba(0,0,0,.5);}50%{box-shadow:0 0 0 7px rgba(255,204,102,.4);}}
+  .controls-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:stretch;}
+  .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:104px;padding:10px 14px;border-radius:12px;border:1px solid #55558a;background:linear-gradient(135deg,#3a3a66,#262648);color:#fff;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .2s;min-height:44px;}
+  .btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 16px rgba(90,90,180,.35);}
+  .btn:active:not(:disabled){transform:translateY(0);}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn .btn-text{font-size:14px;font-weight:900;}
+  .btn .btn-sub{font-size:10px;color:#b8bcd6;}
+  .btn .btn-emoji{font-size:18px;}
+  .btn.big{min-width:150px;padding:10px 18px;}
+  .btn.big .btn-text{font-size:16px;}
+  .btn.b-green{background:linear-gradient(135deg,#2e6a48,#1d4530);border-color:#4d9a70;}
+  .btn.b-blue{background:linear-gradient(135deg,#2a5a8a,#1a3a5c);border-color:#4d8ac0;}
+  .btn.b-red{background:linear-gradient(135deg,#7a3040,#4c1f2a);border-color:#b05570;}
+  .btn.b-gold{background:linear-gradient(135deg,#7a5a20,#4c3a14);border-color:#c0954d;}
+  .btn.b-gray{background:linear-gradient(135deg,#44465e,#2c2e40);border-color:#666a8a;}
+  .btn.b-danger{background:linear-gradient(135deg,#5c1f35,#38121f);border-color:#a04060;}
+  .btn.b-safe{background:linear-gradient(135deg,#1f5c46,#123828);border-color:#40a07a;}
+  #btn-adv-toggle{min-width:200px;}
+  #adv-panel{display:none;flex-direction:column;gap:9px;border-top:1px dashed rgba(80,84,120,.5);padding-top:10px;}
+  #adv-panel.open{display:flex;}
+  .lab-title{font-size:12.5px;color:var(--muted);text-align:center;font-weight:700;}
+  .lab-title b{color:var(--gold);}
+  .lab-row{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;align-items:center;}
+  #idx-input{width:70px;background:#14162a;border:1px solid #44466a;border-radius:8px;color:#ffd9a0;font-family:"JetBrains Mono",monospace;font-size:14px;padding:8px;text-align:center;}
+  #idx-input:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  #idx-range-hint{font-size:11px;color:var(--muted);text-align:center;}
+  #idx-range-hint b{color:#8affbb;}
+  #stage-hint{text-align:center;color:var(--muted);font-size:12px;padding:8px 16px 0;}
+
+  #tooltip{position:fixed;display:none;z-index:1000;pointer-events:none;background:rgba(14,16,30,.96);border:1px solid #4a4a7a;border-radius:10px;padding:9px 13px;font-size:12.5px;line-height:1.65;box-shadow:0 8px 24px rgba(0,0,0,.6);max-width:290px;}
+  #tooltip .t-main{font-weight:700;font-size:13.5px;}
+  #tooltip .t-sub{color:var(--muted);font-size:11.5px;}
+  #tooltip.vec .t-main{color:var(--vector);}
+  #tooltip.gho .t-main{color:var(--ghost);}
+  #tooltip.arr .t-main{color:var(--array);}
+
+  .section{max-width:1100px;margin:0 auto;padding:44px 20px 6px;}
+  .section h2{text-align:center;font-size:23px;font-weight:900;color:var(--gold);margin-bottom:6px;letter-spacing:2px;}
+  .section-sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:26px;}
+  .glossary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;}
+  .glossary-card{background:#14162a;border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;transition:transform .2s,border-color .2s;}
+  .glossary-card:hover{transform:translateY(-3px);border-color:#5a5a9a;}
+  .glossary-term{font-size:15px;font-weight:900;margin-bottom:6px;}
+  .glossary-card p{font-size:13px;color:#c6c9dc;line-height:1.75;}
+  .glossary-card p .mono{color:#8be9fd;font-size:12px;}
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);}
+  .comparison-table{width:100%;border-collapse:collapse;background:#14162a;border:1px solid var(--border);min-width:620px;}
+  .comparison-table th{background:#1e2140;padding:13px 18px;text-align:left;font-size:15px;letter-spacing:1px;}
+  .comparison-table th:nth-child(2){color:var(--vector);}
+  .comparison-table th:nth-child(3){color:var(--array);}
+  .comparison-table td{padding:12px 18px;border-top:1px solid rgba(52,52,90,.6);font-size:13.5px;color:#c6c9dc;}
+  .comparison-table td:first-child{color:#ffd9a0;font-weight:700;}
+  .comparison-table tr:hover td{background:rgba(255,153,102,.04);}
+  .tips-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .tip-card{background:#14162a;border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;transition:transform .2s,border-color .2s;}
+  .tip-card:hover{transform:translateY(-4px);border-color:#5a5a9a;}
+  .tip-card .q{font-size:15px;font-weight:900;color:#ffd9a0;margin-bottom:8px;}
+  .tip-card .a{font-size:13.5px;color:#aab0c8;line-height:1.75;}
+  .tip-card .a b{color:#8affbb;}
+  .code-container{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .code-block{background:#14162a;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .code-block.full{grid-column:1/-1;}
+  .code-block .block-head{padding:12px 18px;font-size:14px;font-weight:900;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+  .code-block.vector .block-head{color:var(--vector);background:rgba(255,153,102,.07);}
+  .code-block.array .block-head{color:var(--array);background:rgba(102,221,255,.07);}
+  .code-block.errdef .block-head{color:var(--danger);background:rgba(255,102,136,.07);}
+  .code-block pre{padding:16px 18px;font-size:13px;line-height:1.9;overflow-x:auto;color:#d8dae8;white-space:pre;}
+  .kw{color:#ff79c6;font-weight:bold;}
+  .typ{color:#8be9fd;}
+  .num{color:#bd93f9;}
+  .cmt{color:#6272a4;font-style:italic;}
+  .fn{color:#50fa7b;}
+  .str{color:#f1fa8c;}
+  .cl{border-radius:4px;transition:background .25s,box-shadow .25s;display:inline-block;padding:0 3px;}
+  .cl.hl{background:rgba(255,204,102,.22);box-shadow:0 0 0 3px rgba(255,204,102,.35);}
+  footer{text-align:center;padding:22px;margin-top:44px;color:#55586e;font-size:12.5px;border-top:1px solid rgba(52,52,90,.5);}
+
+  @media (max-width:900px){
+    .code-container,.tips-grid{grid-template-columns:1fr;}
+    #log-panel,#divider{display:none;}
+    .info-panel{width:168px;font-size:11px;padding:10px 11px;}
+    .big-num{font-size:22px;}
+    .half-label{font-size:11px;padding:4px 10px;}
+    #desc-bar{flex-wrap:wrap;gap:8px;}
+    #desc-text{width:100%;}
+    .btn{min-width:92px;}
+    .btn.big{min-width:118px;}
+    #tutorial-card{margin-left:12px;margin-right:12px;}
+    #code-toast{font-size:12px;max-width:90%;overflow:hidden;text-overflow:ellipsis;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="spinner"></div>
+  <div id="loader-msg">3D 場景載入中…</div>
+</div>
+
+<header>
+  <h1>📦 認識 C++ vector：<span class="hl">會自動變大的神奇盒子</span></h1>
+  <p>完全不用基礎也能懂！跟著導覽，1 分鐘看動畫學概念</p>
+  <div class="header-actions">
+    <button id="btn-restart-tour" class="pill-btn">🎓 重新開始導覽</button>
+    <button id="btn-speed" class="pill-btn speed" aria-pressed="false">⚡ 正常速度</button>
+  </div>
+</header>
+
+<div id="tutorial-card">
+  <div id="tut-top"><span id="tut-step">新手導覽 1 / 8</span></div>
+  <div id="tut-title"><span class="tut-emoji">👋</span><span id="tut-title-text">載入中…</span></div>
+  <div id="tut-text"></div>
+  <div class="tut-dots" id="tut-dots"></div>
+  <div class="tut-buttons">
+    <button class="tut-btn skip" id="tut-skip">跳過，我想自己玩</button>
+    <button class="tut-btn next" id="tut-next">下一步 →</button>
+  </div>
+</div>
+
+<div id="desc-bar" role="status" aria-live="polite">
+  <span class="icon" id="desc-icon">💡</span>
+  <span id="desc-title" class="mono">準備好了！</span>
+  <span id="desc-chip" class="chip c-gray">提示</span>
+  <span id="desc-text">跟著上面的導覽一步一步來，或直接按下面的按鈕玩玩看！</span>
+</div>
+
+<div id="stage">
+  <div id="flash-overlay"></div>
+  <div id="code-toast" aria-hidden="true"></div>
+  <div class="overlay" id="divider"></div>
+  <div class="overlay half-label" id="label-vector">📦 vector · 神奇伸縮盒</div>
+  <div class="overlay half-label" id="label-array">🍱 array · 固定便當盒</div>
+
+  <div class="overlay info-panel" id="vector-info">
+    <h3>📦 vector 神奇伸縮盒</h3>
+    <div class="big-stat"><span class="big-num" id="v-size">0</span><span class="big-unit">顆球在盒子裡</span></div>
+    <div class="stat-row">盒子總共有 <b id="v-cap">0</b> 格（<b id="v-empty" style="color:#55ee99">0</b> 格空著）</div>
+    <div class="meter-wrap"><div class="meter"><div class="meter-fill ok" id="v-meter"></div></div></div>
+    <div id="v-warning">⚠️ 裝滿了！再加一顆就要「搬家」</div>
+    <div class="mini-stats">
+      🏠 門牌號碼（進階）：<span class="mono" id="v-ptr">0x1000</span><br>
+      🚚 搬家次數：<span class="mono" id="v-realloc">0</span> 次
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch swatch-solid"></div>球（資料）</div>
+      <div class="legend-item"><div class="legend-swatch swatch-ghost"></div>預留空格</div>
+    </div>
+  </div>
+
+  <div class="overlay info-panel" id="array-info">
+    <h3>🍱 array 固定便當盒</h3>
+    <div class="big-stat"><span class="big-num">8</span><span class="big-unit">格，永遠不變</span></div>
+    <div class="stat-row">🔵 裡面有 <b style="color:#66ddff">8</b> 顆球</div>
+    <div class="stat-row">📍 位置永遠不會變</div>
+    <div class="stat-row">❌ 不能加球、不能拿走</div>
+    <div class="stat-row">✅ 只能改球上面的數字</div>
+    <div class="meter-wrap"><div class="meter"><div class="meter-fill fixed"></div></div></div>
+    <div class="legend"><div class="legend-item"><div class="legend-swatch swatch-array"></div>固定的球</div></div>
+  </div>
+
+  <div class="overlay" id="log-panel">
+    <h4>📜 剛剛發生了什麼</h4>
+    <div id="log-content"></div>
+  </div>
+
+  <div id="controls">
+    <div class="controls-row">
+      <button class="btn big b-green" id="btn-push" aria-label="加一顆球，push_back"><span class="btn-emoji">🟢</span><span class="btn-text">加一顆球</span><span class="btn-sub mono">push_back()</span></button>
+      <button class="btn big b-red" id="btn-pop" aria-label="拿走最後一顆，pop_back"><span class="btn-emoji">🔴</span><span class="btn-text">拿走最後一顆</span><span class="btn-sub mono">pop_back()</span></button>
+      <button class="btn big b-gray" id="btn-reset" aria-label="重來"><span class="btn-emoji">🔄</span><span class="btn-text">重來</span><span class="btn-sub">reset</span></button>
+    </div>
+    <button class="btn" id="btn-adv-toggle" aria-expanded="false"><span class="btn-text">🔧 進階操作 ▾</span></button>
+    <div id="adv-panel">
+      <div class="controls-row">
+        <button class="btn" id="btn-insert"><span class="btn-emoji">✂️</span><span class="btn-text">插隊到中間</span><span class="btn-sub mono">insert()</span></button>
+        <button class="btn" id="btn-reserve"><span class="btn-emoji">📐</span><span class="btn-text">預約大盒子</span><span class="btn-sub mono">reserve()</span></button>
+        <button class="btn" id="btn-shrink"><span class="btn-emoji">📏</span><span class="btn-text">縮回剛好</span><span class="btn-sub mono">shrink_to_fit()</span></button>
+        <button class="btn b-red" id="btn-clear"><span class="btn-emoji">🧹</span><span class="btn-text">全部清空</span><span class="btn-sub mono">clear()</span></button>
+        <button class="btn b-blue" id="btn-array"><span class="btn-emoji">🔵</span><span class="btn-text">改右邊的數字</span><span class="btn-sub mono">arr[i] = v</span></button>
+        <button class="btn" id="btn-batch"><span class="btn-emoji">⏩</span><span class="btn-text">連加 5 顆</span><span class="btn-sub">觀察連續搬家</span></button>
+        <button class="btn b-gold" id="btn-demo"><span class="btn-emoji">▶️</span><span class="btn-text">自動表演</span><span class="btn-sub">看完整過程</span></button>
+        <button class="btn b-danger" id="btn-dangling"><span class="btn-emoji">☠️</span><span class="btn-text">搬家陷阱示範</span><span class="btn-sub">懸空指標</span></button>
+      </div>
+      <div class="lab-title">🧪 錯誤實驗室：<b>輸入一個格子號碼</b>，去拿那格的球，看看會發生什麼事</div>
+      <div class="lab-row">
+        <input id="idx-input" type="number" value="99" step="1" aria-label="格子號碼">
+        <button class="btn b-danger" id="btn-access-raw"><span class="btn-text">😱 直接拿（不檢查）</span><span class="btn-sub mono">vec[i]</span></button>
+        <button class="btn b-safe" id="btn-access-at"><span class="btn-text">🛡️ 先檢查再拿</span><span class="btn-sub mono">vec.at(i)</span></button>
+      </div>
+      <div id="idx-range-hint"></div>
+    </div>
+  </div>
+</div>
+
+<div id="stage-hint">💡 小提醒：拖曳旋轉 3D 畫面、滾輪縮放、把滑鼠停在球上（或用手指點一下）看它的資料</div>
+<div id="tooltip"></div>
+
+<section class="section">
+  <h2>📖 名詞小字典</h2>
+  <p class="section-sub">動畫中出現的名詞，這裡都用生活例子解釋</p>
+  <div class="glossary-grid">
+    <div class="glossary-card"><div class="glossary-term">🟠 元素</div><p>盒子裡的每顆球，就是你存進去的資料（例如一個數字、一個名字）。</p></div>
+    <div class="glossary-card"><div class="glossary-term">🔢 size（大小）</div><p>盒子裡「現在有幾顆球」。加一顆 +1，拿走一顆 -1。</p></div>
+    <div class="glossary-card"><div class="glossary-term">📏 capacity（容量）</div><p>盒子「總共有幾格」，包含綠色虛線的預留空格。容量 ≥ 球數。</p></div>
+    <div class="glossary-card"><div class="glossary-term">🏠 記憶體</div><p>電腦存放資料的大倉庫。你的盒子就放在倉庫裡的某個位置。</p></div>
+    <div class="glossary-card"><div class="glossary-term">📮 位址</div><p>倉庫裡每個位置的「門牌號碼」，例如 0x1000。程式靠它找到你的盒子。</p></div>
+    <div class="glossary-card"><div class="glossary-term">📝 指標</div><p>一張抄了門牌號碼的小紙條。方便隨時去找盒子——但盒子搬家後紙條就作廢了！</p></div>
+    <div class="glossary-card"><div class="glossary-term">🚚 重新配置</div><p>盒子裝滿時，vector 自動換一個「兩倍大」的新盒子，把球全部搬過去，再丟掉舊盒子。搬家要花時間！</p></div>
+    <div class="glossary-card"><div class="glossary-term">⚡ O(1) 和 O(n)</div><p>速度的成績單。<span class="mono">O(1)</span> = 不管多少資料都一樣快；<span class="mono">O(n)</span> = 資料越多越慢（像搬家的搬運過程）。</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>🆚 vector vs array 簡單比一比</h2>
+  <p class="section-sub">一個會變大、一個不會，到底該選誰？</p>
+  <div class="table-wrap">
+    <table class="comparison-table">
+      <thead><tr><th>問題</th><th>📦 vector</th><th>🍱 array</th></tr></thead>
+      <tbody>
+        <tr><td>可以一直加東西嗎？</td><td>✅ 可以，盒子自動變大</td><td>❌ 不行，固定 8 格</td></tr>
+        <tr><td>需要先決定大小嗎？</td><td>不用，之後再說</td><td>要，一開始就決定</td></tr>
+        <tr><td>裝滿了怎麼辦？</td><td>自動換大盒子（搬家）</td><td>就是裝不下</td></tr>
+        <tr><td>東西放在哪裡？</td><td>大倉庫深處（堆積記憶體）</td><td>手邊的桌子上（堆疊記憶體）</td></tr>
+        <tr><td>門牌號碼會變嗎？</td><td>⚠️ 搬家後會變</td><td>✅ 永遠不變</td></tr>
+        <tr><td>什麼時候用它？</td><td>不知道會有幾筆資料時</td><td>確定只有幾筆資料時</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section">
+  <h2>😱 新手最常犯的 3 個錯</h2>
+  <p class="section-sub">先認識這些陷阱，以後就不會踩到</p>
+  <div class="tips-grid">
+    <div class="tip-card"><div class="q">🔢 編號從 0 開始！</div><div class="a">第一顆球是 <b>0 號</b>，不是 1 號。盒子裡有 10 顆球，編號是 0～9，沒有 10 號！</div></div>
+    <div class="tip-card"><div class="q">🚧 不要拿不存在的格子</div><div class="a">盒子只有 4 格卻去拿 99 號，<b>不會有人警告你</b>！安全做法：先檢查號碼，或用 <b>at()</b>。到上面的「錯誤實驗室」親身體驗看看。</div></div>
+    <div class="tip-card"><div class="q">📝 搬家後，紙條作廢</div><div class="a">重新配置（搬家）之後，之前記住的位址就失效了。需要位址時，<b>搬完家要重新拿一次</b>。</div></div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>💻 真正的程式碼長這樣</h2>
+  <p class="section-sub">當你在上面按按鈕時，對應的這一行會亮起來！</p>
+  <div class="code-container">
+    <div class="code-block vector">
+      <div class="block-head">📦 vector：會變大的盒子</div>
+      <pre><span class="cl" id="cl-new"><span class="typ">vector</span>&lt;<span class="typ">int</span>&gt; balls;          <span class="cmt">// 建立一個空盒子</span></span>
+
+<span class="cl" id="cl-push">balls.<span class="fn">push_back</span>(<span class="num">10</span>);         <span class="cmt">// 🟢 加一顆球（盒子會自動變大）</span></span>
+<span class="cl" id="cl-insert">balls.<span class="fn">insert</span>(balls.<span class="fn">begin</span>(), <span class="num">5</span>); <span class="cmt">// ✂️ 插隊到最前面</span></span>
+<span class="cl" id="cl-access"><span class="typ">int</span> v = balls[<span class="num">0</span>];            <span class="cmt">// 拿 0 號（第一顆，從 0 開始！）</span></span>
+<span class="cl" id="cl-pop">balls.<span class="fn">pop_back</span>();             <span class="cmt">// 🔴 拿走最後一顆</span></span>
+<span class="cl" id="cl-reserve">balls.<span class="fn">reserve</span>(<span class="num">100</span>);          <span class="cmt">// 📐 預約大盒子</span></span>
+<span class="cl" id="cl-shrink">balls.<span class="fn">shrink_to_fit</span>();       <span class="cmt">// 📏 縮回剛剛好</span></span>
+<span class="cl" id="cl-clear">balls.<span class="fn">clear</span>();               <span class="cmt">// 🧹 全部清空</span></span>
+<span class="cl" id="cl-size"><span class="typ">int</span> n = balls.<span class="fn">size</span>();        <span class="cmt">// 現在有幾顆？</span></span></pre>
+    </div>
+
+    <div class="code-block array">
+      <div class="block-head">🍱 array：固定的便當盒</div>
+      <pre><span class="cmt">// 出廠就是 8 格，不能多也不能少</span>
+<span class="cl" id="cl-array"><span class="typ">array</span>&lt;<span class="typ">int</span>, <span class="num">8</span>&gt; bento = {<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>};</span>
+
+<span class="cl" id="cl-array-mod">bento[<span class="num">0</span>] = <span class="num">100</span>;              <span class="cmt">// ✅ 可以改球上面的數字</span></span>
+
+<span class="cmt">// bento.push_back(9);        // ❌ 編譯就報錯：不能加！</span></pre>
+    </div>
+
+    <div class="code-block errdef full">
+      <div class="block-head">🛡️ 安全拿東西的方法（對應「錯誤實驗室」）</div>
+      <pre><span class="cl" id="cl-raw"><span class="typ">int</span> bad = balls[<span class="num">99</span>];         <span class="cmt">// ❌ 危險：99 號不存在，卻沒有警告！</span></span>
+
+<span class="cl" id="cl-check"><span class="kw">if</span> (i &lt; balls.<span class="fn">size</span>()) { ... }  <span class="cmt">// ✅ 做法①：拿之前先檢查</span></span>
+
+<span class="kw">try</span> {
+<span class="cl" id="cl-at">    <span class="typ">int</span> v = balls.<span class="fn">at</span>(<span class="num">99</span>);     <span class="cmt">// ✅ 做法②：用 at()，出錯會丟出例外</span></span>
+} <span class="kw">catch</span> (...) {
+    <span class="cmt">// 出錯時來到這裡，程式不會崩潰</span>
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>📦 C++ vector 視覺化教學 · 專為新手設計 · 拖曳、點擊、玩中學</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ===== 啟動檢查 ===== */
+if (typeof THREE === 'undefined') {
+  document.getElementById('loader-msg').textContent = '⚠️ 3D 引擎載入失敗，請檢查網路後重新整理';
+  throw new Error('THREE.js 未載入');
+}
+
+/* ===== 常數集中管理 ===== */
+const CONFIG = {
+  ELEM_BYTES: 4, MAX_IDX: 999,
+  BASE_ADDR: 0x1000, ARRAY_ADDR: 0x2000
+};
+
+/* ===== 速度 / 減少動畫偏好 ===== */
+let speedFactor = 1;
+let reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===== 基礎工具 ===== */
+const clamp01 = t => Math.max(0, Math.min(1, t));
+const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+const easeOutBack = t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const randVal = () => 10 + Math.floor(Math.random() * 90);
+const randGarbage = () => '0x' + Math.floor(Math.random() * 0xFFFFFFFF).toString(16).toUpperCase().padStart(8, '0');
+const hex = n => '0x' + n.toString(16).toUpperCase();
+
+function sleep(ms) {
+  if (reducedMotion) return Promise.resolve();
+  return new Promise(r => setTimeout(r, ms / speedFactor));
+}
+function tween(duration, onUpdate, easeFn) {
+  if (reducedMotion) { onUpdate(1, 1); return Promise.resolve(); }
+  const ease = easeFn || easeOutCubic;
+  const dur = duration / speedFactor;
+  return new Promise(resolve => {
+    const start = performance.now();
+    function step(now) {
+      const raw = clamp01((now - start) / dur);
+      onUpdate(ease(raw), raw);
+      if (raw < 1) requestAnimationFrame(step); else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* ===== Three.js 場景 ===== */
+const stage = document.getElementById('stage');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a14);
+scene.fog = new THREE.Fog(0x0a0a14, 42, 95);
+const camera = new THREE.PerspectiveCamera(48, stage.clientWidth / stage.clientHeight, 0.1, 200);
+camera.position.set(0, 9, 22);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+stage.insertBefore(renderer.domElement, stage.firstChild);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
+controls.minDistance = 9; controls.maxDistance = 42; controls.maxPolarAngle = Math.PI * 0.49;
+controls.target.set(0, 0.3, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.75); dirLight.position.set(8, 18, 12); scene.add(dirLight);
+const warmLight = new THREE.PointLight(0xff9966, 0.7, 35); warmLight.position.set(-9, 7, 6); scene.add(warmLight);
+const coolLight = new THREE.PointLight(0x66ddff, 0.7, 35); coolLight.position.set(9, 7, 6); scene.add(coolLight);
+const grid = new THREE.GridHelper(90, 90, 0x2a2c48, 0x181a2e); grid.position.y = -1.25; scene.add(grid);
+
+const vectorGroup = new THREE.Group(); vectorGroup.position.x = -7; scene.add(vectorGroup);
+const arrayGroup = new THREE.Group(); arrayGroup.position.x = 7; scene.add(arrayGroup);
+
+/* ===== 共用 Geometry（效能優化）===== */
+const CUBE = 1.0, SPACING = 1.3, TARGET_W = 12.4, MAX_CAP = 32, ARRAY_N = 8;
+const GEO = {
+  box: new THREE.BoxGeometry(CUBE, CUBE, CUBE),
+  edges: new THREE.EdgesGeometry(new THREE.BoxGeometry(CUBE, CUBE, CUBE)),
+  cone: new THREE.ConeGeometry(0.26, 0.65, 16)
+};
+
+/* ===== 狀態 ===== */
+let vectorData = [], vectorCapacity = 0, vectorReallocCount = 0, vectorMemoryAddr = CONFIG.BASE_ADDR;
+let arrayData = [1,2,3,4,5,6,7,8];
+let vectorCubes = [], vectorGhosts = [], arrayCubes = [], tempMarkers = [];
+let busy = false, hovered = null, lastClient = { x:0, y:0 }, pointerDirty = false;
+
+/* ===== Sprite 貼圖快取（效能優化）===== */
+const spriteTexCache = new Map();
+function makeTextSprite(text, color, fontPx, w, h) {
+  w = w || 256; h = h || 128; fontPx = fontPx || 64;
+  const key = w + 'x' + h + '|' + fontPx + '|' + color + '|' + text;
+  let tex = spriteTexCache.get(key);
+  if (!tex) {
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.font = 'bold ' + fontPx + 'px "JetBrains Mono","Courier New",monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = color; ctx.shadowBlur = 10; ctx.fillStyle = color;
+    ctx.fillText(text, w / 2, h / 2);
+    tex = new THREE.CanvasTexture(canvas);
+    tex.minFilter = THREE.LinearFilter;
+    spriteTexCache.set(key, tex);
+  }
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(w / 256, h / 256, 1);
+  return sprite;
+}
+
+/* ===== 3D 元素工廠 ===== */
+function createVectorCube(value, index) {
+  const mesh = new THREE.Mesh(GEO.box, new THREE.MeshPhongMaterial({ color: 0xff8844, emissive: 0x552200, shininess: 60, specular: 0x886644 }));
+  mesh.userData = { kind:'vector', index, value, lift:0, baseEmissive:0x552200 };
+  const idxLabel = makeTextSprite('[' + index + ']', '#ffcc88', 50);
+  idxLabel.position.set(0, -1.08, 0); idxLabel.scale.set(0.85, 0.42, 1); mesh.add(idxLabel);
+  const valLabel = makeTextSprite(String(value), '#ffffff', 78);
+  valLabel.position.set(0, 1.02, 0); mesh.add(valLabel);
+  return mesh;
+}
+function createGhostCube(index) {
+  const mesh = new THREE.Mesh(GEO.box, new THREE.MeshBasicMaterial({ color: 0x55ee99, transparent: true, opacity: 0.06, depthWrite: false }));
+  const edgeMat = new THREE.LineDashedMaterial({ color: 0x55ee99, dashSize: 0.14, gapSize: 0.09, transparent: true, opacity: 0.75 });
+  const edges = new THREE.LineSegments(GEO.edges, edgeMat);
+  edges.computeLineDistances(); mesh.add(edges);
+  const idxLabel = makeTextSprite('[' + index + ']', 'rgba(130,255,190,0.5)', 50);
+  idxLabel.position.set(0, -1.08, 0); idxLabel.scale.set(0.85, 0.42, 1); mesh.add(idxLabel);
+  mesh.userData = { kind:'ghost', index, lift:0, edgeMat };
+  return mesh;
+}
+function createArrayCube(value, index) {
+  const mesh = new THREE.Mesh(GEO.box, new THREE.MeshPhongMaterial({ color: 0x3f8cff, emissive: 0x11306b, shininess: 60, specular: 0x446688 }));
+  mesh.userData = { kind:'array', index, value, lift:0, baseEmissive:0x11306b };
+  const idxLabel = makeTextSprite('[' + index + ']', '#99ccff', 50);
+  idxLabel.position.set(0, -1.08, 0); idxLabel.scale.set(0.85, 0.42, 1); mesh.add(idxLabel);
+  const valLabel = makeTextSprite(String(value), '#ffffff', 78);
+  valLabel.position.set(0, 1.02, 0); mesh.add(valLabel);
+  return mesh;
+}
+function makeDangerGroup(line1, line2) {
+  const g = new THREE.Group();
+  const skull = makeTextSprite('☠', '#ff4466', 110); skull.scale.set(1.5,1.5,1); skull.position.y = 1.1; g.add(skull);
+  const l1 = makeTextSprite(line1, '#ff6688', 46, 1024, 128); l1.scale.set(6.4,0.8,1); l1.position.y = -0.2; g.add(l1);
+  const l2 = makeTextSprite(line2, '#ffaaaa', 38, 1024, 128); l2.scale.set(6.4,0.8,1); l2.position.y = -1.0; g.add(l2);
+  return g;
+}
+function disposeObj(root) {
+  root.traverse(o => { if (o.material) o.material.dispose(); });
+}
+function disposeGroup(group) {
+  while (group.children.length) { const child = group.children[0]; group.remove(child); disposeObj(child); }
+}
+function clearTempMarkers() { tempMarkers.forEach(m => { vectorGroup.remove(m); disposeObj(m); }); tempMarkers = []; }
+function flashScreen(kind) { const el = document.getElementById('flash-overlay'); el.className = ''; void el.offsetWidth; el.classList.add(kind); }
+
+/* ===== 程式碼同步（教學強化）===== */
+function showCodeToast(codeText, cmt) {
+  const el = document.getElementById('code-toast');
+  el.innerHTML = '<span class="ct-code">' + codeText + '</span>' + (cmt ? '<span class="ct-cmt">' + cmt + '</span>' : '');
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 1600 / speedFactor);
+}
+function flashCode(id) {
+  document.querySelectorAll('.cl.hl').forEach(e => e.classList.remove('hl'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('hl'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('hl'), 1400 / speedFactor); }
+}
+function syncCode(codeText, cmt, blockId) { showCodeToast(codeText, cmt); if (blockId) flashCode(blockId); }
+
+/* ===== 重建區塊 ===== */
+function buildVectorRow() {
+  disposeGroup(vectorGroup); vectorCubes = []; vectorGhosts = []; tempMarkers = [];
+  if (vectorCapacity === 0) {
+    const hint = makeTextSprite('空盒子 · 等待第一顆球', '#9aa0b5', 62, 1024, 128);
+    hint.scale.set(6.8, 0.85, 1); hint.position.set(0, 0.6, 0);
+    vectorGroup.add(hint); vectorGroup.scale.set(1,1,1); updateVectorUI(); return;
+  }
+  const width = vectorCapacity * SPACING, off = -width / 2 + SPACING / 2;
+  for (let i = 0; i < vectorData.length; i++) { const c = createVectorCube(vectorData[i], i); c.position.set(off + i * SPACING, 0, 0); vectorGroup.add(c); vectorCubes.push(c); }
+  for (let i = vectorData.length; i < vectorCapacity; i++) { const g = createGhostCube(i); g.position.set(off + i * SPACING, 0, 0); vectorGroup.add(g); vectorGhosts.push(g); }
+  vectorGroup.scale.setScalar(Math.min(1, TARGET_W / width));
+  updateVectorUI();
+}
+function buildArrayRow() {
+  disposeGroup(arrayGroup); arrayCubes = [];
+  const width = ARRAY_N * SPACING, off = -width / 2 + SPACING / 2;
+  for (let i = 0; i < ARRAY_N; i++) { const c = createArrayCube(arrayData[i], i); c.position.set(off + i * SPACING, 0, 0); arrayGroup.add(c); arrayCubes.push(c); }
+  arrayGroup.scale.setScalar(Math.min(1, TARGET_W / width));
+}
+
+/* ===== UI 更新 ===== */
+function updateVectorUI() {
+  const size = vectorData.length;
+  document.getElementById('v-size').textContent = size;
+  document.getElementById('v-cap').textContent = vectorCapacity;
+  document.getElementById('v-empty').textContent = Math.max(0, vectorCapacity - size);
+  document.getElementById('v-ptr').textContent = hex(vectorMemoryAddr);
+  document.getElementById('v-realloc').textContent = vectorReallocCount;
+  document.getElementById('v-warning').classList.toggle('show', vectorCapacity > 0 && size >= vectorCapacity);
+  const pct = vectorCapacity ? Math.round(size / vectorCapacity * 100) : 0;
+  const fill = document.getElementById('v-meter');
+  fill.style.width = pct + '%';
+  fill.className = 'meter-fill ' + (pct >= 100 ? 'full' : pct >= 75 ? 'warn' : 'ok');
+  document.getElementById('idx-range-hint').innerHTML = size === 0
+    ? '⚠️ 盒子是空的，現在沒有任何合法的號碼'
+    : '✅ 目前合法的號碼：<b>0 ～ ' + (size - 1) + '</b>（記得編號從 0 開始！）';
+}
+function flashAddress() { const el = document.getElementById('v-ptr'); el.classList.remove('addr-flash'); void el.offsetWidth; el.classList.add('addr-flash'); }
+function setDesc(icon, title, chip, cls, text) {
+  document.getElementById('desc-icon').textContent = icon;
+  document.getElementById('desc-title').textContent = title;
+  const chipEl = document.getElementById('desc-chip'); chipEl.textContent = chip; chipEl.className = 'chip ' + cls;
+  document.getElementById('desc-text').textContent = text;
+  const bar = document.getElementById('desc-bar'); bar.classList.remove('flash'); void bar.offsetWidth; bar.classList.add('flash');
+}
+function addLog(msg, type) {
+  type = type || 'info';
+  const box = document.getElementById('log-content');
+  const el = document.createElement('div'); el.className = 'log-entry ' + type;
+  const dotColor = { info:'#66ddff', ok:'#66ff99', realloc:'#ff6688' }[type] || '#888';
+  el.innerHTML = '<span style="color:' + dotColor + '">●</span> ' + msg;
+  box.insertBefore(el, box.firstChild);
+  while (box.children.length > 10) box.removeChild(box.lastChild);
+}
+function setButtonsDisabled(disabled) { document.querySelectorAll('#controls .btn').forEach(b => b.disabled = disabled); }
+
+/* ===== 動畫 ===== */
+async function animateAppend(v) {
+  const idx = vectorData.length, width = vectorCapacity * SPACING, off = -width / 2 + SPACING / 2;
+  const cube = createVectorCube(v, idx);
+  cube.position.set(off + idx * SPACING, 0, 0); cube.scale.set(0.01,0.01,0.01);
+  vectorGroup.add(cube); vectorCubes.push(cube);
+  const ghost = vectorGhosts.find(g => g.userData.index === idx);
+  if (ghost) { vectorGroup.remove(ghost); vectorGhosts = vectorGhosts.filter(g => g !== ghost); }
+  await tween(360, t => { const s = Math.max(easeOutBack(t), 0.01); cube.scale.set(s,s,s); }, t => t);
+}
+async function animateInsertShift(midIdx, v) {
+  const width = vectorCapacity * SPACING, off = -width / 2 + SPACING / 2;
+  const moving = vectorCubes.filter(c => c.userData.index >= midIdx);
+  const plan = moving.map(c => ({ cube:c, from:c.position.x, to:off + (c.userData.index + 1) * SPACING }));
+  await tween(480, t => plan.forEach(p => p.cube.position.x = p.from + (p.to - p.from) * t));
+  const cube = createVectorCube(v, midIdx);
+  cube.position.set(off + midIdx * SPACING, 0, 0); cube.scale.set(0.01,0.01,0.01);
+  vectorGroup.add(cube);
+  await tween(320, t => { const s = Math.max(easeOutBack(t), 0.01); cube.scale.set(s,s,s); }, t => t);
+}
+async function animatePop() {
+  const cube = vectorCubes[vectorCubes.length - 1]; if (!cube) return;
+  cube.material.transparent = true;
+  await tween(320, (e, raw) => { const s = Math.max(0.01, 1 - raw); cube.scale.set(s,s,s); cube.material.opacity = 1 - raw; }, t => t);
+}
+async function animateClear() {
+  const cubes = vectorCubes.slice();
+  await tween(430, (e, raw) => cubes.forEach((c, i) => { const lt = clamp01(raw * 1.6 - i * 0.07); c.scale.setScalar(Math.max(0.01, 1 - lt)); }), t => t);
+}
+async function pulseCube(cube) {
+  if (!cube) return;
+  cube.material.emissive.setHex(0xffaa00);
+  await tween(650, (e, raw) => cube.scale.setScalar(1 + Math.sin(raw * Math.PI) * 0.4), t => t);
+  cube.scale.set(1,1,1); cube.material.emissive.setHex(cube.userData.baseEmissive);
+}
+async function highlightArray() {
+  await tween(950, (e, raw) => arrayCubes.forEach((c, i) => { const local = clamp01(raw * 2 - i * 0.12); c.scale.setScalar(1 + Math.sin(local * Math.PI) * 0.25); }), t => t);
+  arrayCubes.forEach(c => c.scale.set(1,1,1));
+}
+async function animateReallocation(finalData, insertIdx, newCapOverride) {
+  const oldData = vectorData.slice(), oldCap = vectorCapacity;
+  const newCap = newCapOverride || Math.max(1, oldCap * 2);
+  const newAddr = vectorMemoryAddr + oldCap * CONFIG.ELEM_BYTES;
+  const oldRow = new THREE.Group();
+  while (vectorGroup.children.length) oldRow.add(vectorGroup.children[0]);
+  vectorGroup.add(oldRow); vectorCubes = []; vectorGhosts = [];
+  const newRow = new THREE.Group();
+  const width = newCap * SPACING, off = -width / 2 + SPACING / 2;
+  const newGhosts = [];
+  for (let i = 0; i < newCap; i++) { const g = createGhostCube(i); g.position.set(off + i * SPACING, 3.0, 0); g.scale.set(0.01,0.01,0.01); newRow.add(g); newGhosts.push(g); }
+  vectorGroup.add(newRow);
+  const oldScale = vectorGroup.scale.x, targetScale = Math.min(1, TARGET_W / width);
+  await tween(620, (e, raw) => {
+    oldRow.position.z = -2.6 * raw;
+    vectorGroup.scale.setScalar(oldScale + (targetScale - oldScale) * raw);
+    newGhosts.forEach((g, i) => {
+      const startT = i / (newCap + 3), durT = 4 / (newCap + 3);
+      const lt = clamp01((raw - startT) / durT);
+      g.scale.setScalar(Math.max(easeOutBack(lt), 0.01));
+      g.position.y = 3.0 * (1 - easeOutCubic(lt));
+    });
+  }, t => t);
+  for (let i = 0; i < oldData.length; i++) {
+    const newPos = (insertIdx >= 0 && i >= insertIdx) ? i + 1 : i;
+    const cube = createVectorCube(finalData[newPos], newPos);
+    cube.position.set(off + newPos * SPACING, 0, 0); cube.scale.set(0.01,0.01,0.01); newRow.add(cube);
+    await tween(150, t => cube.scale.setScalar(Math.max(easeOutBack(t), 0.01)), t => t);
+    await sleep(35);
+  }
+  let addedIdx = -1;
+  if (insertIdx >= 0) addedIdx = insertIdx;
+  else if (finalData.length > oldData.length) addedIdx = finalData.length - 1;
+  if (addedIdx >= 0) {
+    const cube = createVectorCube(finalData[addedIdx], addedIdx);
+    cube.position.set(off + addedIdx * SPACING, 0, 0); cube.scale.set(0.01,0.01,0.01);
+    cube.material.emissive.setHex(0xbb4400); newRow.add(cube);
+    await tween(330, t => cube.scale.setScalar(Math.max(easeOutBack(t), 0.01)), t => t);
+  }
+  await tween(460, (e, raw) => {
+    oldRow.traverse(o => { if (o.material) { o.material.transparent = true; o.material.opacity = 1 - raw; } });
+    oldRow.position.z = -2.6 - 1.6 * raw;
+  }, t => t);
+  vectorGroup.remove(oldRow); vectorGroup.remove(newRow);
+  disposeGroup(oldRow); disposeGroup(newRow);
+  vectorData = finalData; vectorCapacity = newCap; vectorReallocCount++; vectorMemoryAddr = newAddr;
+  buildVectorRow(); flashAddress();
+}
+
+/* ===== 核心操作 ===== */
+async function corePush() {
+  clearTempMarkers();
+  const v = randVal();
+  if (vectorCapacity > 0 && vectorData.length === vectorCapacity) {
+    if (vectorCapacity * 2 > MAX_CAP) return refuse();
+    setDesc('🚚', '加一顆球（' + v + '）', '要搬家了！', 'c-red',
+      '盒子滿了！vector 自動換了一個兩倍大的新盒子，把球全部搬過去。搬家要花時間（這叫「重新配置」），而且門牌號碼也變了！');
+    addLog('加球(' + v + ') → 盒子滿了，搬家！', 'realloc');
+    syncCode('balls.push_back(' + v + ');', '// 盒子滿了 → 自動搬家', 'cl-push');
+    await animateReallocation(vectorData.concat([v]), -1);
+    addLog('搬家完成：球數=' + vectorData.length + ', 格子=' + vectorCapacity, 'ok');
+  } else {
+    setDesc('🟢', '加一顆球（' + v + '）', '速度：很快', 'c-green',
+      vectorCapacity === 0 ? '第一顆球放進去了！盒子第一次被建立，目前只有 1 格。' : '盒子還有空格，直接放進去就好，非常快！');
+    syncCode('balls.push_back(' + v + ');', '// 🟢 加一顆球', 'cl-push');
+    if (vectorCapacity === 0) { addLog('加球(' + v + ') → 建立盒子（1 格）', 'info'); await animateReallocation([v], -1, 1); }
+    else { addLog('加球(' + v + ') → 現在有 ' + (vectorData.length + 1) + ' 顆', 'info'); await animateAppend(v); vectorData.push(v); buildVectorRow(); }
+  }
+}
+async function corePushMany(n) {
+  for (let i = 0; i < n; i++) { await corePush(); await sleep(180); }
+}
+async function coreInsert() {
+  clearTempMarkers();
+  if (vectorData.length === 0) { await corePush(); return; }
+  const v = randVal(), k = Math.floor(vectorData.length / 2);
+  if (vectorData.length === vectorCapacity) {
+    if (vectorCapacity * 2 > MAX_CAP) return refuse();
+    setDesc('✂️', '插隊（位置 ' + k + '）', '搬家 + 移動', 'c-red', '盒子剛好滿了：插隊前要先搬家（換大盒子），搬到新家後再插隊。一次做兩件事，比較花時間。');
+    addLog('插隊(' + k + ') → 先搬家再插', 'realloc');
+    syncCode('balls.insert(...)', '// 插隊（先搬家）', 'cl-insert');
+    const next = vectorData.slice(); next.splice(k, 0, v);
+    await animateReallocation(next, k);
+    addLog('插隊完成：球數=' + vectorData.length, 'ok');
+  } else {
+    setDesc('✂️', '插隊（位置 ' + k + '）', '速度：較慢', 'c-orange', '新球插到 ' + k + ' 號，後面的 ' + (vectorData.length - k) + ' 顆球要全部往後退一格。越多人排隊，插隊越慢！');
+    addLog('插隊(' + k + ') → ' + (vectorData.length - k) + ' 顆球後退', 'info');
+    syncCode('balls.insert(balls.begin()+" + k + ", ' + v + ');', '// ✂️ 插隊', 'cl-insert');
+    await animateInsertShift(k, v);
+    vectorData.splice(k, 0, v); buildVectorRow();
+  }
+}
+async function corePop() {
+  clearTempMarkers();
+  if (vectorData.length === 0) {
+    setDesc('⚠️', '盒子是空的！', '錯誤', 'c-red', '盒子裡一顆球都沒有，拿不到東西！真實程式裡這樣做會出錯（未定義行為），所以拿之前要先看看盒子是不是空的。');
+    addLog('想拿球 → 但盒子是空的！', 'realloc');
+    syncCode('balls.pop_back();', '// ❌ 空盒子不能拿', 'cl-pop');
+    flashScreen('red'); return;
+  }
+  const v = vectorData[vectorData.length - 1];
+  setDesc('🔴', '拿走最後一顆（' + v + '）', '速度：很快', 'c-green', '最後一顆球被拿走了。注意：盒子本身不會變小，空出來的格子還留著，等一下加球可以馬上用。');
+  addLog('拿走 ' + v + ' → 剩下 ' + (vectorData.length - 1) + ' 顆', 'info');
+  syncCode('balls.pop_back();', '// 🔴 拿走最後一顆', 'cl-pop');
+  await animatePop(); vectorData.pop(); buildVectorRow();
+}
+async function coreReserve() {
+  clearTempMarkers();
+  const target = Math.max(4, vectorCapacity * 2);
+  if (target > MAX_CAP) return refuse();
+  setDesc('📐', '預約大盒子（' + target + ' 格）', '速度：較慢（一次）', 'c-orange', '主動先換一個大盒子！雖然現在搬一次家，但之後加很多球都不用再搬家了。知道大概要放多少東西時，這招很實用。');
+  addLog('預約 ' + target + ' 格 → 搬家', 'realloc');
+  syncCode('balls.reserve(' + target + ');', '// 📐 預約大盒子', 'cl-reserve');
+  await animateReallocation(vectorData.slice(), -1, target);
+  addLog('預約完成：現在有 ' + vectorCapacity + ' 格', 'ok');
+}
+async function coreShrink() {
+  clearTempMarkers();
+  if (vectorCapacity <= vectorData.length) {
+    setDesc('📏', '盒子已經是最小了', '沒事發生', 'c-gray', '目前沒有多餘的空格可以縮。');
+    return;
+  }
+  if (vectorData.length === 0) {
+    setDesc('📏', '縮回 0 格', '歸還記憶體', 'c-orange', '盒子空了，把整塊記憶體還回去，盒子消失。');
+    addLog('shrink_to_fit → 縮回 0 格', 'realloc');
+    syncCode('balls.shrink_to_fit();', '// 📏 縮回剛好', 'cl-shrink');
+    vectorCapacity = 0; buildVectorRow(); return;
+  }
+  const newCap = vectorData.length;
+  setDesc('📏', '縮小盒子到 ' + newCap + ' 格', '搬家（變小）', 'c-orange', '把多餘的空格還回去，換一個剛剛好的盒子。這也會搬家（重新配置）喔！');
+  addLog('shrink_to_fit → 縮到 ' + newCap + ' 格', 'realloc');
+  syncCode('balls.shrink_to_fit();', '// 📏 縮回剛好', 'cl-shrink');
+  await animateReallocation(vectorData.slice(), -1, newCap);
+}
+async function coreClear() {
+  clearTempMarkers();
+  if (vectorData.length === 0) { setDesc('🧹', '盒子本來就是空的', '沒事發生', 'c-gray', '沒有球可以清空，不過這樣做也不會出錯。'); return; }
+  setDesc('🧹', '全部清空', '球全拿走了', 'c-orange', '所有球都被拿走，但盒子還留著（綠色空格還在）！下次要加球時可以馬上用，不用再搬家。');
+  addLog('清空 → 球數=0，盒子保留', 'info');
+  syncCode('balls.clear();', '// 🧹 全部清空', 'cl-clear');
+  await animateClear(); vectorData = []; buildVectorRow();
+}
+async function coreArrayModify() {
+  clearTempMarkers();
+  const i = Math.floor(Math.random() * ARRAY_N), v = randVal(), old = arrayData[i];
+  setDesc('🔵', '改右邊的數字（' + i + ' 號）', '速度：很快', 'c-green', 'array 不能加球也不能拿球，但可以改球上面的數字。它的位置永遠不變，非常穩定。');
+  addLog('array[' + i + ']: ' + old + ' → ' + v, 'info');
+  syncCode('bento[' + i + '] = ' + v + ';', '// ✅ 改數字', 'cl-array-mod');
+  arrayData[i] = v; buildArrayRow();
+  const cube = arrayCubes[i]; cube.scale.set(0.01,0.01,0.01);
+  await tween(360, t => cube.scale.setScalar(Math.max(easeOutBack(t), 0.01)), t => t);
+}
+function coreReset() {
+  vectorData = []; vectorCapacity = 0; vectorReallocCount = 0; vectorMemoryAddr = CONFIG.BASE_ADDR;
+  arrayData = [1,2,3,4,5,6,7,8];
+  document.getElementById('log-content').innerHTML = '';
+  buildVectorRow(); buildArrayRow();
+  addLog('已回到最一開始的狀態', 'info');
+}
+function refuse() {
+  setDesc('⛔', '盒子太大了', '示範上限', 'c-red', '為了讓你看得清楚，盒子最大只到 ' + MAX_CAP + ' 格。按「重來」再玩一次吧！');
+  addLog('超過示範上限 ' + MAX_CAP + ' 格', 'realloc');
+}
+async function coreDemo() {
+  coreReset();
+  setDesc('▶️', '自動表演開始', '播放中', 'c-blue', '看著就好：連續加 6 顆球，你會看到盒子搬家 3 次（門牌號碼一直變），然後是插隊和拿走一顆。');
+  addLog('=== 自動表演開始 ===', 'info');
+  await sleep(700);
+  for (let i = 0; i < 6; i++) { await corePush(); await sleep(500); }
+  await coreInsert(); await sleep(550);
+  await corePop(); await sleep(300);
+  setDesc('✅', '表演結束', '完成', 'c-green', '看到了嗎？盒子自動變大了 3 次。每次搬家後門牌號碼都會變——這就是 vector 最重要的特性！');
+  addLog('=== 表演結束 ===', 'ok');
+}
+
+/* ===== 錯誤實驗室 ===== */
+async function coreAccess(useAt) {
+  clearTempMarkers();
+  const rawStr = document.getElementById('idx-input').value.trim();
+  if (rawStr === '' || !/^-?\d+$/.test(rawStr)) {
+    setDesc('❌', '請輸入數字', '輸入錯誤', 'c-red', '格子號碼要是整數喔！可以試試負數或很大的數字，看看會怎樣。');
+    flashScreen('red'); addLog('「' + rawStr + '」不是整數', 'realloc'); return;
+  }
+  let idx = parseInt(rawStr, 10);
+  idx = Math.max(-CONFIG.MAX_IDX, Math.min(CONFIG.MAX_IDX, idx));
+  const opName = useAt ? ('先檢查：拿 ' + idx + ' 號') : ('不檢查：拿 ' + idx + ' 號');
+  if (vectorData.length === 0) {
+    if (useAt) {
+      setDesc('🛡️', opName, '安全擋住了', 'c-orange', '盒子是空的！「先檢查」的方法發現了，安全地告訴你：「這個號碼不存在喔」，程式不會壞掉。');
+      addLog('先檢查(' + idx + ') → 空盒子，安全擋下', 'info');
+      syncCode('balls.at(' + idx + ')', '// ✅ 安全擋下', 'cl-at');
+      flashScreen('yellow');
+    } else {
+      setDesc('😱', opName, '危險！', 'c-red', '盒子是空的！「不檢查」的方法卻直接伸手去拿——就像對著空氣抓東西，可能拿到垃圾，甚至讓程式崩潰。');
+      addLog('不檢查(' + idx + ') → 空盒子，危險！', 'realloc');
+      syncCode('balls[' + idx + ']', '// ❌ 危險', 'cl-raw');
+      flashScreen('red');
+    }
+    return;
+  }
+  if (idx >= 0 && idx < vectorData.length) {
+    const value = vectorData[idx];
+    setDesc('🔍', opName, '成功了', 'c-green',
+      idx === 0 ? '拿到了 0 號的球：' + value + '。記得！第一顆球是 0 號，不是 1 號。' : '拿到了 ' + idx + ' 號的球：' + value + '。號碼存在時，兩種方法結果一樣。');
+    addLog('拿到 ' + idx + ' 號 → ' + value + ' ✓', 'ok');
+    syncCode('balls[' + idx + ']', '// 拿到 ' + value, 'cl-access');
+    flashScreen('green');
+    await pulseCube(vectorCubes[idx]); return;
+  }
+  if (useAt) {
+    setDesc('🛡️', opName, '安全擋住了', 'c-orange',
+      idx < 0 ? '沒有負數的格子！「先檢查」的方法發現了，安全地告訴你：「號碼不對喔」，程式不會壞掉。' : '盒子只有 0～' + (vectorData.length - 1) + ' 號，沒有 ' + idx + ' 號。「先檢查」的方法幫你擋下來了，安全！');
+    addLog('先檢查(' + idx + ') → 號碼不存在，安全擋下', 'info');
+    syncCode('balls.at(' + idx + ')', '// ✅ 安全', 'cl-at');
+    flashScreen('yellow');
+  } else {
+    const garbage = randGarbage();
+    const width = vectorCapacity * SPACING, off = -width / 2 + SPACING / 2;
+    setDesc('😱', opName, '危險！', 'c-red',
+      idx < 0 ? '沒有負數的格子！但「不檢查」的方法直接伸手到盒子前面亂抓，抓到了垃圾：' + garbage + '。真實程式裡這樣可能直接崩潰！' : '沒有 ' + idx + ' 號！但「不檢查」的方法直接伸手亂抓，抓到了垃圾：' + garbage + '。看似沒事，其實非常危險！');
+    addLog('不檢查(' + idx + ') → 抓到垃圾 ' + garbage, 'realloc');
+    syncCode('balls[' + idx + ']', '// ❌ 抓到垃圾', 'cl-raw');
+    flashScreen('red');
+    const dispIdx = Math.max(-2, Math.min(idx, vectorCapacity + 1));
+    const marker = makeDangerGroup('抓到垃圾 ' + garbage + ' ?', idx < 0 ? '伸手到盒子前面亂抓！' : '這個號碼根本不存在！');
+    marker.position.set(off + dispIdx * SPACING, 1.0, 0.9);
+    vectorGroup.add(marker); tempMarkers.push(marker);
+  }
+}
+async function coreDangling() {
+  coreReset();
+  setDesc('📝', '步驟 1：抄下門牌號碼', '記在紙條上', 'c-blue', '假設你把盒子的門牌號碼抄在紙條上（紅色箭頭）。現在盒子有 4 顆球，剛好裝滿。接下來加一顆球會怎樣？');
+  vectorCapacity = 4; vectorData = [randVal(), randVal(), randVal(), randVal()]; buildVectorRow();
+  addLog('抄下門牌號碼：' + hex(vectorMemoryAddr), 'info');
+  const width = vectorCapacity * SPACING, off = -width / 2 + SPACING / 2;
+  const pMarker = new THREE.Group();
+  const cone = new THREE.Mesh(GEO.cone, new THREE.MeshPhongMaterial({ color: 0xff3355, emissive: 0x551122 }));
+  cone.rotation.x = Math.PI; cone.position.y = 2.05; pMarker.add(cone);
+  const pLabel = makeTextSprite('小紙條', '#ff6688', 62); pLabel.position.y = 2.9; pMarker.add(pLabel);
+  pMarker.position.set(off, 0, 0); vectorGroup.add(pMarker);
+  await sleep(1500);
+  const oldAddr = vectorMemoryAddr;
+  setDesc('🚚', '步驟 2：加一顆球', '要搬家了', 'c-red', '盒子滿了，開始搬家！注意看：盒子搬去新地方了，但紅色小紙條還留在「舊地址」那邊⋯⋯');
+  await corePush(); await sleep(350);
+  const danger = makeDangerGroup('紙條上的舊地址（已經沒東西了）', '☠ 照紙條去找 → 撲空！');
+  danger.position.set(0, 0.9, -3.4); vectorGroup.add(danger); tempMarkers.push(danger);
+  setDesc('☠️', '紙條作廢了！', '經典陷阱', 'c-red', '搬家後，盒子在新地址 ' + hex(vectorMemoryAddr) + '，但紙條還寫著舊地址 ' + hex(oldAddr) + '（那裡已經空了）。照紙條去找就會撲空！記住：搬家後要重新問一次新地址。');
+  addLog('⚠ 紙條作廢！舊地址 ' + hex(oldAddr) + ' 已經沒東西了', 'realloc');
+  flashScreen('red');
+}
+
+/* ===== 按鈕綁定 ===== */
+let inTour = false;
+function guard(fn) {
+  return async function () {
+    if (busy || inTour) return;
+    busy = true; setButtonsDisabled(true);
+    try { await fn(); } catch (err) { console.error(err); }
+    busy = false; setButtonsDisabled(false);
+  };
+}
+const btnMap = {
+  push: guard(corePush), insert: guard(coreInsert), pop: guard(corePop),
+  reserve: guard(coreReserve), shrink: guard(coreShrink), clear: guard(coreClear),
+  array: guard(coreArrayModify), batch: guard(() => corePushMany(5)), demo: guard(coreDemo),
+  accessRaw: guard(() => coreAccess(false)), accessAt: guard(() => coreAccess(true)),
+  dangling: guard(coreDangling),
+  reset: guard(() => { coreReset(); setDesc('🔄', '重來了', '✓', 'c-gray', '按「加一顆球」開始吧！'); })
+};
+document.getElementById('btn-push').addEventListener('click', btnMap.push);
+document.getElementById('btn-insert').addEventListener('click', btnMap.insert);
+document.getElementById('btn-pop').addEventListener('click', btnMap.pop);
+document.getElementById('btn-reserve').addEventListener('click', btnMap.reserve);
+document.getElementById('btn-shrink').addEventListener('click', btnMap.shrink);
+document.getElementById('btn-clear').addEventListener('click', btnMap.clear);
+document.getElementById('btn-array').addEventListener('click', btnMap.array);
+document.getElementById('btn-batch').addEventListener('click', btnMap.batch);
+document.getElementById('btn-demo').addEventListener('click', btnMap.demo);
+document.getElementById('btn-reset').addEventListener('click', btnMap.reset);
+document.getElementById('btn-access-raw').addEventListener('click', btnMap.accessRaw);
+document.getElementById('btn-access-at').addEventListener('click', btnMap.accessAt);
+document.getElementById('btn-dangling').addEventListener('click', btnMap.dangling);
+
+document.getElementById('btn-adv-toggle').addEventListener('click', function () {
+  const panel = document.getElementById('adv-panel');
+  const open = panel.classList.toggle('open');
+  this.setAttribute('aria-expanded', open);
+  this.querySelector('.btn-text').textContent = open ? '🔧 收起進階操作 ▴' : '🔧 進階操作 ▾';
+});
+
+/* 速度切換 */
+document.getElementById('btn-speed').addEventListener('click', function () {
+  speedFactor = speedFactor === 1 ? 0.45 : 1;
+  this.textContent = speedFactor === 1 ? '⚡ 正常速度' : '🐢 慢動作中';
+  this.classList.toggle('active', speedFactor !== 1);
+  this.setAttribute('aria-pressed', speedFactor !== 1);
+});
+
+/* ===== 新手導覽 ===== */
+let tutIdx = 0;
+const tourSteps = [
+  { emoji:'👋', title:'你好！來認識 vector', text:'vector 就像一個<b>神奇伸縮盒</b>：你不用先說要放多少東西，它會自己變大！左邊現在是空的盒子，我們開始吧。', action:async()=>{ coreReset(); } },
+  { emoji:'🟠', title:'放第一顆球', text:'看！一顆橙色的球放進去了。<b>每顆球 = 一筆資料</b>（例如一個數字）。看左上角的卡片：「球數」變成了 1。', action:async()=>{ await corePush(); } },
+  { emoji:'🟩', title:'綠色空格是什麼？', text:'vector 很聰明：它會先<b>多留幾個空格</b>備用（綠色虛線框），這樣下次放球就不用急著找空間。這叫做 <span class="term">capacity（容量）</span>。', action:async()=>{ await corePush(); await sleep(350); await corePush(); } },
+  { emoji:'🚚', title:'裝滿了會怎樣？', text:'盒子快裝滿了！再放一顆看看——<b>vector 會自動換一個兩倍大的新盒子，把所有球搬過去</b>。這叫「重新配置」，就像搬家，要花一點時間。', action:async()=>{ await corePush(); await sleep(1000); await corePush(); } },
+  { emoji:'📝', title:'搬家的小陷阱', text:'搬家後，盒子的「門牌號碼」（位址）改變了！如果你之前在紙條上抄了舊地址（這叫「指標」），現在照著去找——<b>會撲空！</b>看示範：', action:async()=>{ await coreDangling(); } },
+  { emoji:'🍱', title:'右邊：array 固定盒', text:'array 是<b>固定便當盒</b>：出廠就是 8 格，不能變大也不能變小。好處是又快又穩定、位置永遠不變；缺點是你必須一開始就決定大小。', action:async()=>{ coreReset(); await highlightArray(); } },
+  { emoji:'✂️', title:'還能做這些事', text:'你也可以：<b>插隊到中間</b>（後面的球要全部往後退一格）、<b>拿走最後一顆</b>、<b>全部清空</b>⋯⋯現在示範給你：', action:async()=>{ await corePush(); await sleep(250); await corePush(); await sleep(250); await coreInsert(); await sleep(700); await corePop(); } },
+  { emoji:'🎮', title:'換你玩了！', text:'導覽結束，你真棒！🎉 試試下面的按鈕吧。想玩「插隊」「縮回剛好」「錯誤實驗室」「搬家陷阱示範」，就點 <b>🔧 進階操作</b> 展開。', action:async()=>{ coreReset(); setDesc('🎮','自由探索時間','開始吧','c-green','想加幾顆球就加幾顆！裝滿的時候注意看搬家動畫。'); const c = document.getElementById('controls'); c.classList.remove('glow'); void c.offsetWidth; c.classList.add('glow'); } }
+];
+function renderTutDots() {
+  const box = document.getElementById('tut-dots'); box.innerHTML = '';
+  tourSteps.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'tut-dot' + (i < tutIdx ? ' done' : '') + (i === tutIdx ? ' active' : '');
+    box.appendChild(d);
+  });
+}
+async function showTourStep(i) {
+  tutIdx = i;
+  const st = tourSteps[i];
+  document.getElementById('tut-step').textContent = '新手導覽 ' + (i + 1) + ' / ' + tourSteps.length;
+  document.getElementById('tut-title-text').textContent = st.title;
+  document.querySelector('#tut-title .tut-emoji').textContent = st.emoji;
+  document.getElementById('tut-text').innerHTML = st.text;
+  document.getElementById('tut-next').textContent = (i === tourSteps.length - 1) ? '完成，開始玩！' : '下一步 →';
+  renderTutDots();
+  document.getElementById('tut-next').disabled = true;
+  if (st.action) { try { await st.action(); } catch (e) { console.error(e); } }
+  document.getElementById('tut-next').disabled = false;
+}
+async function startTour() {
+  if (busy) return;
+  inTour = true;
+  document.getElementById('tutorial-card').classList.remove('hidden');
+  document.getElementById('adv-panel').classList.remove('open');
+  setButtonsDisabled(true);
+  coreReset();
+  await sleep(400);
+  await showTourStep(0);
+}
+function endTour(finished) {
+  inTour = false;
+  document.getElementById('tutorial-card').classList.add('hidden');
+  setButtonsDisabled(false);
+  if (!finished) { coreReset(); setDesc('🎮','自由探索時間','開始吧','c-green','想加幾顆球就加幾顆！裝滿的時候注意看搬家動畫。想看導覽隨時按上面的「🎓 重新開始導覽」。'); }
+}
+document.getElementById('tut-next').addEventListener('click', async function () {
+  if (!inTour) return;
+  if (tutIdx >= tourSteps.length - 1) { endTour(true); return; }
+  this.disabled = true; await showTourStep(tutIdx + 1);
+});
+document.getElementById('tut-skip').addEventListener('click', () => endTour(false));
+document.getElementById('btn-restart-tour').addEventListener('click', () => { if (!busy) startTour(); });
+
+/* ===== 懸停提示（含觸控、節流）===== */
+const raycaster = new THREE.Raycaster();
+raycaster.params.Line.threshold = 0.1;
+const mouseNDC = new THREE.Vector2();
+function onPointer(e) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  lastClient = { x: e.clientX, y: e.clientY };
+  pointerDirty = true;
+}
+renderer.domElement.addEventListener('pointermove', onPointer);
+renderer.domElement.addEventListener('pointerdown', onPointer);
+renderer.domElement.addEventListener('pointerleave', () => setHovered(null));
+
+function updateHover() {
+  raycaster.setFromCamera(mouseNDC, camera);
+  const targets = vectorCubes.concat(vectorGhosts, arrayCubes);
+  const hits = raycaster.intersectObjects(targets, false);
+  setHovered(hits.length ? hits[0].object : null);
+}
+function setHovered(obj) {
+  if (hovered === obj) { if (obj) positionTooltip(); return; }
+  if (hovered) {
+    const u = hovered.userData;
+    if (u.kind === 'ghost') { hovered.material.opacity = 0.06; u.edgeMat.color.setHex(0x55ee99); }
+    else hovered.material.emissive.setHex(u.baseEmissive);
+  }
+  hovered = obj;
+  const tip = document.getElementById('tooltip');
+  if (hovered) {
+    const u = hovered.userData;
+    if (u.kind === 'ghost') {
+      hovered.material.opacity = 0.24; u.edgeMat.color.setHex(0xccffdd);
+      tip.className = 'gho';
+      tip.innerHTML = '<div class="t-main">🟩 ' + u.index + ' 號空格</div><div class="t-sub">先留著備用的格子（還沒放球）</div><div class="t-sub">下次加球可以直接用，不用搬家</div>';
+    } else if (u.kind === 'vector') {
+      hovered.material.emissive.setHex(0xaa5522); tip.className = 'vec';
+      tip.innerHTML = '<div class="t-main">🟠 ' + u.index + ' 號的球 = ' + u.value + '</div><div class="t-sub">放在盒子裡的第 ' + (u.index + 1) + ' 顆球</div><div class="t-sub">（編號從 0 開始！）</div>';
+    } else {
+      hovered.material.emissive.setHex(0x2a6bff); tip.className = 'arr';
+      tip.innerHTML = '<div class="t-main">🔵 ' + u.index + ' 號的球 = ' + u.value + '</div><div class="t-sub">便當盒的固定位置</div><div class="t-sub">可以改數字，但球不會消失</div>';
+    }
+    tip.style.display = 'block'; positionTooltip();
+    renderer.domElement.style.cursor = 'pointer';
+  } else { tip.style.display = 'none'; renderer.domElement.style.cursor = 'grab'; }
+}
+function positionTooltip() {
+  const tip = document.getElementById('tooltip');
+  const pad = 16;
+  let tx = lastClient.x + pad, ty = lastClient.y + pad;
+  const r = tip.getBoundingClientRect();
+  if (tx + r.width > window.innerWidth - 8) tx = lastClient.x - r.width - pad;
+  if (ty + r.height > window.innerHeight - 8) ty = lastClient.y - r.height - pad;
+  tip.style.left = tx + 'px'; tip.style.top = ty + 'px';
+}
+
+/* ===== 渲染迴圈 ===== */
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  if (pointerDirty) { pointerDirty = false; updateHover(); }
+  const time = performance.now() * 0.001;
+  const all = vectorCubes.concat(vectorGhosts, arrayCubes);
+  for (let i = 0; i < all.length; i++) {
+    const c = all[i], u = c.userData;
+    u.lift += ((c === hovered ? 0.34 : 0) - u.lift) * 0.16;
+    c.position.y = Math.sin(time * 1.6 + i * 0.45) * 0.045 + u.lift;
+    if (u.kind === 'ghost') { if (c !== hovered) u.edgeMat.opacity = 0.55 + Math.sin(time * 2 + i) * 0.2; }
+    else { c.rotation.y = Math.sin(time * 0.9 + i * 0.4) * 0.06; }
+  }
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+/* ===== 初始化 ===== */
+buildVectorRow(); buildArrayRow();
+setButtonsDisabled(true);
+document.getElementById('loader').classList.add('hidden');
+setTimeout(startTour, 700);
+</script>
+</body>
+</html>
